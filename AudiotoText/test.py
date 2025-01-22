@@ -12,8 +12,7 @@ with sr.AudioFile(audio_file) as source:
 
 # Reconnaissance de la parole
 try:
-    #texte = recognizer.recognize_google(audio_data, language="fr-FR")
-    texte = recognizer.recognize_sphinx(audio_data, language="fr-FR")
+    texte = recognizer.recognize_google(audio_data, language="fr-FR")
     print("Texte transcrit :", texte)
 except sr.UnknownValueError:
     print("L'audio n'a pas pu être compris.")
