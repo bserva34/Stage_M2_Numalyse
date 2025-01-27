@@ -7,7 +7,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     app.setApplicationName("SLV")
-    app.setWindowIcon(QIcon("icon2.png"))
+    app.setWindowIcon(QIcon("icon3.png"))
 
     window = VLCMainWindow()
     window.show()
