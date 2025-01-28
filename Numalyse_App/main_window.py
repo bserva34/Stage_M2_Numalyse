@@ -1,8 +1,11 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt
 from vlc_player_widget import VLCPlayerWidget
 from vlc_sync_widget import SyncWidget
+from overlay_grid_widget import OverlayGridWidget 
+
+
 
 class VLCMainWindow(QMainWindow):
     """ Fenêtre principale contenant le lecteur et les menus. """
@@ -26,6 +29,13 @@ class VLCMainWindow(QMainWindow):
         self.create_toolbar()
 
         self.sync_mode = False  # État du mode de synchronisation
+
+        self.vlc_widget.enable_recording.connect(self.update_capture_video_button)
+
+        self.overlay_grid = OverlayGridWidget(self)
+        self.overlay_grid.setGeometry(self.vlc_widget.geometry())  # Même taille que VLC
+        self.overlay_grid.hide()
+        self.grille_button.toggled.connect(self.overlay_grid.toggle_grid)
         
 
     def create_menu_bar(self):
@@ -54,7 +64,14 @@ class VLCMainWindow(QMainWindow):
         self.seg_mode_action = QAction("Segmentation", self)
         self.seg_mode_action.triggered.connect(self.seg_button_use)
         self.seg_mode_action.setEnabled(False)
+        self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
         outil_menu.addAction(self.seg_mode_action)
+
+        self.grille_button = QAction("Affichage Grille", self)
+        self.grille_button.setCheckable(True)
+        self.grille_button.toggled.connect(self.grille_button_use)
+        #outil_menu.addAction(self.grille_button)
+
 
         autres_mode_action = QAction("Autres...", self)
         autres_mode_action.triggered.connect(self.seg_button_use)
@@ -67,7 +84,6 @@ class VLCMainWindow(QMainWindow):
             self.sync_widget.load_video()
         else:
             self.vlc_widget.load_file()
-            self.seg_mode_action.setEnabled(True)
             
         
 
@@ -76,15 +92,27 @@ class VLCMainWindow(QMainWindow):
         self.toolbar = QToolBar("Barre d'outils")
         self.addToolBar(Qt.TopToolBarArea, self.toolbar)
 
-        capture_button = QAction("📸 Capture d'écran", self)
-        capture_button.triggered.connect(self.capture_action)
-        self.toolbar.addAction(capture_button)
+        self.capture_button = QAction("📸 Capture d'écran", self)
+        self.capture_button.setEnabled(False)
+        self.capture_button.triggered.connect(self.capture_action)
+        self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
+        self.toolbar.addAction(self.capture_button)
+
+        self.capture_video_button = QPushButton("📽️ Démarrer la capture vidéo", self)
+        self.capture_video_button.setEnabled(False)
+        self.capture_video_button.clicked.connect(self.capture_video_action)
+        self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
+        self.toolbar.addWidget(self.capture_video_button)
 
     def capture_action(self):
         if self.sync_mode:
             self.sync_widget.capture_screenshot()
         else:
             self.vlc_widget.capture_screenshot()
+
+    def capture_video_action(self):
+        if self.sync_mode==False:
+            self.vlc_widget.capture_video()
 
     def sync_button_use(self):
         """ Fonction qui gère l'activation et la désactivation du mode synchronisé. """
@@ -95,20 +123,17 @@ class VLCMainWindow(QMainWindow):
 
             self.sync_widget.exit_video_players()
 
-            # Revenir au mode normal avec un seul lecteur
-            self.vlc_widget = VLCPlayerWidget(True)
-            self.setCentralWidget(self.vlc_widget)
+            self.recreate_window()
+
 
         else:
-            # Si on n'est pas en mode synchronisé, on active ce mode
+            self.capture_video_button.setEnabled(False)
             self.sync_mode = True
 
-            # Créer un nouveau SyncWidget chaque fois que l'on entre en mode synchronisé
-            self.sync_widget = SyncWidget(self)  # Re-créer SyncWidget
-
+            self.sync_widget = SyncWidget(self)
+            self.create_sync_window()
             self.sync_widget.configure()
 
-            # Ajouter le bouton "Quitter"
             self.add_quit_button()
 
             self.vlc_widget.stop_video()
@@ -131,3 +156,36 @@ class VLCMainWindow(QMainWindow):
 
     def seg_button_use(self):
         print("Segmentation")
+
+    def grille_button_use(self):
+        if self.grille_button.isChecked():
+            print("Mode Segmentation activé")
+            self.overlay_grid.show()
+        else:
+            print("Mode Segmentation désactivé")
+            self.overlay_grid.hide()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 
+        
+
+    def update_capture_video_button(self, is_recording):
+        """ Met à jour le texte du bouton en fonction de l'état d'enregistrement. """
+        if is_recording:
+            self.capture_video_button.setText("📽️ Arrêter la capture vidéo")
+            self.capture_video_button.setStyleSheet("background-color: red;")
+        else:
+            self.capture_video_button.setText("📽️ Démarrer la capture vidéo")
+            self.capture_video_button.setStyleSheet("")
+
+
+    def recreate_window(self):
+        self.vlc_widget = VLCPlayerWidget(True)
+        self.setCentralWidget(self.vlc_widget)
+        self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
+        self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
+        self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
+
+    def create_sync_window(self):
+        self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)

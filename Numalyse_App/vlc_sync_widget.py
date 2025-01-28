@@ -7,16 +7,14 @@ from datetime import datetime
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QFrame, QLabel, QSlider, QDialog, QRadioButton, QButtonGroup, QApplication
 )
-from PySide6.QtCore import Qt, QTimer, QRect
+from PySide6.QtCore import Qt, QTimer, QRect, Signal
 from vlc_player_widget import VLCPlayerWidget
 from PySide6.QtGui import QImage, QPainter
 
 
-
-
-
 class SyncWidget(QWidget):
     """ Widget permettant la lecture synchronisée de vidéos. """
+    enable_segmentation = Signal(bool)
 
     def __init__(self,parent=None):
         super().__init__(parent)
@@ -27,13 +25,7 @@ class SyncWidget(QWidget):
         self.num_windows = 0  # Nombre de sous-fenêtres actives
         self.play=False
 
-        self.setup_initial_ui()
-
-    def setup_initial_ui(self):
-        """ Configure l'interface initiale. """
-        #label = QLabel("Cliquez sur le bouton 'Configurer' pour démarrer.", self)
-        #label.setAlignment(Qt.AlignCenter)
-        #self.layout.addWidget(label)
+        self.cpt_load=0
 
     def configure(self):
         """ Ouvre une fenêtre de configuration pour choisir le mode. """
@@ -93,11 +85,7 @@ class SyncWidget(QWidget):
         
         parent_window = self.main_window  # Utiliser la référence correcte
         
-        # Supprimer l'ancien lecteur
-        if hasattr(parent_window, 'vlc_widget'):
-            parent_window.vlc_widget.setParent(None)
-            parent_window.vlc_widget.deleteLater()
-            #print("Ancien lecteur supprimé.")
+
 
         # Créer une disposition en grille
         grid_layout = QGridLayout()
@@ -110,6 +98,7 @@ class SyncWidget(QWidget):
         for i in range(self.num_windows):
             player = VLCPlayerWidget(True,True,True)
             player.begin=False
+            player.enable_load.connect(self.cpt_load_action)
             self.player_widgets.append(player)
             grid_layout.addWidget(player, i // cols, i % cols)
         
@@ -120,6 +109,20 @@ class SyncWidget(QWidget):
         #print("Fenêtre mise à jour avec les nouveaux lecteurs.")
         self.create_control_buttons()
 
+    def cpt_load_action(self, val):
+        if(val):
+            self.cpt_load+=1
+        else:
+            self.cpt_load-=1
+
+        if (self.cpt_load==self.num_windows):
+            self.enable_segmentation.emit(True)
+        else:
+            self.enable_segmentation.emit(False)
+
+        if (self.cpt_load==0):
+            self.play_pause_button.setText("⏯️ Lire")
+            self.play=False
 
     def create_control_buttons(self):
         """ Crée et ajoute automatiquement les boutons de contrôle au layout donné. """
@@ -156,19 +159,28 @@ class SyncWidget(QWidget):
         for i in self.player_widgets:
             i.stop_video()
         self.play_pause_button.setText("⏯️ Lire")
+        self.enable_segmentation.emit(False)
 
     def load_video(self):
         fp=self.player_widgets[0].load_file(False)
         for i in self.player_widgets:
+            i.begin=True
             i.load_video(fp)
+        self.play_pause_button.setText("⏯️ Pause")
+        self.play=True
+        self.enable_segmentation.emit(True)
+
 
     def play_all(self):
         for i in self.player_widgets:
-            i.play_video()
+            if i.media is not None:
+                i.play_video()
 
     def stop_all(self):
         for i in self.player_widgets:
-            i.pause_video()
+            if i.media is not None:
+                i.pause_video()
+
 
 
     def capture_screenshot(self):
@@ -186,7 +198,12 @@ class SyncWidget(QWidget):
             return None
 
         # Charger les images capturées
-        loaded_images = [Image.open(img_path) for img_path in images]
+        loaded_images = []
+        for img_path in images:
+            try:
+                loaded_images.append(Image.open(img_path))
+            except (IOError, FileNotFoundError) as e:
+                return
         
         # Calculer le nombre de lignes nécessaires (2 images par ligne)
         num_columns = 2

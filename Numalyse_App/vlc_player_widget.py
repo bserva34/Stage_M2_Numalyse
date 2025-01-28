@@ -2,12 +2,17 @@ import sys
 import os
 import vlc
 import time
+import subprocess
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 
 class VLCPlayerWidget(QWidget):
     """ Widget contenant le lecteur VLC et les boutons de contrôle. """
+    enable_segmentation = Signal(bool)
+    enable_recording = Signal(bool)
+
+    enable_load = Signal(bool)
 
     def __init__(self,add_controls=False,add_window_time=True,m=False):
         super().__init__()
@@ -22,6 +27,8 @@ class VLCPlayerWidget(QWidget):
         else : 
             self.player.audio_set_mute(False)
         
+        self.capture_dir = "captures"
+        self.path_of_media=""
 
         # Layout principal
         main_layout = QVBoxLayout(self)
@@ -52,6 +59,10 @@ class VLCPlayerWidget(QWidget):
         self.timer.timeout.connect(self.update_ui)
 
         self.begin=True
+
+        self.is_recording=False
+        self.start=0
+        self.end=0
 
     def create_control_buttons(self, parent_layout):
         """ Crée et ajoute automatiquement les boutons de contrôle au layout donné. """
@@ -129,6 +140,7 @@ class VLCPlayerWidget(QWidget):
     def load_file(self,auto=True):
         file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", "", "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov)")
         if auto : self.load_video(file_path)
+        self.path_of_media=file_path
         return file_path
 
 
@@ -142,9 +154,12 @@ class VLCPlayerWidget(QWidget):
             self.timer.start()
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")
+
+            self.active_segmentation()
             # self.media.parse_with_options(vlc.MediaParseFlag.local, 0)
             # time.sleep(1)
             # print(self. media.get_duration() // 1000)
+            self.enable_load.emit(True)
     
     def play_video(self):
         self.player.play()
@@ -167,20 +182,21 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider.setEnabled(False)
         self.time_label.setText("00:00 / 00:00")
         self.time_label.setStyleSheet("color: white;")
+        self.disable_segmentation()
+        self.enable_load.emit(False)
 
     def capture_screenshot(self, name=""):
         """ Capture un screenshot de la vidéo. """
-        capture_dir = "captures"
-        if not os.path.exists(capture_dir):
-            os.makedirs(capture_dir)
+        if not os.path.exists(self.capture_dir):
+            os.makedirs(self.capture_dir)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         # Si un nom est fourni, il est ajouté après un underscore
         if name:
-            capture_path = os.path.join(capture_dir, f"capture_{timestamp}_{name}.png")
+            capture_path = os.path.join(self.capture_dir, f"capture_{timestamp}_{name}.png")
         else:
-            capture_path = os.path.join(capture_dir, f"capture_{timestamp}.png")
+            capture_path = os.path.join(self.capture_dir, f"capture_{timestamp}.png")
 
         if self.player.video_take_snapshot(0, capture_path, 0, 0):
             print(f" Capture enregistrée : {capture_path}")
@@ -233,4 +249,60 @@ class VLCPlayerWidget(QWidget):
         if total_time > 0 and 0 <= new_time <= total_time:
             self.player.set_time(new_time)
             self.update_ui()
+
+    def active_segmentation(self):
+        self.enable_segmentation.emit(True)
+
+    def disable_segmentation(self):
+        self.enable_segmentation.emit(False)
+
+    def capture_video(self):
+        print("capture video")
+        if self.is_recording:
+            self.stop_recording()
+        else:
+            self.start_recording()
+
+    def extract_segment_with_ffmpeg(self, input_file, start_time, duration, output_file):
+        print('Extraction avec FFmpeg...')
+        
+        # Construire la commande FFmpeg pour extraire la séquence vidéo
+        command = [
+            "ffmpeg",
+            "-i", input_file,              # Spécifie le fichier d'entrée
+            "-ss", str(start_time),         # Temps de début (en secondes)
+            "-t", str(duration),            # Durée de l'extrait (en secondes)
+            "-c:v", "copy",                 # Copier le flux vidéo sans réencodage
+            "-c:a", "copy",                 # Copier le flux audio sans réencodage
+            output_file                     # Fichier de sortie
+        ]
+        
+        with open(os.devnull, "w") as devnull:
+                try:
+                    # Exécuter la commande et rediriger stdout et stderr vers DEVNULL
+                    subprocess.run(command, check=True, stdout=devnull, stderr=devnull)
+                    print(f"Extrait enregistré dans {output_file}")
+                except subprocess.CalledProcessError as e:
+                    print(f"Erreur lors de l'extraction : {e}")
+
+
+    def start_recording(self):
+        self.is_recording=True
+        self.enable_recording.emit(True)
+        self.start=self.player.get_time()
+
+    def stop_recording(self):
+        self.is_recording = False
+        self.enable_recording.emit(False)
+        self.end = self.player.get_time() // 1000  # Conversion en secondes
+        self.start = self.start // 1000            # Conversion en secondes
+        duration = self.end - self.start
+
+        if not os.path.exists(self.capture_dir):
+            os.makedirs(self.capture_dir)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        capture_path = os.path.join(self.capture_dir, f"capture_{timestamp}.mp4")
+        self.extract_segment_with_ffmpeg(self.path_of_media, self.start, duration, capture_path)
+
+
 
