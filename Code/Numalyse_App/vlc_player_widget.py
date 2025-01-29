@@ -6,6 +6,7 @@ import subprocess
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
 from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QKeySequence, QShortcut
 
 class VLCPlayerWidget(QWidget):
     """ Widget contenant le lecteur VLC et les boutons de contrôle. """
@@ -14,11 +15,12 @@ class VLCPlayerWidget(QWidget):
 
     enable_load = Signal(bool)
 
-    def __init__(self,add_controls=False,add_window_time=True,m=False):
+    def __init__(self,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__()
 
         self.instance = vlc.Instance("--quiet")
         self.player = self.instance.media_player_new()
+
         self.media = None  # Pour suivre le fichier chargé
         self.ac = add_controls
         self.mute = m
@@ -43,7 +45,8 @@ class VLCPlayerWidget(QWidget):
 
         if add_controls : 
             self.create_control_buttons(main_layout)
-
+        if c :
+            self.create_keyboard()
 
         # Définir la sortie vidéo en fonction de l'OS
         if sys.platform.startswith("linux"):
@@ -77,6 +80,10 @@ class VLCPlayerWidget(QWidget):
         button_layout.addWidget(self.stop_button)
 
         parent_layout.addLayout(button_layout)
+
+    def create_keyboard(self):
+        self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
+        self.play_pause_shortcut.activated.connect(self.toggle_play_pause)
 
 
     def create_window_time(self, parent_layout):
@@ -115,10 +122,6 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider.setEnabled(False)
         parent_layout.addWidget(self.progress_slider)
 
-
-
-
-
     def toggle_play_pause(self):
         """ Joue ou met en pause la vidéo, ou demande un fichier si aucune vidéo chargée. """
         if self.media is None:
@@ -129,12 +132,14 @@ class VLCPlayerWidget(QWidget):
             self.play_video()
 
     def toggle_mute(self):
-        if self.mute_button.isChecked():
-            self.mute_button.setText("🔇")  # Emoji "Son coupé"
-            self.player.audio_set_mute(True)
-        else:
-            self.mute_button.setText("🔊")  # Emoji "Son activé"
-            self.player.audio_set_mute(False)
+        current_mute_state = self.player.audio_get_mute()
+        new_mute_state = not current_mute_state  # Inverser l'état du mute
+
+        self.player.audio_set_mute(new_mute_state)
+        self.mute_button.setChecked(new_mute_state)
+        self.mute_button.setText("🔇" if new_mute_state else "🔊")
+
+        #print(f"Mute toggled: {new_mute_state}")
 
 
     def load_file(self,auto=True):
@@ -244,7 +249,10 @@ class VLCPlayerWidget(QWidget):
         except ValueError:
             return  # Si la conversion échoue, on ignore l'entrée
 
-        # Vérifier si le temps est valide par rapport à la durée totale
+        self.set_position_timecode(new_time)
+    
+
+    def set_position_timecode(self,new_time):
         total_time = self.player.get_length()
         if total_time > 0 and 0 <= new_time <= total_time:
             self.player.set_time(new_time)

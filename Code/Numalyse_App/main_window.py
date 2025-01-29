@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from vlc_player_widget import VLCPlayerWidget
 from vlc_sync_widget import SyncWidget
 from overlay_grid_widget import OverlayGridWidget 
+from side_menu_widget import SideMenuWidget
 
 
 
@@ -18,6 +19,7 @@ class VLCMainWindow(QMainWindow):
 
         # Initialisation du widget principal
         self.vlc_widget = VLCPlayerWidget(True)
+        self.vlc_widget.enable_load.connect(self.media_load_action)
         self.setCentralWidget(self.vlc_widget)
 
         self.sync_widget = SyncWidget(self)
@@ -36,6 +38,8 @@ class VLCMainWindow(QMainWindow):
         self.overlay_grid.setGeometry(self.vlc_widget.geometry())  # Même taille que VLC
         self.overlay_grid.hide()
         self.grille_button.toggled.connect(self.overlay_grid.toggle_grid)
+
+        self.side_menu = None
         
 
     def create_menu_bar(self):
@@ -58,6 +62,11 @@ class VLCMainWindow(QMainWindow):
         sync_mode_action = QAction("Lecture Synchronisée", self)
         sync_mode_action.triggered.connect(self.sync_button_use)
         mode_menu.addAction(sync_mode_action)
+
+        annotation_mode_action = QAction("Annotation", self)
+        annotation_mode_action.triggered.connect(self.annotation_button_use)
+        annotation_mode_action.setEnabled(False)
+        mode_menu.addAction(annotation_mode_action)
 
         # Menu Outils
         outil_menu = menu_bar.addMenu("Outils")
@@ -85,8 +94,6 @@ class VLCMainWindow(QMainWindow):
         else:
             self.vlc_widget.load_file()
             
-        
-
     def create_toolbar(self):
         """ Crée une barre d'outils avec des boutons d'action. """
         self.toolbar = QToolBar("Barre d'outils")
@@ -138,7 +145,17 @@ class VLCMainWindow(QMainWindow):
 
             self.vlc_widget.stop_video()
 
+    def annotation_button_use(self):
+        print('annotation mode')
 
+    def seg_button_use(self):
+        """Affiche ou cache le menu latéral."""
+        if not self.side_menu:
+            self.vlc_widget.pause_video()
+            self.side_menu = SideMenuWidget(self.vlc_widget, self)
+            self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
+        else:
+            self.side_menu.setVisible(not self.side_menu.isVisible())
 
     def add_quit_button(self):
         """ Ajoute le bouton 'Quitter' à la barre d'outils. """
@@ -152,23 +169,7 @@ class VLCMainWindow(QMainWindow):
         for action in actions:
             if action.text() == "Quitter":
                 self.toolbar.removeAction(action)
-                break
-
-    def seg_button_use(self):
-        print("Segmentation")
-
-    def grille_button_use(self):
-        if self.grille_button.isChecked():
-            print("Mode Segmentation activé")
-            self.overlay_grid.show()
-        else:
-            print("Mode Segmentation désactivé")
-            self.overlay_grid.hide()
-
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 
-        
+                break        
 
     def update_capture_video_button(self, is_recording):
         """ Met à jour le texte du bouton en fonction de l'état d'enregistrement. """
@@ -182,6 +183,7 @@ class VLCMainWindow(QMainWindow):
 
     def recreate_window(self):
         self.vlc_widget = VLCPlayerWidget(True)
+        self.vlc_widget.enable_load.connect(self.media_load_action)
         self.setCentralWidget(self.vlc_widget)
         self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
@@ -189,3 +191,23 @@ class VLCMainWindow(QMainWindow):
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
+
+    def media_load_action(self,media):
+        if not media:
+            if(self.vlc_widget.media is not None):
+                self.removeDockWidget(self.side_menu)
+                self.side_menu.deleteLater()
+                self.side_menu=None
+
+
+    def grille_button_use(self):
+        if self.grille_button.isChecked():
+            print("Mode Segmentation activé")
+            self.overlay_grid.show()
+        else:
+            print("Mode Segmentation désactivé")
+            self.overlay_grid.hide()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QTimer, QRect, Signal
 from vlc_player_widget import VLCPlayerWidget
-from PySide6.QtGui import QImage, QPainter
+from PySide6.QtGui import QImage, QPainter, QKeySequence, QShortcut
 
 
 class SyncWidget(QWidget):
@@ -96,7 +96,7 @@ class SyncWidget(QWidget):
         rows, cols = (1, 2) if self.num_windows == 2 else (2, 2)
 
         for i in range(self.num_windows):
-            player = VLCPlayerWidget(True,True,True)
+            player = VLCPlayerWidget(True,True,True,False)
             player.begin=False
             player.enable_load.connect(self.cpt_load_action)
             self.player_widgets.append(player)
@@ -131,6 +131,9 @@ class SyncWidget(QWidget):
         self.play_pause_button = QPushButton("⏯️ Lire", self)
         self.play_pause_button.clicked.connect(self.toggle_play_pause)
         button_layout.addWidget(self.play_pause_button)
+
+        self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
+        self.play_pause_shortcut.activated.connect(self.toggle_play_pause)
 
         self.stop_button = QPushButton("⏹ Arrêter", self)
         self.stop_button.clicked.connect(self.exit_video_players)
@@ -194,7 +197,7 @@ class SyncWidget(QWidget):
                 images.append(img_path)
 
         if not images:
-            print(" Aucune image n'a été capturée.")
+            print("Aucune image n'a été capturée.")
             return None
 
         # Charger les images capturées
@@ -202,16 +205,26 @@ class SyncWidget(QWidget):
         for img_path in images:
             try:
                 loaded_images.append(Image.open(img_path))
-            except (IOError, FileNotFoundError) as e:
+            except (IOError, FileNotFoundError):
                 return
+
+        separateur = 2
         
+        # Trouver la plus petite largeur et hauteur parmi les images
+        min_width = min(img.width for img in loaded_images)
+        min_height = min(img.height for img in loaded_images)
+        
+        # Redimensionner toutes les images à la taille minimale
+        resized_images = [img.resize((min_width, min_height), Image.LANCZOS) for img in loaded_images]
+
+
         # Calculer le nombre de lignes nécessaires (2 images par ligne)
         num_columns = 2
-        num_rows = (len(loaded_images) + num_columns - 1) // num_columns  # Division entière pour obtenir le nombre de lignes nécessaires
+        num_rows = (len(resized_images) + num_columns - 1) // num_columns  # Division entière
 
         # Trouver la largeur et la hauteur de l'image combinée
-        max_width = max(img.width for img in loaded_images) * num_columns  # Largeur pour deux images côte à côte
-        max_height = max(img.height for img in loaded_images) * num_rows + (num_rows - 1) * 1  # Hauteur pour toutes les lignes + espaces entre les lignes
+        max_width = min_width * num_columns + (num_columns - 1) * separateur  # Largeur pour deux images côte à côte
+        max_height = min_height * num_rows + (num_rows - 1) * separateur  # Hauteur pour toutes les lignes
 
         # Créer une nouvelle image pour l'assemblage
         combined_image = Image.new('RGB', (max_width, max_height), (255, 255, 255))  # Fond blanc
@@ -219,26 +232,26 @@ class SyncWidget(QWidget):
         # Coller les images deux par deux
         x_offset = 0
         y_offset = 0
-        for i, img in enumerate(loaded_images):
+        for i, img in enumerate(resized_images):
             combined_image.paste(img, (x_offset, y_offset))
             
             # Changer l'offset en x pour la prochaine image dans la même ligne
-            x_offset += img.width + 5  # 5 px d'espace blanc entre les images
+            x_offset += min_width + separateur
 
             # Si deux images ont été collées, passer à la ligne suivante
             if (i + 1) % num_columns == 0:
                 x_offset = 0
-                y_offset += img.height + 5  # 5 px d'espace blanc entre les lignes
+                y_offset += min_height + separateur
 
-        #suppresion des captures individuel
+        # Suppression des captures individuelles
         for img_path in images:
             os.remove(img_path)
+
         # Sauvegarder l'image combinée
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         combined_path = os.path.join(capture_dir, f"capture_{timestamp}.png")
         combined_image.save(combined_path)
 
-        #print(f" Capture combinée enregistrée : {combined_path}")
         return combined_image
 
 
