@@ -27,6 +27,8 @@ class SyncWidget(QWidget):
 
         self.cpt_load=0
 
+        self.dialog_result = False
+
     def configure(self):
         """ Ouvre une fenêtre de configuration pour choisir le mode. """
         dialog = QDialog(self)
@@ -63,6 +65,7 @@ class SyncWidget(QWidget):
             elif option_4.isChecked():
                 self.num_windows = 4
             self.create_video_players()  # Crée les lecteurs
+            self.dialog_result=True
             dialog.accept()
 
         def on_cancel():

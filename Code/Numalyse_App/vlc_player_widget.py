@@ -5,8 +5,10 @@ import time
 import subprocess
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject
 from PySide6.QtGui import QKeySequence, QShortcut
+
+from custom_slider import CustomSlider
 
 class VLCPlayerWidget(QWidget):
     """ Widget contenant le lecteur VLC et les boutons de contrôle. """
@@ -116,7 +118,7 @@ class VLCPlayerWidget(QWidget):
         parent_layout.addLayout(time_layout)
 
         # Slider pour la progression
-        self.progress_slider = QSlider(Qt.Horizontal, self)
+        self.progress_slider = CustomSlider(Qt.Horizontal, self)
         self.progress_slider.setRange(0, 1000)
         self.progress_slider.sliderMoved.connect(self.set_position)
         self.progress_slider.setEnabled(False)
@@ -156,7 +158,8 @@ class VLCPlayerWidget(QWidget):
             if(self.begin):
                 self.player.play()
                 self.play_pause_button.setText("⏯️ Pause")
-            self.timer.start()
+                self.timer.start()
+            
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")
 
@@ -189,6 +192,7 @@ class VLCPlayerWidget(QWidget):
         self.time_label.setStyleSheet("color: white;")
         self.disable_segmentation()
         self.enable_load.emit(False)
+
 
     def capture_screenshot(self, name=""):
         """ Capture un screenshot de la vidéo. """
@@ -223,6 +227,9 @@ class VLCPlayerWidget(QWidget):
             #self.line_edit.setText(current_time_str)
             total_time_str = self.format_time(total_time)
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
+
+        if (current_time>total_time):
+            self.set_position_timecode(0)
 
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """

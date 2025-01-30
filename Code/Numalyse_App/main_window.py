@@ -15,7 +15,7 @@ class VLCMainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("SLV")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1400, 1200)
 
         # Initialisation du widget principal
         self.vlc_widget = VLCPlayerWidget(True)
@@ -140,10 +140,11 @@ class VLCMainWindow(QMainWindow):
             self.sync_widget = SyncWidget(self)
             self.create_sync_window()
             self.sync_widget.configure()
-
-            self.add_quit_button()
-
-            self.vlc_widget.stop_video()
+            if(self.sync_widget.dialog_result):
+                self.add_quit_button()
+                self.vlc_widget.stop_video()
+            else:
+                self.sync_mode=False
 
     def annotation_button_use(self):
         print('annotation mode')
@@ -151,7 +152,7 @@ class VLCMainWindow(QMainWindow):
     def seg_button_use(self):
         """Affiche ou cache le menu latéral."""
         if not self.side_menu:
-            self.vlc_widget.pause_video()
+            #self.vlc_widget.pause_video()
             self.side_menu = SideMenuWidget(self.vlc_widget, self)
             self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
         else:
@@ -194,10 +195,16 @@ class VLCMainWindow(QMainWindow):
 
     def media_load_action(self,media):
         if not media:
-            if(self.vlc_widget.media is not None):
+            print("media dechargé")
+            if(self.side_menu):
+                self.side_menu.stop_segmentation()
+            if(self.side_menu):
+                print("suppr seg")
                 self.removeDockWidget(self.side_menu)
                 self.side_menu.deleteLater()
                 self.side_menu=None
+            else:
+                print('pas de seg')
 
 
     def grille_button_use(self):
