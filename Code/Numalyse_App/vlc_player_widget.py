@@ -178,6 +178,11 @@ class VLCPlayerWidget(QWidget):
             # time.sleep(1)
             # print(self. media.get_duration() // 1000)
             self.enable_load.emit(True)
+            print(self.mspf(self.player))
+
+    def mspf(self,mp):
+        """Milliseconds per frame"""
+        return int(1000 // (mp.get_fps() or 25))
     
     def play_video(self):
         self.player.play()
