@@ -59,8 +59,9 @@ class SideMenuWidget(QDockWidget):
         for btn_data in self.stock_button:
             button_time = btn_data["time"]
             
-            if button_time >= current_time:
+            if button_time <= current_time:
                 active_button = btn_data  # Dernier bouton trouvé avant ou égal au temps actuel
+            else:
                 break
 
         # Appliquer la couleur uniquement au bon bouton

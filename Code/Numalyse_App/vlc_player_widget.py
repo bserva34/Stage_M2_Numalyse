@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject
 from PySide6.QtGui import QKeySequence, QShortcut
 
 from custom_slider import CustomSlider
+from qfour_state_button import QFourStateButton
 
 class VLCPlayerWidget(QWidget):
     """ Widget contenant le lecteur VLC et les boutons de contrôle. """
@@ -103,6 +104,11 @@ class VLCPlayerWidget(QWidget):
         self.line_edit.textChanged.connect(self.on_value_changed)
         self.time_label.setFixedHeight(15)
 
+        self.speed_button = QFourStateButton()
+        self.speed_button.setCheckable(True)
+        self.speed_button.setFixedSize(40, 30)
+        self.speed_button.clicked.connect(self.toggle_speed)  
+
         self.mute_button = QPushButton("🔇" if self.mute else "🔊", self)
         self.mute_button.setCheckable(True)
         self.mute_button.setChecked(self.mute)  # Définit l'état initial du bouton
@@ -114,6 +120,7 @@ class VLCPlayerWidget(QWidget):
         # Ajouter les éléments au layout
         time_layout.addWidget(self.line_edit)
         time_layout.addWidget(self.time_label)
+        time_layout.addWidget(self.speed_button)
         time_layout.addWidget(self.mute_button)
         parent_layout.addLayout(time_layout)
 
@@ -142,6 +149,9 @@ class VLCPlayerWidget(QWidget):
         self.mute_button.setText("🔇" if new_mute_state else "🔊")
 
         #print(f"Mute toggled: {new_mute_state}")
+
+    def toggle_speed(self):
+        self.player.set_rate(self.speed_button.get_speed())
 
 
     def load_file(self,auto=True):
@@ -228,7 +238,7 @@ class VLCPlayerWidget(QWidget):
             total_time_str = self.format_time(total_time)
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
-        if (current_time>total_time):
+        if (current_time>=total_time):
             self.set_position_timecode(0)
 
     def set_position(self, position):
@@ -262,7 +272,11 @@ class VLCPlayerWidget(QWidget):
     def set_position_timecode(self,new_time):
         total_time = self.player.get_length()
         if total_time > 0 and 0 <= new_time <= total_time:
+            print("set : ",new_time)
             self.player.set_time(new_time)
+
+            actual_time = self.player.get_time()
+            print(f"Temps réel après set_time : {actual_time}")
             self.update_ui()
 
     def active_segmentation(self):

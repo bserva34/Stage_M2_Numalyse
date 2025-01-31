@@ -1,6 +1,7 @@
 from PySide6.QtCore import QThread, Signal
 import cv2
 import numpy as np
+import os
 from scipy.stats import entropy
 
 class SegmentationThread(QThread):
@@ -12,7 +13,7 @@ class SegmentationThread(QThread):
         self.running = True  # Flag d'arrêt
 
     def kullback_leibler_divergence(self, p, q):
-        epsilon = 1e-10  # Ajout pour éviter les divisions par zéro
+        epsilon = 1e-10  # Pour éviter division par zéro
         p = np.array(p) + epsilon
         q = np.array(q) + epsilon
         return entropy(p, q)
@@ -23,20 +24,28 @@ class SegmentationThread(QThread):
             print("Impossible d'ouvrir la vidéo.")
             return
 
-        frame_rate = cap.get(cv2.CAP_PROP_FPS)
+        # Création du dossier de sauvegarde
+        output_dir = "segmentation"
+        os.makedirs(output_dir, exist_ok=True)
+
         timecodes = []
         prev_hist = None
-        frame_count = 0
-        threshold = 0.1
-        min_time_between_cuts = 500  # 500 ms entre deux cuts (pour éviter doublons)
+        prev_image = None
+        threshold = 0.7
+
+        # Variables pour stocker le cut en attente
+        pending_cut_time = None
+        pending_cut_image = None
+        pending_prev_image = None
+        cpt_cut = 0
 
         while self.running:
             ret, frame = cap.read()
             if not ret:
                 break
 
-            frame_count += 1
-            current_time = (frame_count / frame_rate) * 1000  # Temps en ms
+            # Utiliser le temps exact fourni par OpenCV
+            current_time = cap.get(cv2.CAP_PROP_POS_MSEC)  # Temps en millisecondes
 
             # Calcul de l'histogramme
             hist = cv2.calcHist([frame], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
@@ -44,12 +53,46 @@ class SegmentationThread(QThread):
 
             if prev_hist is not None:
                 kl_div = self.kullback_leibler_divergence(prev_hist, hist)
+
                 if kl_div > threshold:
-                    if not timecodes or (current_time - timecodes[-1]) > min_time_between_cuts:
-                        timecodes.append(current_time)
-                        print(f"Cut détecté à {current_time:.2f} ms avec KL divergence = {kl_div:.4f}")
+                    if pending_cut_time is None:
+                        # Premier cut détecté, on le garde en mémoire
+                        pending_cut_time = current_time
+                        pending_cut_image = frame.copy()
+                        pending_prev_image = prev_image.copy() if prev_image is not None else None
+                    else:
+                        # Un autre cut est détecté juste après → on remplace l'ancien
+                        pending_cut_time = current_time
+                        pending_cut_image = frame.copy()
+                        pending_prev_image = prev_image.copy() if prev_image is not None else None
+                else:
+                    if pending_cut_time is not None:
+                        cpt_cut += 1
+                        timecodes.append(pending_cut_time)
+                        print(f"Cut validé à {pending_cut_time:.2f} ms")
+
+                        # Sauvegarde des images
+                        if pending_prev_image is not None:
+                            cv2.imwrite(os.path.join(output_dir, f"s_{cpt_cut}_prev.jpg"), pending_prev_image)
+                        cv2.imwrite(os.path.join(output_dir, f"s_{cpt_cut}_current.jpg"), pending_cut_image)
+
+                        # Réinitialiser le cut en attente
+                        pending_cut_time = None
+                        pending_cut_image = None
+                        pending_prev_image = None
 
             prev_hist = hist
+            prev_image = frame.copy()
+
+        # Vérifier s'il reste un cut en attente à la fin
+        if pending_cut_time is not None:
+            cpt_cut += 1
+            timecodes.append(pending_cut_time)
+            print(f"Cut final validé à {pending_cut_time:.2f} ms")
+
+            if pending_prev_image is not None:
+                cv2.imwrite(os.path.join(output_dir, f"s_{cpt_cut}_prev.jpg"), pending_prev_image)
+            cv2.imwrite(os.path.join(output_dir, f"s_{cpt_cut}_current.jpg"), pending_cut_image)
 
         cap.release()
         if self.running:
@@ -59,5 +102,6 @@ class SegmentationThread(QThread):
     def stop(self):
         """Arrête le thread proprement."""
         self.running = False
-        self.quit()  # Quitte proprement le thread
-        self.wait()  # Attend la fin du thread
+        self.quit()
+        self.wait()
+
