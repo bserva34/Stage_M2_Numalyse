@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QVBoxLayout, QLabel, QLineEdit, QSlider, QPushButton, QHBoxLayout, QSpinBox
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer
 
@@ -36,13 +36,18 @@ class SideMenuWidget(QDockWidget):
         self.affichage.setStyleSheet("color: blue;")
         self.layout.addWidget(self.affichage)
 
+        self.add_button = QPushButton("Ajouter",self)
+        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.clicked.connect(self.add_action)
+        self.layout.addWidget(self.add_button)
+
         # Liste pour stocker les boutons et leurs informations
         self.stock_button = []
         self.start_segmentation()
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_buttons_color)
-        self.timer.start(200) #actu en ms
+        self.timer.start(50) #actu en ms
 
         self.max_time=self.vlc_widget.player.get_length()
 
@@ -72,12 +77,14 @@ class SideMenuWidget(QDockWidget):
                 btn_data["button"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
 
 
-    def add_new_button(self, name="Séquence", time=0):
-        """Ajoute un bouton avec un nom, une valeur en secondes et un texte."""
-        if(time>=self.max_time):
+    def add_new_button(self, name="", time=0):
+        """Ajoute un bouton avec un nom et l'insère à la bonne position dans le layout."""
+        if time >= self.max_time:
             return
-        cpt = len(self.stock_button)
-        name = name + f" {cpt+1}"
+
+        if name == "":
+            cpt = len(self.stock_button)
+            name = "Séquence " + f"{cpt+1}"
 
         button = QPushButton(name, self)
         button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
@@ -87,11 +94,28 @@ class SideMenuWidget(QDockWidget):
         button.clicked.connect(lambda *_: self.set_position(button))
         button.setFixedSize(180, 25)
 
-        # Stocker le bouton avec ses infos associées
+        # Ajouter le bouton dans la liste
         self.stock_button.append({"button": button, "time": time})
 
-        # Ajouter le bouton à l'interface
-        self.layout.addWidget(button)  # Ajoute avant le bouton d'ajout
+        # Trier les boutons immédiatement après l'ajout
+        self.stock_button.sort(key=lambda btn_data: btn_data["time"])
+
+        # Réorganiser les boutons dans le layout
+        self.reorganize_buttons()
+
+    def reorganize_buttons(self):
+        """Réorganise les boutons dans le layout après un tri."""
+        # Supprime tous les boutons du layout
+        for i in reversed(range(self.layout.count())):
+            widget = self.layout.itemAt(i).widget()
+            if widget and widget != self.add_button:
+                self.layout.removeWidget(widget)
+
+        # Réinsère les boutons triés
+        for btn_data in self.stock_button:
+            self.layout.addWidget(btn_data["button"])
+
+
 
     def show_context_menu(self, pos, button):
         """Affiche un menu contextuel avec options de renommer et modifier valeurs."""
@@ -129,13 +153,74 @@ class SideMenuWidget(QDockWidget):
         
         button.deleteLater()
 
+    def add_action(self):
+        """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Ajouter une séquence")
+        dialog.setModal(True)
+
+        layout = QVBoxLayout(dialog)
+
+        # Zone de texte pour le nom
+        name_label = QLabel("Nom de la séquence :", dialog)
+        layout.addWidget(name_label)
+        name_input = QLineEdit(dialog)
+        layout.addWidget(name_input)
+
+        # Slider pour choisir le temps
+        time_label = QLabel("Position (en ms) :", dialog)
+        layout.addWidget(time_label)
+
+        time_layout = QHBoxLayout()
+        time_slider = QSlider(Qt.Horizontal, dialog)
+        time_slider.setMinimum(0)
+        time_slider.setMaximum(self.max_time-1)  # Définir la valeur maximale à self.max_time
+        time_slider.setTickInterval(1000)
+        
+        time_spinbox = QSpinBox(dialog)
+        time_spinbox.setMinimum(0)
+        time_spinbox.setMaximum(self.max_time-1)
+
+        # Synchroniser le slider et le spinbox
+        time_slider.valueChanged.connect(time_spinbox.setValue)
+        time_spinbox.valueChanged.connect(time_slider.setValue)
+
+        time_layout.addWidget(time_slider)
+        time_layout.addWidget(time_spinbox)
+        layout.addLayout(time_layout)
+
+        # Boutons OK et Annuler
+        button_layout = QHBoxLayout()
+        ok_button = QPushButton("OK", dialog)
+        cancel_button = QPushButton("Annuler", dialog)
+
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        layout.addLayout(button_layout)
+
+        # Action du bouton OK
+        def on_ok():
+            name = name_input.text().strip()
+            time = time_slider.value()
+            if name:
+                self.add_new_button(name=name, time=time)
+                dialog.accept()
+            
+
+        ok_button.clicked.connect(on_ok)
+        cancel_button.clicked.connect(dialog.reject)
+
+        dialog.exec()
+
+
+
 
     def modify_time(self, button):
         """Modifie la valeur de temps associée à un bouton."""
         for btn_data in self.stock_button:
             if btn_data["button"] == button:
                 val = btn_data["time"]
-        new_time, ok = QInputDialog.getInt(self, "Modifier le temps", "Temps en secondes :", value=val, minValue=0)
+        new_time, ok = QInputDialog.getInt(self, "Modifier le temps", "Temps en secondes :", value=val, minValue=0, maxValue=self.max_time-1)
         if ok:
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:

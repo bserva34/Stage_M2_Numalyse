@@ -145,6 +145,7 @@ class VLCPlayerWidget(QWidget):
         new_mute_state = not current_mute_state  # Inverser l'état du mute
 
         self.player.audio_set_mute(new_mute_state)
+        self.mute=new_mute_state
         self.mute_button.setChecked(new_mute_state)
         self.mute_button.setText("🔇" if new_mute_state else "🔊")
 
@@ -168,17 +169,13 @@ class VLCPlayerWidget(QWidget):
             if(self.begin):
                 self.player.play()
                 self.play_pause_button.setText("⏯️ Pause")
-                self.timer.start()
-            
+                self.timer.start()            
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")
-
+            print(self.mute)
+            self.player.audio_set_mute(self.mute)
             self.active_segmentation()
-            # self.media.parse_with_options(vlc.MediaParseFlag.local, 0)
-            # time.sleep(1)
-            # print(self. media.get_duration() // 1000)
             self.enable_load.emit(True)
-            print(self.mspf(self.player))
 
     def mspf(self,mp):
         """Milliseconds per frame"""
@@ -207,6 +204,18 @@ class VLCPlayerWidget(QWidget):
         self.time_label.setStyleSheet("color: white;")
         self.disable_segmentation()
         self.enable_load.emit(False)
+
+    def restart_video(self):
+        self.player.stop()
+        self.media = None
+        if self.ac : 
+            self.play_pause_button.setText("⏯️ Lire")
+        self.timer.stop()
+        self.progress_slider.setValue(0)
+        self.progress_slider.setEnabled(False)
+        self.time_label.setText("00:00 / 00:00")
+        self.time_label.setStyleSheet("color: white;")
+        self.load_video(self.path_of_media)
 
 
     def capture_screenshot(self, name=""):
@@ -243,8 +252,15 @@ class VLCPlayerWidget(QWidget):
             total_time_str = self.format_time(total_time)
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
-        if (current_time>=total_time):
-            self.set_position_timecode(0)
+        #print(self.player.get_state())
+        if self.player.get_state()==6 :
+            self.restart_video()
+        # val=self.player.get_time()
+        # val_max=self.player.get_length()
+        # if (val>=val_max or val >= val_max-500):
+        #     print("fin detecté")
+        #     self.set_position_timecode(0)
+
 
     def set_position(self, position):
         """ Définit la position de lecture en fonction du slider. """
@@ -279,9 +295,6 @@ class VLCPlayerWidget(QWidget):
         if total_time > 0 and 0 <= new_time <= total_time:
             print("set : ",new_time)
             self.player.set_time(new_time)
-
-            actual_time = self.player.get_time()
-            print(f"Temps réel après set_time : {actual_time}")
             self.update_ui()
 
     def active_segmentation(self):

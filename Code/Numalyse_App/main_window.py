@@ -40,6 +40,8 @@ class VLCMainWindow(QMainWindow):
         self.grille_button.toggled.connect(self.overlay_grid.toggle_grid)
 
         self.side_menu = None
+
+        self.project=None
         
 
     def create_menu_bar(self):
@@ -51,11 +53,21 @@ class VLCMainWindow(QMainWindow):
 
         open_action = QAction("Ouvrir...", self)
         open_action.triggered.connect(self.load_video_action)
+        save_button = QAction("Enregistrer", self)
+        save_button.triggered.connect(self.save_action)
+        open_project_button = QAction("Ouvrir un projet", self)
+        open_project_button.triggered.connect(self.open_project_action)
         exit_action = QAction("Quitter", self)
         exit_action.triggered.connect(self.close)
+
         file_menu.addAction(open_action)
         file_menu.addSeparator()
+        file_menu.addAction(save_button)
+        file_menu.addSeparator()
+        file_menu.addAction(open_project_button)
+        file_menu.addSeparator()
         file_menu.addAction(exit_action)
+
 
         # Menu Mode
         mode_menu = menu_bar.addMenu("Mode")
@@ -73,6 +85,7 @@ class VLCMainWindow(QMainWindow):
         self.seg_mode_action = QAction("Segmentation", self)
         self.seg_mode_action.triggered.connect(self.seg_button_use)
         self.seg_mode_action.setEnabled(False)
+        self.seg_mode_action.setCheckable(True)
         self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
         outil_menu.addAction(self.seg_mode_action)
 
@@ -86,6 +99,16 @@ class VLCMainWindow(QMainWindow):
         autres_mode_action.triggered.connect(self.seg_button_use)
         autres_mode_action.setEnabled(False)
         outil_menu.addAction(autres_mode_action)
+
+
+    def save_action(self):
+        if self.project==None:
+            print("aucune fichier associé")
+        else:
+            print("fichier associé")
+
+    def open_project_action(self):
+        print("open project")
 
     def load_video_action(self):
         """ Charge une vidéo et ajuste les actions disponibles selon le mode. """
@@ -111,6 +134,12 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.toolbar.addWidget(self.capture_video_button)
 
+        self.timecode_button = QAction("Affichage timecode", self)
+        self.timecode_button.setEnabled(False)
+        self.timecode_button.triggered.connect(self.timecode_action)
+        self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
+        self.toolbar.addAction(self.timecode_button)
+
     def capture_action(self):
         if self.sync_mode:
             self.sync_widget.capture_screenshot()
@@ -120,6 +149,10 @@ class VLCMainWindow(QMainWindow):
     def capture_video_action(self):
         if self.sync_mode==False:
             self.vlc_widget.capture_video()
+
+    def timecode_action(self):
+        if self.sync_mode==False:
+            print("Timecode vidéo : ",self.vlc_widget.player.get_time())
 
     def sync_button_use(self):
         """ Fonction qui gère l'activation et la désactivation du mode synchronisé. """
@@ -195,11 +228,9 @@ class VLCMainWindow(QMainWindow):
 
     def media_load_action(self,media):
         if not media:
-            print("media dechargé")
             if(self.side_menu):
                 self.side_menu.stop_segmentation()
             if(self.side_menu):
-                print("suppr seg")
                 self.removeDockWidget(self.side_menu)
                 self.side_menu.deleteLater()
                 self.side_menu=None
