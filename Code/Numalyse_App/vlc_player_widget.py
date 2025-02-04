@@ -162,8 +162,9 @@ class VLCPlayerWidget(QWidget):
         return file_path
 
 
-    def load_video(self,file_path):
+    def load_video(self,file_path,suppr_seg=True):
         if file_path:
+            self.path_of_media=file_path
             self.media = self.instance.media_new(file_path)
             self.player.set_media(self.media)
             if(self.begin):
@@ -172,10 +173,10 @@ class VLCPlayerWidget(QWidget):
                 self.timer.start()            
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")
-            print(self.mute)
             self.player.audio_set_mute(self.mute)
             self.active_segmentation()
-            self.enable_load.emit(True)
+            if (suppr_seg):
+                self.enable_load.emit(True)
 
     def mspf(self,mp):
         """Milliseconds per frame"""
@@ -215,7 +216,7 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider.setEnabled(False)
         self.time_label.setText("00:00 / 00:00")
         self.time_label.setStyleSheet("color: white;")
-        self.load_video(self.path_of_media)
+        self.load_video(self.path_of_media,False)
 
 
     def capture_screenshot(self, name=""):

@@ -1,0 +1,109 @@
+import os
+import json
+import shutil
+
+class ProjectManager:
+    def __init__(self, sidemenu,vlc_player, file_path=None, project_name=None):
+        self.seg = sidemenu
+        self.vlc = vlc_player
+        self.project_path = file_path
+        self.project_name = project_name
+
+        self.save_file_path=None
+
+        self.destination_path=None
+
+        self.video_name=None
+
+
+    def save_project(self):
+        #copie vidéo dans le project
+        pof = self.vlc.path_of_media  
+        
+        if not pof or not os.path.isfile(pof):
+            print("Erreur : Fichier vidéo introuvable !")
+            return
+
+        self.video_name = os.path.basename(pof)
+        self.destination_path = os.path.join(self.project_path, self.video_name)
+        try:
+            shutil.copy2(pof, self.destination_path)
+            print(f"Vidéo copiée avec succès dans : {self.destination_path}")
+        except Exception as e:
+            print(f"Erreur lors de la copie de la vidéo : {e}")
+
+        #création fichier sauvegarde
+        self.save_file_path = os.path.join(self.project_path, f"{self.project_name}.json")
+
+        self.write_json()
+
+
+
+    def write_json(self):
+        self.destination_path = os.path.join(self.project_path, self.video_name)
+        if(self.seg is not None):
+            button_data = []
+            for btn_data in self.seg.stock_button:
+                button_info = {
+                    "name": btn_data["button"].text(),
+                    "time": btn_data["time"]
+                }
+                button_data.append(button_info)
+
+            project_data = {
+                "nom": self.project_name,
+                "chemin_du_projet": self.project_path,
+                "video": self.destination_path,
+                "segmentation": button_data  # Liste des boutons
+            }
+        else:
+            project_data = {
+                "nom": self.project_name,
+                "chemin_du_projet": self.project_path,
+                "video": self.destination_path
+            }
+
+        try: 
+            with open(self.save_file_path, "w", encoding="utf-8") as f:
+                json.dump(project_data, f, indent=4)
+            print(f"Fichier de sauvegarde créé : {self.save_file_path}")
+        except Exception as e:
+            print(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
+
+    def open_project(self,project_path):
+        self.project_path=project_path
+
+        project_dir = os.path.splitext(project_path)[0] 
+        self.project_name = os.path.basename(project_dir)
+        
+        self.save_file_path = os.path.join(project_path, f"{self.project_name}.json")
+
+        if not os.path.isfile(self.save_file_path):
+            print("Erreur : Fichier de projet introuvable !")
+            return False
+
+        try:
+            with open(self.save_file_path, "r", encoding="utf-8") as f:
+                project_data = json.load(f)
+
+            video_path = project_data.get("video")
+            if video_path and os.path.isfile(video_path):
+                # Copier la vidéo dans le lecteur VLC
+                self.vlc.load_video(video_path,False)
+                self.video_name = os.path.basename(video_path)
+                print(f"Vidéo chargée : {video_path}")
+            else:
+                print("Erreur : Fichier vidéo introuvable !")
+
+            self.load_buttons(project_data.get("segmentation", []))
+
+        except Exception as e:
+            print(f"Erreur lors de l'ouverture du projet : {e}")
+        return True
+
+
+    def load_buttons(self, buttons_data):
+        for button_info in buttons_data:
+            name = button_info.get("name", "")
+            time = button_info.get("time", 0)
+            self.seg.add_new_button(name=name, time=time, verif=False)

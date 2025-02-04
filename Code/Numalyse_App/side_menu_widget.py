@@ -9,7 +9,7 @@ from segmentation import SegmentationThread
 
 class SideMenuWidget(QDockWidget):
 
-    def __init__(self, vlc_widget, parent=None):
+    def __init__(self, vlc_widget, parent=None,start=True):
         super().__init__("Segmentation", parent)  # Titre du dock
         self.vlc_widget = vlc_widget
         self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)  # Zones autorisées
@@ -32,18 +32,20 @@ class SideMenuWidget(QDockWidget):
         self.layout = QVBoxLayout(self.container)
         self.container.setLayout(self.layout)
 
-        self.affichage = QLabel("Calcul Segmentation ...", self)
-        self.affichage.setStyleSheet("color: blue;")
-        self.layout.addWidget(self.affichage)
-
-        self.add_button = QPushButton("Ajouter",self)
-        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
-        self.add_button.clicked.connect(self.add_action)
-        self.layout.addWidget(self.add_button)
-
         # Liste pour stocker les boutons et leurs informations
         self.stock_button = []
-        self.start_segmentation()
+
+        if(start):
+            self.affichage = QLabel("Calcul Segmentation ...", self)
+            self.affichage.setStyleSheet("color: blue;")
+            self.layout.addWidget(self.affichage)
+
+            self.start_segmentation()
+        else:
+            self.add_button = QPushButton("Ajouter",self)
+            self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+            self.add_button.clicked.connect(self.add_action)
+            self.layout.addWidget(self.add_button)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_buttons_color)
@@ -53,11 +55,11 @@ class SideMenuWidget(QDockWidget):
 
 
     def update_buttons_color(self):
-        """ Met à jour la couleur des boutons en fonction de la progression de la vidéo. """
         if not self.vlc_widget.media:
             return
 
         current_time = self.vlc_widget.player.get_time()
+        self.max_time=self.vlc_widget.player.get_length()
 
         # Trouver le bouton qui correspond au temps actuel
         active_button = None
@@ -77,10 +79,11 @@ class SideMenuWidget(QDockWidget):
                 btn_data["button"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
 
 
-    def add_new_button(self, name="", time=0):
+    def add_new_button(self, name="", time=0, verif=True):
         """Ajoute un bouton avec un nom et l'insère à la bonne position dans le layout."""
-        if time >= self.max_time:
-            return
+        if verif:
+            if time >= self.max_time:
+                return
 
         if name == "":
             cpt = len(self.stock_button)
@@ -168,25 +171,42 @@ class SideMenuWidget(QDockWidget):
         layout.addWidget(name_input)
 
         # Slider pour choisir le temps
-        time_label = QLabel("Position (en ms) :", dialog)
+        time_label = QLabel("Position :", dialog)
         layout.addWidget(time_label)
 
         time_layout = QHBoxLayout()
         time_slider = QSlider(Qt.Horizontal, dialog)
         time_slider.setMinimum(0)
-        time_slider.setMaximum(self.max_time-1)  # Définir la valeur maximale à self.max_time
+        time_slider.setMaximum(self.max_time - 1)  # Définir la valeur maximale à self.max_time
         time_slider.setTickInterval(1000)
-        
+
         time_spinbox = QSpinBox(dialog)
         time_spinbox.setMinimum(0)
-        time_spinbox.setMaximum(self.max_time-1)
+        time_spinbox.setMaximum(self.max_time - 1)
 
-        # Synchroniser le slider et le spinbox
-        time_slider.valueChanged.connect(time_spinbox.setValue)
+        # Affichage du temps en minutes:secondes
+        time_display = QLabel(dialog)
+
+        # Fonction pour mettre à jour l'affichage en mm:ss
+        def update_time_display(value):
+            minutes = value // 60000  # Conversion ms → min
+            seconds = (value // 1000) % 60  # Conversion ms → sec
+            time_display.setText(f"{minutes:02}:{seconds:02}")
+
+        # Valeur initiale = position actuelle de la vidéo
+        val = self.vlc_widget.player.get_time()
+        time_slider.setValue(val)
+        time_spinbox.setValue(val)
+        update_time_display(val)  # Affichage initial
+
+        # Synchronisation slider, spinbox et affichage
+        #time_slider.valueChanged.connect(time_spinbox.setValue)
         time_spinbox.valueChanged.connect(time_slider.setValue)
+        time_slider.valueChanged.connect(update_time_display)
 
         time_layout.addWidget(time_slider)
         time_layout.addWidget(time_spinbox)
+        time_layout.addWidget(time_display)
         layout.addLayout(time_layout)
 
         # Boutons OK et Annuler
@@ -205,7 +225,6 @@ class SideMenuWidget(QDockWidget):
             if name:
                 self.add_new_button(name=name, time=time)
                 dialog.accept()
-            
 
         ok_button.clicked.connect(on_ok)
         cancel_button.clicked.connect(dialog.reject)
@@ -250,6 +269,10 @@ class SideMenuWidget(QDockWidget):
         """Callback exécuté une fois la segmentation terminée."""
         self.layout.removeWidget(self.affichage)
         self.affichage.deleteLater()
+        self.add_button = QPushButton("Ajouter",self)
+        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.clicked.connect(self.add_action)
+        self.layout.addWidget(self.add_button)
         for time in timecodes:
             self.add_new_button(time=time)  # Crée un bouton pour chaque changement de plan
         print("Segmentation terminée en arrière-plan.")
