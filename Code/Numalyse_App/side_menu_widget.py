@@ -1,13 +1,15 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QVBoxLayout, QLabel, QLineEdit, QSlider, QPushButton, QHBoxLayout, QSpinBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QPushButton, QHBoxLayout, QSpinBox, QTextEdit
 from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 
 import cv2 
 import numpy as np
 
 from segmentation import SegmentationThread
+from note import Note
 
 class SideMenuWidget(QDockWidget):
+    change = Signal(bool)
 
     def __init__(self, vlc_widget, parent=None,start=True):
         super().__init__("Segmentation", parent)  # Titre du dock
@@ -34,6 +36,7 @@ class SideMenuWidget(QDockWidget):
 
         # Liste pour stocker les boutons et leurs informations
         self.stock_button = []
+        self.button_notes = {}
 
         if(start):
             self.affichage = QLabel("Calcul Segmentation ...", self)
@@ -106,17 +109,32 @@ class SideMenuWidget(QDockWidget):
         # Réorganiser les boutons dans le layout
         self.reorganize_buttons()
 
+        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
+
+        if verif:
+            self.change.emit(True)
+
+        return button
+
     def reorganize_buttons(self):
-        """Réorganise les boutons dans le layout après un tri."""
-        # Supprime tous les boutons du layout
+        """Réorganise les boutons et leurs notes associées dans le layout après un tri."""
+        # Supprime tous les widgets du layout, sauf `add_button`
         for i in reversed(range(self.layout.count())):
             widget = self.layout.itemAt(i).widget()
             if widget and widget != self.add_button:
                 self.layout.removeWidget(widget)
+                widget.setParent(None)  # Détache proprement les widgets sans les supprimer
 
-        # Réinsère les boutons triés
+        # Réinsère les boutons triés et leurs notes associées
         for btn_data in self.stock_button:
-            self.layout.addWidget(btn_data["button"])
+            button = btn_data["button"]
+            self.layout.addWidget(button)
+
+            # Réinsérer les notes associées juste après le bouton
+            if button in self.button_notes:
+                for note_widget in self.button_notes[button]:
+                    self.layout.addWidget(note_widget)
+
 
 
 
@@ -131,6 +149,10 @@ class SideMenuWidget(QDockWidget):
         delete_action = QAction("Supprimer", self)
         delete_action.triggered.connect(lambda: self.delate_button(button))
         menu.addAction(delete_action)
+
+        add_note_action = QAction("Ajouter une note")
+        add_note_action.triggered.connect(lambda: self.add_note_menu(button))
+        menu.addAction(add_note_action)
 
         mod_action = QAction("Modif TimeCode", self)
         mod_action.triggered.connect(lambda: self.modify_time(button))
@@ -147,14 +169,47 @@ class SideMenuWidget(QDockWidget):
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
                     btn_data["button"].setText(new_name)
+        self.change.emit(True)
 
     def delate_button(self, button):
+        # Vérifier si le bouton a des notes associées et les supprimer
+        if button in self.button_notes:
+            for note_label in self.button_notes[button]:  # Liste des labels de notes
+                self.layout.removeWidget(note_label)
+                note_label.deleteLater()  # Supprimer proprement
+            del self.button_notes[button]  # Nettoyer la liste
+
+        # Supprimer le bouton lui-même
         self.layout.removeWidget(button)
-        for i, btn_data in enumerate(self.stock_button):
-            if btn_data["button"] == button:
-                del self.stock_button[i] 
-        
         button.deleteLater()
+
+        # Supprimer le bouton de la liste stock_button
+        self.stock_button = [btn_data for btn_data in self.stock_button if btn_data["button"] != button]
+
+        self.change.emit(True)
+
+    def add_note_menu(self, button):
+        text, ok = QInputDialog.getMultiLineText(self, "Ajouter une note", "Texte de la note :")
+        if ok : self.add_note(button,text)
+
+        self.change.emit(True)
+
+    def add_note(self,button,text):
+        if text.strip():
+            note = Note(text)  # Créer une instance de Note
+            if button not in self.button_notes:
+                self.button_notes[button] = []
+            
+            note_widget = QTextEdit(self)
+            note_widget.setPlainText(note.text)
+            note_widget.setReadOnly(True)
+            note_widget.setStyleSheet("color: gray; font-style: italic;")
+            note_widget.setFixedHeight(50)
+            note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+            self.button_notes[button].append(note_widget)  # Stocke l'affichage
+            self.layout.insertWidget(self.layout.indexOf(button) + 1, note_widget)
+
 
     def add_action(self):
         """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """

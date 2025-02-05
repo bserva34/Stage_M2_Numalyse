@@ -37,16 +37,17 @@ class ProjectManager:
 
         self.write_json()
 
-
-
     def write_json(self):
         self.destination_path = os.path.join(self.project_path, self.video_name)
-        if(self.seg is not None):
+        
+        if self.seg is not None:
             button_data = []
             for btn_data in self.seg.stock_button:
+                button = btn_data["button"]
                 button_info = {
-                    "name": btn_data["button"].text(),
-                    "time": btn_data["time"]
+                    "name": button.text(),
+                    "time": btn_data["time"],
+                    "notes": [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]  
                 }
                 button_data.append(button_info)
 
@@ -54,7 +55,7 @@ class ProjectManager:
                 "nom": self.project_name,
                 "chemin_du_projet": self.project_path,
                 "video": self.destination_path,
-                "segmentation": button_data  # Liste des boutons
+                "segmentation": button_data  # Liste des boutons avec notes
             }
         else:
             project_data = {
@@ -65,13 +66,13 @@ class ProjectManager:
 
         try: 
             with open(self.save_file_path, "w", encoding="utf-8") as f:
-                json.dump(project_data, f, indent=4)
+                json.dump(project_data, f, indent=4, ensure_ascii=False)  # UTF-8 pour éviter les problèmes d'accents
             print(f"Fichier de sauvegarde créé : {self.save_file_path}")
         except Exception as e:
             print(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
 
-    def open_project(self,project_path):
-        self.project_path=project_path
+    def open_project(self, project_path):
+        self.project_path = project_path
 
         project_dir = os.path.splitext(project_path)[0] 
         self.project_name = os.path.basename(project_dir)
@@ -88,8 +89,8 @@ class ProjectManager:
 
             video_path = project_data.get("video")
             if video_path and os.path.isfile(video_path):
-                # Copier la vidéo dans le lecteur VLC
-                self.vlc.load_video(video_path,False)
+                # Charger la vidéo dans VLC
+                self.vlc.load_video(video_path, False)
                 self.video_name = os.path.basename(video_path)
                 print(f"Vidéo chargée : {video_path}")
             else:
@@ -99,6 +100,8 @@ class ProjectManager:
 
         except Exception as e:
             print(f"Erreur lors de l'ouverture du projet : {e}")
+            return False
+        
         return True
 
 
@@ -106,4 +109,12 @@ class ProjectManager:
         for button_info in buttons_data:
             name = button_info.get("name", "")
             time = button_info.get("time", 0)
-            self.seg.add_new_button(name=name, time=time, verif=False)
+            notes = button_info.get("notes", [])  # Récupérer les notes
+
+            # Créer le bouton
+            button = self.seg.add_new_button(name=name, time=time, verif=False)
+
+            # Ajouter les notes associées
+            for note_text in notes:
+                self.seg.add_note(button, note_text)
+

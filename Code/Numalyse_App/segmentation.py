@@ -26,12 +26,14 @@ class SegmentationThread(QThread):
 
         video = open_video(self.video_path)
         scene_manager = SceneManager()
-        scene_manager.add_detector(HashDetector())
+        #scene_manager.auto_downscale = True #pour réduire la qualité et gagner en temps de calcul
+        scene_manager.add_detector(HistogramDetector())
 
         try:
             scene_manager.detect_scenes(video, show_progress=True, callback=self.check_stop)
             scene_list = scene_manager.get_scene_list()
             timecodes = [scene[0].get_seconds() * 1000 for scene in scene_list]
+            #save_images(scene_list,video,num_images=1,output_dir=output_dir)
             if self.running:
                 self.segmentation_done.emit(timecodes)
         except StopProcessingException:

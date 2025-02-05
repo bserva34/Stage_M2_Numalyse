@@ -50,6 +50,8 @@ class VLCMainWindow(QMainWindow):
 
         self.project=None
 
+        self.save_state=False
+
     def create_keyboard(self):
         # Raccourci Ctrl + S pour Sauvegarde
         self.save_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
@@ -138,37 +140,40 @@ class VLCMainWindow(QMainWindow):
                 self.project.save_project()
         else:
             self.project.write_json()
+        self.save_state=False
 
     def open_project_action(self):
-        if(self.sync_mode):
-            self.sync_button_use()
-        else:
-            self.vlc_widget.stop_video()
+        if(self.auto_save()):
+            if(self.sync_mode):
+                self.sync_button_use()
+            else:
+                self.vlc_widget.stop_video()
 
-        if os.name == "nt":  # Windows
-            default_dir = "C:/"
-        else:  # Linux/Mac
-            default_dir = "/"
-        project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet",default_dir)
-        if project_path :
-            self.recreate_window()
+            if os.name == "nt":  # Windows
+                default_dir = "C:/"
+            else:  # Linux/Mac
+                default_dir = "/"
+            project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet",default_dir)
+            if project_path :
+                self.recreate_window()
 
-            self.side_menu=SideMenuWidget(self.vlc_widget, self,False)
-            self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
-            self.side_menu.setVisible(False)
+                self.side_menu=SideMenuWidget(self.vlc_widget, self,False)
+                self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
+                self.side_menu.setVisible(False)
+                self.side_menu.change.connect(self.change)
 
-            self.project=ProjectManager(self.side_menu,self.vlc_widget)
-            val=self.project.open_project(project_path)
-            if not val :
-                self.project=None
+                self.project=ProjectManager(self.side_menu,self.vlc_widget)
+                val=self.project.open_project(project_path)
+                if not val :
+                    self.project=None
 
 
     def load_video_action(self):
-        """ Charge une vidéo et ajuste les actions disponibles selon le mode. """
-        if self.sync_mode:
-            self.sync_widget.load_video()
-        else:
-            self.vlc_widget.load_file()
+        if(self.auto_save()):
+            if self.sync_mode:
+                self.sync_widget.load_video()
+            else:
+                self.vlc_widget.load_file()
             
     def create_toolbar(self):
         """ Crée une barre d'outils avec des boutons d'action. """
@@ -208,29 +213,30 @@ class VLCMainWindow(QMainWindow):
             print("Timecode vidéo : ",self.vlc_widget.player.get_time())
 
     def sync_button_use(self):
-        """ Fonction qui gère l'activation et la désactivation du mode synchronisé. """
-        if self.sync_mode:
-            # Si on est en mode synchronisé, on désactive ce mode
-            self.sync_mode = False
-            self.remove_quit_button()
+        if(self.auto_save()):
+            """ Fonction qui gère l'activation et la désactivation du mode synchronisé. """
+            if self.sync_mode:
+                # Si on est en mode synchronisé, on désactive ce mode
+                self.sync_mode = False
+                self.remove_quit_button()
 
-            self.sync_widget.exit_video_players()
+                self.sync_widget.exit_video_players()
 
-            self.recreate_window()
+                self.recreate_window()
 
 
-        else:
-            self.capture_video_button.setEnabled(False)
-            self.sync_mode = True
-
-            self.sync_widget = SyncWidget(self)
-            self.create_sync_window()
-            self.sync_widget.configure()
-            if(self.sync_widget.dialog_result):
-                self.add_quit_button()
-                self.vlc_widget.stop_video()
             else:
-                self.sync_mode=False
+                self.capture_video_button.setEnabled(False)
+                self.sync_mode = True
+
+                self.sync_widget = SyncWidget(self)
+                self.create_sync_window()
+                self.sync_widget.configure()
+                if(self.sync_widget.dialog_result):
+                    self.add_quit_button()
+                    self.vlc_widget.stop_video()
+                else:
+                    self.sync_mode=False
 
     def annotation_button_use(self):
         print('annotation mode')
@@ -239,10 +245,11 @@ class VLCMainWindow(QMainWindow):
         """Affiche ou cache le menu latéral."""
         if not self.side_menu:
             #self.vlc_widget.pause_video()
-            self.side_menu = SideMenuWidget(self.vlc_widget, self,False)
+            self.side_menu = SideMenuWidget(self.vlc_widget, self)
             self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
             if self.project : 
                 self.project.seg=self.side_menu
+            self.side_menu.change.connect(self.change)
         else:
             self.side_menu.setVisible(not self.side_menu.isVisible())
 
@@ -279,6 +286,11 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
 
+        if self.side_menu : self.side_menu.change.connect(self.change)
+
+    def change(self,state:bool):
+        self.save_state=state
+
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
 
@@ -304,7 +316,7 @@ class VLCMainWindow(QMainWindow):
         self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 
 
     def closeEvent(self, event):    
-        if self.project:
+        if self.project and self.save_state:
             reply = QMessageBox.question(
                 self, "Quitter", "Voulez-vous enregistrer avant de quitter ?", 
                 QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Yes
@@ -317,3 +329,20 @@ class VLCMainWindow(QMainWindow):
                 event.accept() 
             else:
                 event.ignore()
+
+    def auto_save(self):
+        if self.project and self.save_state:
+            reply = QMessageBox.question(
+                self, "Quitter", "Voulez-vous enregistrer avant de quitter ?", 
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Yes
+            )
+
+            if reply == QMessageBox.Yes:
+                self.save_action()
+                return True
+            elif reply == QMessageBox.No:
+                return True
+            else:
+                return False
+        else :
+            return True       
