@@ -7,11 +7,10 @@ from vlc_sync_widget import SyncWidget
 from overlay_grid_widget import OverlayGridWidget 
 from side_menu_widget import SideMenuWidget
 from project_manager import ProjectManager
+from export_manager import ExportManager
 
 import os
 import json
-
-
 
 class VLCMainWindow(QMainWindow):
     """ Fenêtre principale contenant le lecteur et les menus. """
@@ -161,6 +160,7 @@ class VLCMainWindow(QMainWindow):
                 self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
                 self.side_menu.setVisible(False)
                 self.side_menu.change.connect(self.change)
+                self.export_button.setEnabled(False)
 
                 self.project=ProjectManager(self.side_menu,self.vlc_widget)
                 val=self.project.open_project(project_path)
@@ -196,7 +196,13 @@ class VLCMainWindow(QMainWindow):
         self.timecode_button.setEnabled(False)
         self.timecode_button.triggered.connect(self.timecode_action)
         self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
-        self.toolbar.addAction(self.timecode_button)
+        #self.toolbar.addAction(self.timecode_button)
+
+        self.export_button = QAction("Exporter",self)
+        self.export_button.setEnabled(False)
+        self.export_button.triggered.connect(self.export_action)
+        self.vlc_widget.enable_segmentation.connect(self.export_button.setEnabled)
+        self.toolbar.addAction(self.export_button)
 
     def capture_action(self):
         if self.sync_mode:
@@ -223,8 +229,6 @@ class VLCMainWindow(QMainWindow):
                 self.sync_widget.exit_video_players()
 
                 self.recreate_window()
-
-
             else:
                 self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
@@ -250,8 +254,13 @@ class VLCMainWindow(QMainWindow):
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)
+            self.add_seg_button()
         else:
             self.side_menu.setVisible(not self.side_menu.isVisible())
+
+    def export_action(self):
+        if(self.side_menu):
+            self.export=ExportManager(self.side_menu)
 
     def add_quit_button(self):
         """ Ajoute le bouton 'Quitter' à la barre d'outils. """
@@ -285,6 +294,7 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
+        self.vlc_widget.enable_segmentation.connect(self.export_button.setEnabled)
 
         if self.side_menu : self.side_menu.change.connect(self.change)
 

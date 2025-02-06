@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 
 from segmentation import SegmentationThread
-from note import Note
 
 class SideMenuWidget(QDockWidget):
     change = Signal(bool)
@@ -189,26 +188,58 @@ class SideMenuWidget(QDockWidget):
         self.change.emit(True)
 
     def add_note_menu(self, button):
-        text, ok = QInputDialog.getMultiLineText(self, "Ajouter une note", "Texte de la note :")
-        if ok : self.add_note(button,text)
-
+        self.add_note(button, "")  # Ajoute une note vide directement
         self.change.emit(True)
 
-    def add_note(self,button,text):
-        if text.strip():
-            note = Note(text)  # Créer une instance de Note
-            if button not in self.button_notes:
-                self.button_notes[button] = []
-            
-            note_widget = QTextEdit(self)
-            note_widget.setPlainText(note.text)
-            note_widget.setReadOnly(True)
-            note_widget.setStyleSheet("color: gray; font-style: italic;")
-            note_widget.setFixedHeight(50)
-            note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    def add_note(self, button, text=""):
+        note_widget = QTextEdit(self)
+        note_widget.setPlainText(text)
+        note_widget.setReadOnly(False)
+        note_widget.setStyleSheet("color: gray; font-style: italic;")
+        note_widget.setFixedHeight(50)
+        note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        note_widget.setContextMenuPolicy(Qt.CustomContextMenu)  # Active le menu contextuel
+        note_widget.customContextMenuRequested.connect(lambda pos: self.show_note_context_menu(note_widget, pos))
 
-            self.button_notes[button].append(note_widget)  # Stocke l'affichage
-            self.layout.insertWidget(self.layout.indexOf(button) + 1, note_widget)
+        if button not in self.button_notes:
+            self.button_notes[button] = []
+
+        self.button_notes[button].append(note_widget)
+        self.layout.insertWidget(self.layout.indexOf(button) + 1, note_widget)
+
+        # Détecte si du texte est ajouté
+        note_widget.textChanged.connect(lambda: self.on_text_changed(note_widget))
+
+    def on_text_changed(self, note_widget):
+        text = note_widget.toPlainText().strip()
+        if text:
+            note_widget.setStyleSheet("")  # Normal
+        else:
+            note_widget.setStyleSheet("color: gray; font-style: italic;")
+        self.change.emit(True)
+
+    def show_note_context_menu(self, note_widget, pos):
+        """ Affiche un menu contextuel sur un clic droit. """
+        menu = QMenu(self)
+
+        delete_action = QAction("Supprimer la note", self)
+        delete_action.triggered.connect(lambda: self.remove_note(note_widget))
+
+        menu.addAction(delete_action)
+        
+        menu.exec_(note_widget.mapToGlobal(pos))
+
+    def remove_note(self, note_widget):
+        """ Supprime la note de l'interface et de la liste. """
+        for button, notes in self.button_notes.items():
+            if note_widget in notes:
+                notes.remove(note_widget)
+                self.layout.removeWidget(note_widget)
+                note_widget.deleteLater()
+                break
+        self.change.emit(True)
+
+
 
 
     def add_action(self):
@@ -230,38 +261,23 @@ class SideMenuWidget(QDockWidget):
         layout.addWidget(time_label)
 
         time_layout = QHBoxLayout()
-        time_slider = QSlider(Qt.Horizontal, dialog)
-        time_slider.setMinimum(0)
-        time_slider.setMaximum(self.max_time - 1)  # Définir la valeur maximale à self.max_time
-        time_slider.setTickInterval(1000)
 
-        time_spinbox = QSpinBox(dialog)
-        time_spinbox.setMinimum(0)
-        time_spinbox.setMaximum(self.max_time - 1)
-
-        # Affichage du temps en minutes:secondes
-        time_display = QLabel(dialog)
+        time_spinbox=QLineEdit(dialog)
+        time_spinbox.setText("00:00")
+        time_spinbox.setFixedWidth(50)
 
         # Fonction pour mettre à jour l'affichage en mm:ss
         def update_time_display(value):
             minutes = value // 60000  # Conversion ms → min
             seconds = (value // 1000) % 60  # Conversion ms → sec
-            time_display.setText(f"{minutes:02}:{seconds:02}")
+            time_spinbox.setText(f"{minutes:02}:{seconds:02}")
 
         # Valeur initiale = position actuelle de la vidéo
         val = self.vlc_widget.player.get_time()
-        time_slider.setValue(val)
-        time_spinbox.setValue(val)
         update_time_display(val)  # Affichage initial
 
-        # Synchronisation slider, spinbox et affichage
-        #time_slider.valueChanged.connect(time_spinbox.setValue)
-        time_spinbox.valueChanged.connect(time_slider.setValue)
-        time_slider.valueChanged.connect(update_time_display)
 
-        time_layout.addWidget(time_slider)
         time_layout.addWidget(time_spinbox)
-        time_layout.addWidget(time_display)
         layout.addLayout(time_layout)
 
         # Boutons OK et Annuler
@@ -276,17 +292,17 @@ class SideMenuWidget(QDockWidget):
         # Action du bouton OK
         def on_ok():
             name = name_input.text().strip()
-            time = time_slider.value()
-            if name:
-                self.add_new_button(name=name, time=time)
+            time_str = time_spinbox.text()
+            minutes, seconds = map(int, time_str.split(":"))
+            new_time = (minutes * 60 + seconds) * 1000 
+            if name and 0<new_time<=self.max_time:
+                self.add_new_button(name=name, time=new_time)
                 dialog.accept()
 
         ok_button.clicked.connect(on_ok)
         cancel_button.clicked.connect(dialog.reject)
 
         dialog.exec()
-
-
 
 
     def modify_time(self, button):

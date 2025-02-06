@@ -294,7 +294,6 @@ class VLCPlayerWidget(QWidget):
     def set_position_timecode(self,new_time):
         total_time = self.player.get_length()
         if total_time > 0 and 0 <= new_time <= total_time:
-            print("set : ",new_time)
             self.player.set_time(new_time)
             self.update_ui()
 
