@@ -136,7 +136,7 @@ class VLCMainWindow(QMainWindow):
         self.export_button = QAction("Exporter",self)
         self.export_button.setEnabled(False)
         self.export_button.triggered.connect(self.export_action)
-        self.vlc_widget.enable_segmentation.connect(self.export_button.setEnabled)
+        self.vlc_widget.enable_segmentation.connect(self.export_button_state)
         self.toolbar.addAction(self.export_button)
 
     def create_keyboard(self):
@@ -252,7 +252,7 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
-        self.vlc_widget.enable_segmentation.connect(self.export_button.setEnabled)
+        self.vlc_widget.enable_segmentation.connect(self.export_button_state)
 
         if self.side_menu : self.side_menu.change.connect(self.change)
 
@@ -310,6 +310,7 @@ class VLCMainWindow(QMainWindow):
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)
+            self.export_button.setEnabled(True)
         else:
             self.side_menu.setVisible(not self.side_menu.isVisible())
 
@@ -319,6 +320,15 @@ class VLCMainWindow(QMainWindow):
     def export_action(self):
         if(self.side_menu):
             self.export=ExportManager(self.side_menu)
+
+    def export_button_state(self,state:bool):
+        if state:
+            if(self.side_menu):
+                self.export_button.setEnabled(state)
+        else:
+            self.export_button.setEnabled(state)
+
+
 
     #annotation pas encore implémenté
     def annotation_button_use(self):

@@ -157,8 +157,7 @@ class SyncWidget(QWidget):
         else:
             self.play_all()
             self.play_pause_button.setText("⏯️ Pause")
-            self.play=True
-            
+            self.play=True            
 
 
     def exit_video_players(self):
@@ -189,6 +188,7 @@ class SyncWidget(QWidget):
 
 
 
+    #capture d'écran combiné
     def capture_screenshot(self):
         images = []
         capture_dir = "captures"
