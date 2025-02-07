@@ -55,7 +55,7 @@ class SideMenuWidget(QDockWidget):
 
         self.max_time=self.vlc_widget.player.get_length()
 
-
+    #affichage du bouton en rouge
     def update_buttons_color(self):
         if not self.vlc_widget.media:
             return
@@ -80,7 +80,28 @@ class SideMenuWidget(QDockWidget):
             else:
                 btn_data["button"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
 
+    #fonction de tri appeler après ajout de bouton pour un affichage logique
+    def reorganize_buttons(self):
+        """Réorganise les boutons et leurs notes associées dans le layout après un tri."""
+        # Supprime tous les widgets du layout, sauf `add_button`
+        for i in reversed(range(self.layout.count())):
+            widget = self.layout.itemAt(i).widget()
+            if widget and widget != self.add_button:
+                self.layout.removeWidget(widget)
+                widget.setParent(None)  # Détache proprement les widgets sans les supprimer
 
+        # Réinsère les boutons triés et leurs notes associées
+        for btn_data in self.stock_button:
+            button = btn_data["button"]
+            self.layout.addWidget(button)
+
+            # Réinsérer les notes associées juste après le bouton
+            if button in self.button_notes:
+                for note_widget in self.button_notes[button]:
+                    self.layout.addWidget(note_widget)
+
+
+    #fonction d'ajout d'une nouveaux bouton
     def add_new_button(self, name="", time=0, verif=True):
         """Ajoute un bouton avec un nom et l'insère à la bonne position dans le layout."""
         if verif:
@@ -115,28 +136,7 @@ class SideMenuWidget(QDockWidget):
 
         return button
 
-    def reorganize_buttons(self):
-        """Réorganise les boutons et leurs notes associées dans le layout après un tri."""
-        # Supprime tous les widgets du layout, sauf `add_button`
-        for i in reversed(range(self.layout.count())):
-            widget = self.layout.itemAt(i).widget()
-            if widget and widget != self.add_button:
-                self.layout.removeWidget(widget)
-                widget.setParent(None)  # Détache proprement les widgets sans les supprimer
-
-        # Réinsère les boutons triés et leurs notes associées
-        for btn_data in self.stock_button:
-            button = btn_data["button"]
-            self.layout.addWidget(button)
-
-            # Réinsérer les notes associées juste après le bouton
-            if button in self.button_notes:
-                for note_widget in self.button_notes[button]:
-                    self.layout.addWidget(note_widget)
-
-
-
-
+    #menu clique droit du bouton/séquence
     def show_context_menu(self, pos, button):
         """Affiche un menu contextuel avec options de renommer et modifier valeurs."""
         menu = QMenu(self)
@@ -159,6 +159,7 @@ class SideMenuWidget(QDockWidget):
 
         menu.exec_(button.mapToGlobal(pos))
 
+    #fonction 1
     def rename_button(self, button):
         """Ouvre une boîte de dialogue pour renommer le bouton."""
         new_name, ok = QInputDialog.getText(self, "Renommer le bouton", "Nouveau nom :", text=button.text())
@@ -170,6 +171,7 @@ class SideMenuWidget(QDockWidget):
                     btn_data["button"].setText(new_name)
         self.change.emit(True)
 
+    #fonction 2
     def delate_button(self, button):
         # Vérifier si le bouton a des notes associées et les supprimer
         if button in self.button_notes:
@@ -187,6 +189,7 @@ class SideMenuWidget(QDockWidget):
 
         self.change.emit(True)
 
+    #fonction 3
     def add_note_menu(self, button):
         self.add_note(button, "")  # Ajoute une note vide directement
         self.change.emit(True)
@@ -218,6 +221,7 @@ class SideMenuWidget(QDockWidget):
             note_widget.setStyleSheet("color: gray; font-style: italic;")
         self.change.emit(True)
 
+    #menu clique droit note
     def show_note_context_menu(self, note_widget, pos):
         """ Affiche un menu contextuel sur un clic droit. """
         menu = QMenu(self)
@@ -229,6 +233,7 @@ class SideMenuWidget(QDockWidget):
         
         menu.exec_(note_widget.mapToGlobal(pos))
 
+    #fonction 1 clique droit note
     def remove_note(self, note_widget):
         """ Supprime la note de l'interface et de la liste. """
         for button, notes in self.button_notes.items():
@@ -239,9 +244,7 @@ class SideMenuWidget(QDockWidget):
                 break
         self.change.emit(True)
 
-
-
-
+    #ajout d'une séquence
     def add_action(self):
         """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """
         dialog = QDialog(self)
@@ -304,7 +307,7 @@ class SideMenuWidget(QDockWidget):
 
         dialog.exec()
 
-
+    #modif temps non utilisé
     def modify_time(self, button):
         """Modifie la valeur de temps associée à un bouton."""
         for btn_data in self.stock_button:
@@ -317,6 +320,7 @@ class SideMenuWidget(QDockWidget):
                     btn_data["time"] = new_time
                     print(f"Temps mis à jour pour {button.text()} : {new_time} secondes")
 
+    #fonction appeler quand on clique sur un bouton
     def set_position(self, button):
         for btn_data in self.stock_button:
             if btn_data["button"] == button:
@@ -326,6 +330,8 @@ class SideMenuWidget(QDockWidget):
         self.vlc_widget.set_position_timecode(int(time))
 
 
+
+    #segmentation appelé automatiquement à la création
     def start_segmentation(self):
         """Démarre la segmentation dans un thread séparé."""
         video_path = self.vlc_widget.path_of_media

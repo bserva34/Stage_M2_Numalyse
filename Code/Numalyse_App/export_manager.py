@@ -66,6 +66,20 @@ class ExportManager(QWidget):
         dialog.setLayout(dialog_layout)
         dialog.exec()
 
+    #boite de dialog pour save le fichier exporter
+    def save_export(self, content=""):
+        if os.name == "nt":  # Windows
+            default_dir = "C:/"
+        else:  # Linux/Mac
+            default_dir = "/"
+
+        file_path, _ = QFileDialog.getSaveFileName(self, "Nommer le fichier texte", default_dir)
+
+        self.file_path=file_path
+        if(file_path):
+            self.folder_button.setStyleSheet("background-color: green;")
+
+    #exporte dans la segmentation et annotations dans un fichier pdf
     def export_pdf(self):
         if self.file_path:
             if not self.file_path.lower().endswith(".pdf"):
@@ -125,24 +139,14 @@ class ExportManager(QWidget):
             except Exception as e:
                 print(f"Erreur lors de l'exportation PDF : {e}")
 
+    #exporte la seg dans une super vidéo
     def export_video(self):
         if self.file_path:
             if not self.file_path.lower().endswith(".mp4"):
                 self.file_path += ".mp4"
             print("exporte vidéo annoté")
 
-    def save_export(self, content=""):
-        if os.name == "nt":  # Windows
-            default_dir = "C:/"
-        else:  # Linux/Mac
-            default_dir = "/"
-
-        file_path, _ = QFileDialog.getSaveFileName(self, "Nommer le fichier texte", default_dir)
-
-        self.file_path=file_path
-        if(file_path):
-            self.folder_button.setStyleSheet("background-color: green;")
-
+    
     @staticmethod
     def format_time(seconds):
         """ Formate un temps donné en secondes en mm:ss. """

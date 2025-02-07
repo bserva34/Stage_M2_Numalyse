@@ -16,6 +16,7 @@ class ProjectManager:
         self.video_name=None
 
 
+    #création du projet dossier + copie de la vidéo + fichier json
     def save_project(self):
         #copie vidéo dans le project
         pof = self.vlc.path_of_media  
@@ -37,6 +38,7 @@ class ProjectManager:
 
         self.write_json()
 
+    #écriture dans le fichier json
     def write_json(self):
         self.destination_path = os.path.join(self.project_path, self.video_name)
         
@@ -71,6 +73,7 @@ class ProjectManager:
         except Exception as e:
             print(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
 
+    #ouverture du projet et chargement de la vidéo et séquence+annotation
     def open_project(self, project_path):
         self.project_path = project_path
 
@@ -104,7 +107,7 @@ class ProjectManager:
         
         return True
 
-
+    #création des séquences et des annotations
     def load_buttons(self, buttons_data):
         for button_info in buttons_data:
             name = button_info.get("name", "")

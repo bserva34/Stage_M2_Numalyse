@@ -16,6 +16,7 @@ class SegmentationThread(QThread):
         self.video_path = video_path
         self.running = True  # Flag d'arrêt
 
+    #calcul de la seg
     def run(self):
         if not os.path.exists(self.video_path):
             print("Impossible d'ouvrir la vidéo.")
@@ -39,7 +40,7 @@ class SegmentationThread(QThread):
         except StopProcessingException:
             print("Segmentation interrompue avant la fin.")
 
-        
+    #fonction de callback
     def check_stop(self, frame_number, frame_time: FrameTimecode):
         """Callback appelé à chaque frame pour vérifier si on doit arrêter."""
         if not self.running:
@@ -47,6 +48,7 @@ class SegmentationThread(QThread):
             raise StopProcessingException("Segmentation interrompue par l'utilisateur.")
         return True  # Continue l'analyse
 
+    #pour stopper l'exécution du calcul de seg
     def stop(self):
         self.running = False
         self.quit()
