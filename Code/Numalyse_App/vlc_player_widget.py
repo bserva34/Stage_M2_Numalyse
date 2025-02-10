@@ -2,7 +2,7 @@ import sys
 import os
 import vlc
 import time
-import subprocess
+import ffmpeg
 from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
 from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject
@@ -12,7 +12,6 @@ from custom_slider import CustomSlider
 from qfour_state_button import QFourStateButton
 
 class VLCPlayerWidget(QWidget):
-    """ Widget contenant le lecteur VLC et les boutons de contrôle. """
     enable_segmentation = Signal(bool)
     enable_recording = Signal(bool)
 
@@ -310,27 +309,21 @@ class VLCPlayerWidget(QWidget):
         else:
             self.start_recording()
 
-    def extract_segment_with_ffmpeg(self, input_file, start_time, duration, output_file):
-        print('Extraction avec FFmpeg...')
-        
-        # Construire la commande FFmpeg pour extraire la séquence vidéo
-        command = [
-            "ffmpeg",
-            "-i", input_file,              # Spécifie le fichier d'entrée
-            "-ss", str(start_time),         # Temps de début (en secondes)
-            "-t", str(duration),            # Durée de l'extrait (en secondes)
-            "-c:v", "copy",                 # Copier le flux vidéo sans réencodage
-            "-c:a", "copy",                 # Copier le flux audio sans réencodage
-            output_file                     # Fichier de sortie
-        ]
-        
-        with open(os.devnull, "w") as devnull:
-                try:
-                    # Exécuter la commande et rediriger stdout et stderr vers DEVNULL
-                    subprocess.run(command, check=True, stdout=devnull, stderr=devnull)
-                    print(f"Extrait enregistré dans {output_file}")
-                except subprocess.CalledProcessError as e:
-                    print(f"Erreur lors de l'extraction : {e}")
+
+    def extract_segment_with_ffmpeg(self,input_file, start_time, duration, output_file):
+        try:
+            # Utilisation de la librairie ffmpeg-python
+            (
+                ffmpeg
+                .input(input_file, ss=start_time)  # Spécifie le fichier d'entrée et le temps de début
+                .output(output_file, t=duration, c="copy")  # Définit la durée et copie les flux sans réencodage
+                .run(overwrite_output=True, quiet=True)  # Exécute la commande sans afficher la sortie
+            )
+            print(f"Extrait enregistré dans {output_file}")
+        except ffmpeg.Error as e:
+            print(f"Erreur lors de l'extraction : {e.stderr.decode()}")
+
+
 
 
     def start_recording(self):

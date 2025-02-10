@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QRadioButton, QLabel, QLineEdit, QDialog, QButtonGroup, QHBoxLayout
 import os
+import cv2
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -9,9 +10,10 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate
 
 
 class ExportManager(QWidget):
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,vlc=None):
         super().__init__(parent)
         self.seg=parent
+        self.vlc=vlc
 
         self.file_path=None
 
@@ -145,6 +147,26 @@ class ExportManager(QWidget):
             if not self.file_path.lower().endswith(".mp4"):
                 self.file_path += ".mp4"
             print("exporte vidéo annoté")
+
+            cap = cv2.VideoCapture(self.vlc.path_of_media)
+            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            out = cv2.VideoWriter(self.file_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
+            cpt=0
+            while cap.isOpened():
+                cpt+=1
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                txt="Numero frame : "+str(cpt)
+                cv2.putText(frame, txt, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
+                            1, (0, 0, 255), 2, cv2.LINE_AA)
+
+                out.write(frame)
+
+            cap.release()
+            out.release()
+
 
     
     @staticmethod

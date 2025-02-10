@@ -1,8 +1,6 @@
 from PySide6.QtCore import QThread, Signal
 import cv2
-import numpy as np
 import os
-from scipy.stats import entropy
 
 from scenedetect import detect, AdaptiveDetector, ContentDetector, ThresholdDetector, HistogramDetector, HashDetector, open_video, SceneManager, FrameTimecode
 from scenedetect.scene_manager import save_images

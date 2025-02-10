@@ -3,7 +3,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal
 
 import cv2 
-import numpy as np
+#import numpy as np
 
 from segmentation import SegmentationThread
 
@@ -333,7 +333,6 @@ class SideMenuWidget(QDockWidget):
 
     #segmentation appelé automatiquement à la création
     def start_segmentation(self):
-        """Démarre la segmentation dans un thread séparé."""
         video_path = self.vlc_widget.path_of_media
         self.segmentation_thread = SegmentationThread(video_path)
         

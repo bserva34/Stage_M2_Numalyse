@@ -319,7 +319,7 @@ class VLCMainWindow(QMainWindow):
     #exportation du travail
     def export_action(self):
         if(self.side_menu):
-            self.export=ExportManager(self.side_menu)
+            self.export=ExportManager(self.side_menu,self.vlc_widget)
 
     def export_button_state(self,state:bool):
         if state:
