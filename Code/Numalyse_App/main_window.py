@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog
 from PySide6.QtGui import QAction, QKeySequence, QShortcut
 from PySide6.QtCore import Qt
 
@@ -139,6 +139,12 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.export_button_state)
         self.toolbar.addAction(self.export_button)
 
+        self.extraction_button = QAction("Extraire une séquence",self)
+        self.extraction_button.setEnabled(False)
+        self.extraction_button.triggered.connect(self.extraction_action)
+        self.vlc_widget.enable_segmentation.connect(self.extraction_button.setEnabled)
+        self.toolbar.addAction(self.extraction_button)
+
     def create_keyboard(self):
         # Raccourci Ctrl + S pour Sauvegarde
         self.save_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
@@ -236,6 +242,36 @@ class VLCMainWindow(QMainWindow):
             self.capture_video_button.setText("📽️ Démarrer la capture vidéo")
             self.capture_video_button.setStyleSheet("")
 
+    #extraction de séquence vidéo
+    def extraction_action(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Extraire une séquence")
+        dialog.setModal(True)
+
+        layout = QVBoxLayout(dialog)
+
+        # Zone de texte pour le nom
+        name_label = QLabel("Nom de l'extrait :", dialog)
+        layout.addWidget(name_label)
+        name_input = QLineEdit(dialog)
+        layout.addWidget(name_input)
+
+        # Slider pour choisir le temps
+        time_label = QLabel("Début :", dialog)
+        layout.addWidget(time_label)
+
+        time_layout = QHBoxLayout()
+
+        time_spinbox=QLineEdit(dialog)
+        time_spinbox.setText("00:00")
+        time_spinbox.setFixedWidth(50)
+
+        time_layout.addWidget(time_spinbox)
+        layout.addLayout(time_layout)
+
+        time_label2 = QLabel("Fin :", dialog)
+        layout.addWidget(time_label2)
+
 
     #fonction qui sera à supprimer et qui permet d'afficher le timecode
     def timecode_action(self):
@@ -253,6 +289,10 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.export_button_state)
+
+        self.vlc_widget.enable_recording.connect(self.update_capture_video_button)
+
+        self.vlc_widget.enable_segmentation.connect(self.extraction_button.setEnabled)
 
         if self.side_menu : self.side_menu.change.connect(self.change)
 

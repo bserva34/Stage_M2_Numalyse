@@ -1,7 +1,7 @@
 import vlc
 import sys
 import os
-from PIL import Image
+from PIL import Image, ImageDraw
 from datetime import datetime
 
 from PySide6.QtWidgets import (
@@ -192,9 +192,9 @@ class SyncWidget(QWidget):
     def capture_screenshot(self):
         images = []
         capture_dir = "captures"
-        
+
         # Capture des screenshots et ajout des chemins d'accès
-        for i in range(0, self.num_windows):
+        for i in range(self.num_windows):
             img_path = self.player_widgets[i].capture_screenshot(i)
             if img_path:
                 images.append(img_path)
@@ -211,40 +211,65 @@ class SyncWidget(QWidget):
             except (IOError, FileNotFoundError):
                 return
 
-        separateur = 2
-        
+        separateur = 2  # Espacement entre les images
+
         # Trouver la plus petite largeur et hauteur parmi les images
         min_width = min(img.width for img in loaded_images)
         min_height = min(img.height for img in loaded_images)
-        
-        # Redimensionner toutes les images à la taille minimale
-        resized_images = [img.resize((min_width, min_height), Image.LANCZOS) for img in loaded_images]
 
-
-        # Calculer le nombre de lignes nécessaires (2 images par ligne)
-        num_columns = 2
-        num_rows = (len(resized_images) + num_columns - 1) // num_columns  # Division entière
-
-        # Trouver la largeur et la hauteur de l'image combinée
-        max_width = min_width * num_columns + (num_columns - 1) * separateur  # Largeur pour deux images côte à côte
-        max_height = min_height * num_rows + (num_rows - 1) * separateur  # Hauteur pour toutes les lignes
-
-        # Créer une nouvelle image pour l'assemblage
-        combined_image = Image.new('RGB', (max_width, max_height), (255, 255, 255))  # Fond blanc
-
-        # Coller les images deux par deux
-        x_offset = 0
-        y_offset = 0
-        for i, img in enumerate(resized_images):
-            combined_image.paste(img, (x_offset, y_offset))
+        # Redimensionner toutes les images en conservant le ratio
+        resized_images = []
+        for img in loaded_images:
+            img_ratio = img.width / img.height  # Ratio largeur / hauteur
+            if img_ratio > 1:  # Image en mode paysage
+                new_width = min_width
+                new_height = int(new_width / img_ratio)
+            else:  # Image en mode portrait ou carré
+                new_height = min_height
+                new_width = int(new_height * img_ratio)
             
-            # Changer l'offset en x pour la prochaine image dans la même ligne
-            x_offset += min_width + separateur
+            resized_images.append(img.resize((new_width, new_height), Image.LANCZOS))
 
-            # Si deux images ont été collées, passer à la ligne suivante
-            if (i + 1) % num_columns == 0:
+        # Trouver la largeur et la hauteur maximales des images
+        max_width = max(img.width for img in resized_images)
+        max_height = max(img.height for img in resized_images)
+
+        # Déterminer la disposition en grille
+        num_columns = 2
+        num_rows = (len(resized_images) + num_columns - 1) // num_columns  # Arrondi vers le haut
+
+        # Taille totale de l'image combinée
+        total_width = max_width * num_columns + (num_columns - 1) * separateur
+        total_height = max_height * num_rows + (num_rows - 1) * separateur
+
+        # Créer une nouvelle image vierge avec fond noir
+        combined_image = Image.new('RGB', (total_width, total_height), (0, 0, 0))
+        draw = ImageDraw.Draw(combined_image)  # Outil pour dessiner
+
+        # Positionner les images au centre de chaque cellule
+        x_offset, y_offset = 0, 0
+        for index, img in enumerate(resized_images):
+            # Calculer la position pour centrer l'image dans la cellule
+            centered_x = x_offset + (max_width - img.width) // 2
+            centered_y = y_offset + (max_height - img.height) // 2
+
+            # Coller l'image à la bonne position
+            combined_image.paste(img, (centered_x, centered_y))
+
+            # Mise à jour de l'offset
+            x_offset += max_width + separateur
+            if (index + 1) % num_columns == 0:  # Nouvelle ligne après num_columns images
                 x_offset = 0
-                y_offset += min_height + separateur
+                y_offset += max_height + separateur
+
+        # Dessiner les séparateurs blancs
+        for col in range(1, num_columns):
+            x_sep = col * max_width + (col - 1) * separateur
+            draw.line([(x_sep, 0), (x_sep, total_height)], fill="white", width=separateur)
+
+        for row in range(1, num_rows):
+            y_sep = row * max_height + (row - 1) * separateur
+            draw.line([(0, y_sep), (total_width, y_sep)], fill="white", width=separateur)
 
         # Suppression des captures individuelles
         for img_path in images:
@@ -256,8 +281,6 @@ class SyncWidget(QWidget):
         combined_image.save(combined_path)
 
         return combined_image
-
-
 
 
 
