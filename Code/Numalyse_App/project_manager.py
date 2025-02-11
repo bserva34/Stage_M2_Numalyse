@@ -49,6 +49,7 @@ class ProjectManager:
                 button_info = {
                     "name": button.text(),
                     "time": btn_data["time"],
+                    "end": btn_data["end"],
                     "notes": [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]  
                 }
                 button_data.append(button_info)
@@ -112,10 +113,11 @@ class ProjectManager:
         for button_info in buttons_data:
             name = button_info.get("name", "")
             time = button_info.get("time", 0)
+            end = button_info.get("end",0)
             notes = button_info.get("notes", [])  # Récupérer les notes
 
             # Créer le bouton
-            button = self.seg.add_new_button(name=name, time=time, verif=False)
+            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False)
 
             # Ajouter les notes associées
             for note_text in notes:

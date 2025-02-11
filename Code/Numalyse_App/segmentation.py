@@ -31,7 +31,7 @@ class SegmentationThread(QThread):
         try:
             scene_manager.detect_scenes(video, show_progress=True, callback=self.check_stop)
             scene_list = scene_manager.get_scene_list()
-            timecodes = [scene[0].get_seconds() * 1000 for scene in scene_list]
+            timecodes = [(scene[0].get_seconds() * 1000,scene[1].get_seconds() * 1000) for scene in scene_list]
             #save_images(scene_list,video,num_images=1,output_dir=output_dir)
             if self.running:
                 self.segmentation_done.emit(timecodes)

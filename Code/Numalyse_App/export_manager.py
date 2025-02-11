@@ -124,10 +124,11 @@ class ExportManager(QWidget):
                 # Ajout des boutons et notes
                 for btn_data in self.seg.stock_button:
                     button = btn_data["button"]
-                    time_str = self.format_time(btn_data["time"] // 1000)
+                    time_str = self.format_time(btn_data["time"])
+                    end_str = self.format_time(btn_data["end"]-btn_data["time"])
                     
                     # Titre pour chaque bouton
-                    elements.append(Paragraph(f"- {button.text()} → {time_str}", subtitle_style))
+                    elements.append(Paragraph(f"- {button.text()} → Début : {time_str} / Durée : {end_str}", subtitle_style))
 
                     # Notes associées
                     for note_widget in self.seg.button_notes.get(button, []):
@@ -170,8 +171,10 @@ class ExportManager(QWidget):
 
     
     @staticmethod
-    def format_time(seconds):
-        """ Formate un temps donné en secondes en mm:ss. """
-        minutes = int(seconds // 60)
-        seconds = int(seconds % 60)
-        return f"{minutes}'{seconds}''"
+    def format_time(milliseconds):
+        """ Formate un temps donné en millisecondes en mm:ss.d """
+        total_seconds = milliseconds / 1000
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        tenths = int((total_seconds * 10) % 10)  # Extraction du dixième de seconde
+        return f"{minutes:02}'{seconds:02}''{tenths}"

@@ -3,9 +3,11 @@ from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal
 
 import cv2 
-#import numpy as np
+import os
+from datetime import datetime
 
 from segmentation import SegmentationThread
+from time_selector import TimeSelector
 
 class SideMenuWidget(QDockWidget):
     change = Signal(bool)
@@ -102,7 +104,7 @@ class SideMenuWidget(QDockWidget):
 
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, verif=True):
+    def add_new_button(self, name="", time=0, end=0, verif=True):
         """Ajoute un bouton avec un nom et l'insère à la bonne position dans le layout."""
         if verif:
             if time >= self.max_time:
@@ -121,7 +123,7 @@ class SideMenuWidget(QDockWidget):
         button.setFixedSize(180, 25)
 
         # Ajouter le bouton dans la liste
-        self.stock_button.append({"button": button, "time": time})
+        self.stock_button.append({"button": button, "time": time, "end" : end})
 
         # Trier les boutons immédiatement après l'ajout
         self.stock_button.sort(key=lambda btn_data: btn_data["time"])
@@ -152,6 +154,10 @@ class SideMenuWidget(QDockWidget):
         add_note_action = QAction("Ajouter une note")
         add_note_action.triggered.connect(lambda: self.add_note_menu(button))
         menu.addAction(add_note_action)
+
+        extract_action = QAction("Extraire la séquence")
+        extract_action.triggered.connect(lambda: self.extract_action(button))
+        menu.addAction(extract_action)
 
         mod_action = QAction("Modif TimeCode", self)
         mod_action.triggered.connect(lambda: self.modify_time(button))
@@ -244,6 +250,22 @@ class SideMenuWidget(QDockWidget):
                 break
         self.change.emit(True)
 
+    #fonction 4 extraction
+    def extract_action(self, button): 
+        for btn_data in self.stock_button:
+            if btn_data["button"] == button:
+                time = btn_data["time"]
+                end = btn_data["end"]
+                duration = end - time
+
+        if not os.path.exists(self.vlc_widget.capture_dir):
+            os.makedirs(self.vlc_widget.capture_dir)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        capture_path = os.path.join(self.vlc_widget.capture_dir, f"extrait_{timestamp}.mp4")
+
+        self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time//1000,duration//1000,capture_path)
+
     #ajout d'une séquence
     def add_action(self):
         """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """
@@ -263,25 +285,9 @@ class SideMenuWidget(QDockWidget):
         time_label = QLabel("Position :", dialog)
         layout.addWidget(time_label)
 
-        time_layout = QHBoxLayout()
+        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length() // 1000, self.vlc_widget.player.get_time() // 1000)
+        layout.addWidget(self.time)        
 
-        time_spinbox=QLineEdit(dialog)
-        time_spinbox.setText("00:00")
-        time_spinbox.setFixedWidth(50)
-
-        # Fonction pour mettre à jour l'affichage en mm:ss
-        def update_time_display(value):
-            minutes = value // 60000  # Conversion ms → min
-            seconds = (value // 1000) % 60  # Conversion ms → sec
-            time_spinbox.setText(f"{minutes:02}:{seconds:02}")
-
-        # Valeur initiale = position actuelle de la vidéo
-        val = self.vlc_widget.player.get_time()
-        update_time_display(val)  # Affichage initial
-
-
-        time_layout.addWidget(time_spinbox)
-        layout.addLayout(time_layout)
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
@@ -295,9 +301,7 @@ class SideMenuWidget(QDockWidget):
         # Action du bouton OK
         def on_ok():
             name = name_input.text().strip()
-            time_str = time_spinbox.text()
-            minutes, seconds = map(int, time_str.split(":"))
-            new_time = (minutes * 60 + seconds) * 1000 
+            new_time = self.time.get_time_in_seconds()*1000
             if name and 0<new_time<=self.max_time:
                 self.add_new_button(name=name, time=new_time)
                 dialog.accept()
@@ -350,7 +354,7 @@ class SideMenuWidget(QDockWidget):
         self.add_button.clicked.connect(self.add_action)
         self.layout.addWidget(self.add_button)
         for time in timecodes:
-            self.add_new_button(time=time)  # Crée un bouton pour chaque changement de plan
+            self.add_new_button(time=time[0],end=time[1])  # Crée un bouton pour chaque changement de plan
         print("Segmentation terminée en arrière-plan.")
 
 

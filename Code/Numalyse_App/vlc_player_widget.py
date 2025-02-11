@@ -309,7 +309,7 @@ class VLCPlayerWidget(QWidget):
         else:
             self.start_recording()
 
-
+    #extraction vidéo temps en secondes
     def extract_segment_with_ffmpeg(self,input_file, start_time, duration, output_file):
         try:
             # Utilisation de la librairie ffmpeg-python
@@ -322,8 +322,6 @@ class VLCPlayerWidget(QWidget):
             print(f"Extrait enregistré dans {output_file}")
         except ffmpeg.Error as e:
             print(f"Erreur lors de l'extraction : {e.stderr.decode()}")
-
-
 
 
     def start_recording(self):
