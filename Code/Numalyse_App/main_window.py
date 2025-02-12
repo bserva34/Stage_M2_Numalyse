@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout
 from PySide6.QtGui import QAction, QKeySequence, QShortcut
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 
 from vlc_player_widget import VLCPlayerWidget
 from vlc_sync_widget import SyncWidget
@@ -130,11 +130,11 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.toolbar.addWidget(self.capture_video_button)
 
-        # self.timecode_button = QPushButton("Affichage timecode", self)
-        # self.timecode_button.setEnabled(False)
-        # self.timecode_button.clicked.connect(self.timecode_action)
-        # self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
-        #self.toolbar.addAction(self.timecode_button)
+        self.timecode_button = QPushButton("Affichage timecode", self)
+        self.timecode_button.setEnabled(False)
+        self.timecode_button.clicked.connect(self.timecode_action)
+        self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
+        self.toolbar.addWidget(self.timecode_button)
 
         self.export_button = QPushButton("Exporter",self)
         self.export_button.setEnabled(False)
@@ -379,8 +379,6 @@ class VLCMainWindow(QMainWindow):
 
     def change(self,state:bool):
         self.save_state=state
-
-
 
     # grille mais ne fonctionne pas pour l'instant
     def grille_button_use(self):

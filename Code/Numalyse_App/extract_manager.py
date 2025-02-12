@@ -1,6 +1,9 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QDialog, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QDialog, QHBoxLayout, QMessageBox
+from PySide6.QtCore import Qt, QTimer
+
 import os
 from time_selector import TimeSelector
+from message_popup import MessagePopUp
 
 class ExtractManager(QWidget):
     def __init__(self, parent=None):
@@ -54,8 +57,9 @@ class ExtractManager(QWidget):
                 fin = self.end_time.get_time_in_seconds()
                 temps = fin - deb
 
-                if self.file_path:
+                if self.file_path and temps>0:
                     self.vlc.extract_segment_with_ffmpeg(self.vlc.path_of_media, deb, temps, self.file_path)
+                    affichage=MessagePopUp(self)
                     dialog.accept()
             except ValueError:
                 print("Erreur : Format de temps invalide. Utiliser MM:SS.")
@@ -76,3 +80,4 @@ class ExtractManager(QWidget):
         self.file_path = file_path
         if file_path:
             self.folder_button.setStyleSheet("background-color: green;")
+

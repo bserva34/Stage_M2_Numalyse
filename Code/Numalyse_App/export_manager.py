@@ -8,14 +8,45 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph, SimpleDocTemplate
 
+from message_popup import MessagePopUp
+from time_manager import TimeManager
 
 class ExportManager(QWidget):
+    # Définition des styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'TitleStyle',
+        parent=styles['Title'],
+        fontSize=18,
+        textColor=colors.red,
+        spaceAfter=20
+    )
+
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor=colors.blue,
+        spaceAfter=10
+    )
+
+    note_style = ParagraphStyle(
+        'NoteStyle',
+        parent=styles['BodyText'],
+        fontSize=10,
+        textColor=colors.black,
+        leftIndent=20
+    )
+
+
     def __init__(self,parent=None,vlc=None):
         super().__init__(parent)
         self.seg=parent
         self.vlc=vlc
 
         self.file_path=None
+
+        self.time_manager=TimeManager()
 
         self.configure()
 
@@ -57,6 +88,7 @@ class ExportManager(QWidget):
         def on_ok():
             if(self.file_path):
                 self.export_pdf() if option_1.isChecked() else self.export_video()
+                affichage=MessagePopUp(self)
                 dialog.accept()
 
         def on_cancel():
@@ -92,40 +124,14 @@ class ExportManager(QWidget):
                 doc = SimpleDocTemplate(self.file_path, pagesize=A4)
                 elements = []
 
-                # Définition des styles
-                styles = getSampleStyleSheet()
-                title_style = ParagraphStyle(
-                    'TitleStyle',
-                    parent=styles['Title'],
-                    fontSize=18,
-                    textColor=colors.red,
-                    spaceAfter=20
-                )
-
-                subtitle_style = ParagraphStyle(
-                    'SubtitleStyle',
-                    parent=styles['Heading2'],
-                    fontSize=12,
-                    textColor=colors.blue,
-                    spaceAfter=10
-                )
-
-                note_style = ParagraphStyle(
-                    'NoteStyle',
-                    parent=styles['BodyText'],
-                    fontSize=10,
-                    textColor=colors.black,
-                    leftIndent=20
-                )
-
                 # Titre principal
                 elements.append(Paragraph("Étude cinématographique", title_style))
 
                 # Ajout des boutons et notes
                 for btn_data in self.seg.stock_button:
                     button = btn_data["button"]
-                    time_str = self.format_time(btn_data["time"])
-                    end_str = self.format_time(btn_data["end"]-btn_data["time"])
+                    time_str = self.time_manager.m_to_mst(btn_data["time"])
+                    end_str = self.time_manager.m_to_mst(btn_data["end"]-btn_data["time"])
                     
                     # Titre pour chaque bouton
                     elements.append(Paragraph(f"- {button.text()} → Début : {time_str} / Durée : {end_str}", subtitle_style))
@@ -153,28 +159,25 @@ class ExportManager(QWidget):
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             out = cv2.VideoWriter(self.file_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
             cpt=0
-            while cap.isOpened():
-                cpt+=1
+            txt=""
+            while cap.isOpened():               
+                
+                for i in range(0,len(self.seg.stock_frame)):
+                    if (self.seg.stock_frame[i][0]==cpt):
+                        btn_data=self.seg.stock_button[i]
+                        txt=btn_data["button"].text()
+                        break
+
                 ret, frame = cap.read()
                 if not ret:
-                    break
-
-                txt="Numero frame : "+str(cpt)
+                    break   
+   
                 cv2.putText(frame, txt, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
                             1, (0, 0, 255), 2, cv2.LINE_AA)
 
                 out.write(frame)
+                cpt+=1
 
             cap.release()
             out.release()
 
-
-    
-    @staticmethod
-    def format_time(milliseconds):
-        """ Formate un temps donné en millisecondes en mm:ss.d """
-        total_seconds = milliseconds / 1000
-        minutes = int(total_seconds // 60)
-        seconds = int(total_seconds % 60)
-        tenths = int((total_seconds * 10) % 10)  # Extraction du dixième de seconde
-        return f"{minutes:02}'{seconds:02}''{tenths}"

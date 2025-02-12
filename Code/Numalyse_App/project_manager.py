@@ -44,15 +44,19 @@ class ProjectManager:
         
         if self.seg is not None:
             button_data = []
+            cpt=0
             for btn_data in self.seg.stock_button:
                 button = btn_data["button"]
                 button_info = {
                     "name": button.text(),
                     "time": btn_data["time"],
                     "end": btn_data["end"],
+                    "frame": self.seg.stock_frame[cpt][0],
+                    "frame_end": self.seg.stock_frame[cpt][1],
                     "notes": [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]  
                 }
                 button_data.append(button_info)
+                cpt+=1
 
             project_data = {
                 "nom": self.project_name,
@@ -114,6 +118,7 @@ class ProjectManager:
             name = button_info.get("name", "")
             time = button_info.get("time", 0)
             end = button_info.get("end",0)
+            self.seg.stock_frame.append([button_info.get("frame",0),button_info.get("frame_end",0)])
             notes = button_info.get("notes", [])  # Récupérer les notes
 
             # Créer le bouton

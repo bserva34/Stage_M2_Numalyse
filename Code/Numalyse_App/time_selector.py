@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QL
 from PySide6.QtCore import Qt
 
 class TimeSelector(QWidget):
-    def __init__(self, parent=None, max_time=3600, time=0):
+    def __init__(self, parent=None, max_time=3600, time=-1):
         super().__init__(parent)
         self.max_time = max_time
         self.time_in_seconds = 0  # Valeur initiale en secondes
@@ -70,23 +70,23 @@ class TimeSelector(QWidget):
         self.minus_minutes_button.clicked.connect(self.decrement_minutes)
         self.minus_seconds_button.clicked.connect(self.decrement_seconds)
 
-
-        self.set_time(time)
+        if time>-1 :
+            self.set_time(time)
 
         # Mise à jour de l'état des boutons
         self.update_buttons()
 
     def get_time_in_seconds(self):
-        """Renvoie la valeur du temps en secondes."""
-        minutes = int(self.minutes_label.text())
-        seconds = int(self.seconds_label.text())
+        minutes = int(float(self.minutes_label.text()))  # Convertir en float avant int
+        seconds = int(float(self.seconds_label.text()))  # Pareil ici
         return minutes * 60 + seconds
+
 
     def set_time(self, seconds):
         """Met à jour l'affichage du temps en MM:SS."""
         self.time_in_seconds = max(0, min(seconds, self.max_time))  # Assure que le temps reste dans les limites
-        minutes = self.time_in_seconds // 60
-        seconds = self.time_in_seconds % 60
+        minutes = int(self.time_in_seconds // 60)
+        seconds = int(self.time_in_seconds % 60)
         self.minutes_label.setText(f"{minutes:02}")
         self.seconds_label.setText(f"{seconds:02}")
         self.update_buttons()

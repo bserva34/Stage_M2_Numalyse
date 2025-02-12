@@ -10,6 +10,7 @@ from PySide6.QtGui import QKeySequence, QShortcut
 
 from custom_slider import CustomSlider
 from qfour_state_button import QFourStateButton
+from time_manager import TimeManager
 
 class VLCPlayerWidget(QWidget):
     enable_segmentation = Signal(bool)
@@ -68,6 +69,8 @@ class VLCPlayerWidget(QWidget):
         self.is_recording=False
         self.start=0
         self.end=0
+
+        self.time_manager=TimeManager()
 
     def create_control_buttons(self, parent_layout):
         """ Crée et ajoute automatiquement les boutons de contrôle au layout donné. """
@@ -247,9 +250,9 @@ class VLCPlayerWidget(QWidget):
 
         if current_time >= 0 and total_time > 0:
             self.progress_slider.setValue(int((current_time / total_time) * 1000))
-            current_time_str = self.format_time(current_time)
+            current_time_str = self.time_manager.s_to_ms(current_time)
             #self.line_edit.setText(current_time_str)
-            total_time_str = self.format_time(total_time)
+            total_time_str = self.time_manager.s_to_ms(total_time)
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
         #print(self.player.get_state())
@@ -268,13 +271,6 @@ class VLCPlayerWidget(QWidget):
             total_time = self.player.get_length() // 1000  # en secondes
             new_time = position / 1000 * total_time
             self.player.set_time(int(new_time * 1000))
-
-    @staticmethod
-    def format_time(seconds):
-        """ Formate un temps donné en secondes en mm:ss. """
-        minutes = seconds // 60
-        seconds = seconds % 60
-        return f"{minutes:02}:{seconds:02}"
 
     def on_value_changed(self):
         """ Change la position de la vidéo lorsqu'on modifie le timecode dans le QLineEdit. """
