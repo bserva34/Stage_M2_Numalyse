@@ -1,6 +1,11 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QRadioButton, QLabel, QLineEdit, QDialog, QButtonGroup, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QRadioButton, QLabel, QLineEdit, QDialog, QButtonGroup, QHBoxLayout, QApplication
+from PySide6.QtCore import Qt
+
+import ffmpeg
 import os
 import cv2
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -76,6 +81,14 @@ class ExportManager(QWidget):
         self.folder_button.clicked.connect(self.save_export)
         dialog_layout.addWidget(self.folder_button)
 
+        dialog_load=QHBoxLayout()
+        load=QLabel("")
+        load.setStyleSheet("color: blue;")
+        load.setAlignment(Qt.AlignCenter)
+        dialog_load.addWidget(load)
+        dialog_layout.addLayout(dialog_load)
+
+
         # Boutons OK/Annuler
         button_layout = QHBoxLayout()
         ok_button = QPushButton("OK", dialog)
@@ -85,8 +98,11 @@ class ExportManager(QWidget):
         button_layout.addWidget(cancel_button)
         dialog_layout.addLayout(button_layout)
 
+
         def on_ok():
             if(self.file_path):
+                load.setText("exportation en cours ⌛")
+                QApplication.processEvents() 
                 self.export_pdf() if option_1.isChecked() else self.export_video()
                 affichage=MessagePopUp(self)
                 dialog.accept()
@@ -125,7 +141,7 @@ class ExportManager(QWidget):
                 elements = []
 
                 # Titre principal
-                elements.append(Paragraph("Étude cinématographique", title_style))
+                elements.append(Paragraph("Étude cinématographique", self.title_style))
 
                 # Ajout des boutons et notes
                 for btn_data in self.seg.stock_button:
@@ -134,12 +150,13 @@ class ExportManager(QWidget):
                     end_str = self.time_manager.m_to_mst(btn_data["end"]-btn_data["time"])
                     
                     # Titre pour chaque bouton
-                    elements.append(Paragraph(f"- {button.text()} → Début : {time_str} / Durée : {end_str}", subtitle_style))
+                    elements.append(Paragraph(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", self.subtitle_style))
 
                     # Notes associées
                     for note_widget in self.seg.button_notes.get(button, []):
                         note_text = note_widget.toPlainText()
-                        elements.append(Paragraph(f"{note_text}", note_style))
+                        #elements.append(Paragraph(f"{note_text}", self.note_style))
+                        self.put_multiline_text(elements,note_text)
 
                 # Génération du fichier PDF
                 doc.build(elements)
@@ -148,24 +165,40 @@ class ExportManager(QWidget):
             except Exception as e:
                 print(f"Erreur lors de l'exportation PDF : {e}")
 
-    #exporte la seg dans une super vidéo
+    def put_multiline_text(self, elements, text):
+        lines = text.split("\n")  # Découpe par retour à la ligne
+        for line in lines: 
+            line = line.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")  
+            elements.append(Paragraph(line, self.note_style))
+
+
+    #exporte la seg dans une super vidéo sans son  
     def export_video(self):
         if self.file_path:
             if not self.file_path.lower().endswith(".mp4"):
                 self.file_path += ".mp4"
-            print("exporte vidéo annoté")
 
             cap = cv2.VideoCapture(self.vlc.path_of_media)
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             out = cv2.VideoWriter(self.file_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
             cpt=0
             txt=""
+            txt2=""
+            txt3=[]
             while cap.isOpened():               
                 
                 for i in range(0,len(self.seg.stock_frame)):
                     if (self.seg.stock_frame[i][0]==cpt):
                         btn_data=self.seg.stock_button[i]
-                        txt=btn_data["button"].text()
+                        button = btn_data["button"]
+                        time_str = self.time_manager.m_to_mst(btn_data["time"])
+                        end_str = self.time_manager.m_to_mst(btn_data["end"]-btn_data["time"])
+                        txt=button.text()
+                        txt2="Debut : "+time_str+" / Duree : "+end_str
+                        txt3=[]
+                        for note_widget in self.seg.button_notes.get(button, []):
+                            note_text = note_widget.toPlainText()
+                            txt3.append(note_text)
                         break
 
                 ret, frame = cap.read()
@@ -175,9 +208,89 @@ class ExportManager(QWidget):
                 cv2.putText(frame, txt, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
                             1, (0, 0, 255), 2, cv2.LINE_AA)
 
+                cv2.putText(frame, txt2, (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 
+                            0.7, (0, 255, 0), 1, cv2.LINE_AA)
+
+                for i in range(len(txt3)):
+                    self.put_multiline_text_video(frame,txt3[i],(50, 110 + (i * 20)))
+
                 out.write(frame)
                 cpt+=1
 
             cap.release()
             out.release()
 
+
+    def put_multiline_text_video(self,frame, text, position, font_scale=0.5, color=(255, 0, 0), line_spacing=15):
+        lines = text.split("\n")  # Découpe par retour à la ligne
+        x, y = position
+
+        for i, line in enumerate(lines):
+            cv2.putText(frame, line.replace("\t", "    "), (x, y + i * line_spacing),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, 1, cv2.LINE_AA)
+
+
+
+
+    # def draw_text_pil(self,frame, text, position, font_size=20, color=(255, 255, 255)):
+    #     """ Affiche du texte avec accents en utilisant PIL. """
+    #     pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    #     draw = ImageDraw.Draw(pil_img)
+
+    #     try:
+    #         font = ImageFont.truetype("arial.ttf", font_size)  # Remplace par une police UTF-8 valide
+    #     except IOError:
+    #         font = ImageFont.load_default()
+
+    #     draw.text(position, text, font=font, fill=color)
+    #     return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+
+    # def put_multiline_text(self,frame, text, position, font_size=15, color=(255, 0, 0), line_spacing=20):
+    #     """ Affiche un texte multi-lignes avec support des accents. """
+    #     lines = text.split("\n")
+    #     x, y = position
+    #     for i, line in enumerate(lines):
+    #         frame = self.draw_text_pil(frame, line.replace("\t", "    "), (x, y + i * line_spacing), font_size, color)
+    #     return frame
+
+    # def export_video(self):
+    #     if self.file_path:
+    #         if not self.file_path.lower().endswith(".mp4"):
+    #             self.file_path += ".mp4"
+    #         print("Exportation de la vidéo annotée...")
+
+    #         cap = cv2.VideoCapture(self.vlc.path_of_media)
+    #         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    #         out = cv2.VideoWriter(self.file_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
+    #         cpt = 0
+    #         txt = ""
+    #         txt2 = ""
+    #         txt3 = []
+
+    #         while cap.isOpened():
+    #             for i in range(len(self.seg.stock_frame)):
+    #                 if self.seg.stock_frame[i][0] == cpt:
+    #                     btn_data = self.seg.stock_button[i]
+    #                     button = btn_data["button"]
+    #                     time_str = self.time_manager.m_to_mst(btn_data["time"])
+    #                     end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+    #                     txt = button.text()
+    #                     txt2 = f"Début : {time_str} / Durée : {end_str}"
+    #                     txt3 = [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]
+    #                     break
+
+    #             ret, frame = cap.read()
+    #             if not ret:
+    #                 break
+
+    #             frame = self.draw_text_pil(frame, txt, (50, 50), 30, (0, 0, 255))  # Texte principal
+    #             frame = self.draw_text_pil(frame, txt2, (50, 80), 20, (0, 255, 0))  # Infos temps
+
+    #             for i, note in enumerate(txt3):
+    #                 frame = self.put_multiline_text(frame, note, (50, 110 + (i * 30)), 15)  # Notes
+
+    #             out.write(frame)
+    #             cpt += 1
+
+    #         cap.release()
+    #         out.release()

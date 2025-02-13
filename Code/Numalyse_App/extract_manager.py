@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QDialog, QHBoxLayout, QMessageBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QDialog, QHBoxLayout, QMessageBox, QApplication
 from PySide6.QtCore import Qt, QTimer
 
 import os
@@ -41,6 +41,13 @@ class ExtractManager(QWidget):
         self.end_time = TimeSelector(dialog, self.vlc.player.get_length() // 1000, self.vlc.player.get_time() // 1000 + 10)
         layout.addWidget(self.end_time)
 
+        dialog_load=QHBoxLayout()
+        load=QLabel("")
+        load.setStyleSheet("color: blue;")
+        load.setAlignment(Qt.AlignCenter)
+        dialog_load.addWidget(load)
+        layout.addLayout(dialog_load)
+
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
         ok_button = QPushButton("Extraire", dialog)
@@ -58,6 +65,10 @@ class ExtractManager(QWidget):
                 temps = fin - deb
 
                 if self.file_path and temps>0:
+                    if not self.file_path.lower().endswith(".mp4"):
+                        self.file_path += ".mp4"
+                    load.setText("exportation en cours ⌛")
+                    QApplication.processEvents() 
                     self.vlc.extract_segment_with_ffmpeg(self.vlc.path_of_media, deb, temps, self.file_path)
                     affichage=MessagePopUp(self)
                     dialog.accept()

@@ -1,6 +1,18 @@
 import sys
 import os
+import ctypes
+
+# Assure-toi de charger la bonne bibliothèque VLC dans l'exécutable
+libvlc_path = "/usr/lib/x86_64-linux-gnu/libvlc.so.5"
+libvlccore_path = "/usr/lib/x86_64-linux-gnu/libvlccore.so.9"
+
+if os.path.exists(libvlc_path):
+    os.environ["LD_LIBRARY_PATH"] = os.path.dirname(libvlc_path)
+    ctypes.CDLL(libvlc_path, mode=ctypes.RTLD_GLOBAL)
+    ctypes.CDLL(libvlccore_path, mode=ctypes.RTLD_GLOBAL)
+
 import vlc
+
 import time
 import ffmpeg
 from datetime import datetime
@@ -21,7 +33,7 @@ class VLCPlayerWidget(QWidget):
     def __init__(self,add_controls=False,add_window_time=True,m=True,c=True):
         super().__init__()
 
-        self.instance = vlc.Instance("--quiet")
+        self.instance = vlc.Instance()
         self.player = self.instance.media_player_new()
 
         self.media = None  # Pour suivre le fichier chargé
@@ -169,20 +181,16 @@ class VLCPlayerWidget(QWidget):
             self.path_of_media=file_path
             self.media = self.instance.media_new(file_path)
             self.player.set_media(self.media)
+            self.player.audio_set_mute(self.mute)
             if(self.begin):
                 self.player.play()
                 self.play_pause_button.setText("⏯️ Pause")
                 self.timer.start()            
             self.progress_slider.setEnabled(True)
-            self.time_label.setStyleSheet("color: red;")
-            self.player.audio_set_mute(self.mute)
+            self.time_label.setStyleSheet("color: red;")            
             self.active_segmentation()
             if (suppr_seg):
                 self.enable_load.emit(True)
-
-    def mspf(self,mp):
-        """Milliseconds per frame"""
-        return int(1000 // (mp.get_fps() or 25))
     
     def play_video(self):
         self.player.play()
@@ -241,6 +249,10 @@ class VLCPlayerWidget(QWidget):
 
     def update_ui(self):
         """ Met à jour le slider et l'affichage du temps. """
+
+        # print("var",self.mute)
+        # print("état",self.player.audio_get_mute())
+
         if self.media is None:
             return
 
@@ -255,14 +267,8 @@ class VLCPlayerWidget(QWidget):
             total_time_str = self.time_manager.s_to_ms(total_time)
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
-        #print(self.player.get_state())
         if self.player.get_state()==6 :
             self.restart_video()
-        # val=self.player.get_time()
-        # val_max=self.player.get_length()
-        # if (val>=val_max or val >= val_max-500):
-        #     print("fin detecté")
-        #     self.set_position_timecode(0)
 
 
     def set_position(self, position):

@@ -12,6 +12,7 @@ from time_manager import TimeManager
 
 class SideMenuWidget(QDockWidget):
     change = Signal(bool)
+    segmentation_done = Signal(bool)
 
     def __init__(self, vlc_widget, parent=None,start=True):
         super().__init__("Segmentation", parent)  # Titre du dock
@@ -196,6 +197,7 @@ class SideMenuWidget(QDockWidget):
     #fonction 2
     def delate_button(self, button):
         """Supprime un bouton et son cadre associé."""
+        cpt=0
         for btn_data in self.stock_button:
             if btn_data["button"] == button:
                 frame = btn_data["frame"]
@@ -208,9 +210,13 @@ class SideMenuWidget(QDockWidget):
                 if button in self.button_notes:
                     del self.button_notes[button]
 
+                #suppr les frames
+                self.stock_frame.pop(cpt)
+
                 # Supprimer le bouton de la liste
                 self.stock_button.remove(btn_data)
                 break
+            cpt+=1
 
         self.change.emit(True)
 
@@ -439,6 +445,7 @@ class SideMenuWidget(QDockWidget):
             self.stock_frame.append([time[2],time[3]])
             self.add_new_button(time=time[0],end=time[1])  # Crée un bouton pour chaque changement de plan
         print("Segmentation terminée en arrière-plan.")
+        self.segmentation_done.emit(True)
 
 
     def stop_segmentation(self):

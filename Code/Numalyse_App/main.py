@@ -15,4 +15,8 @@ if __name__ == "__main__":
 
 
 
-#pyinstaller --name "MonLogiciel" --windowed --icon=icon.ico main.py
+# pyinstaller --name "SLV" --windowed --icon=icon/icon3.ico --exclude PyQt5 --exclude PyQt6 --onefile \
+# --add-binary "/usr/lib/x86_64-linux-gnu/libvlc.so:." \
+# --add-binary "/usr/lib/x86_64-linux-gnu/libvlccore.so.9:." main.py
+
+

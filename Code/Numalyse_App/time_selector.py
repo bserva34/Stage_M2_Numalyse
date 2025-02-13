@@ -115,10 +115,6 @@ class TimeSelector(QWidget):
         self.minus_minutes_button.setEnabled(current_time > 0)
         self.minus_seconds_button.setEnabled(current_time > 0)
 
-        # Désactiver les boutons de secondes si max_time < 60s
-        self.plus_seconds_button.setEnabled(self.max_time >= 60)
-        self.minus_seconds_button.setEnabled(self.max_time >= 60 and current_time > 0)
-
         # Désactiver le bouton + si on atteint le max
         self.plus_minutes_button.setEnabled(current_time < self.max_time)
         self.plus_seconds_button.setEnabled(current_time < self.max_time)

@@ -130,16 +130,15 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.toolbar.addWidget(self.capture_video_button)
 
-        self.timecode_button = QPushButton("Affichage timecode", self)
-        self.timecode_button.setEnabled(False)
-        self.timecode_button.clicked.connect(self.timecode_action)
-        self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
-        self.toolbar.addWidget(self.timecode_button)
+        # self.timecode_button = QPushButton("Affichage timecode", self)
+        # self.timecode_button.setEnabled(False)
+        # self.timecode_button.clicked.connect(self.timecode_action)
+        # self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
+        # self.toolbar.addWidget(self.timecode_button)
 
         self.export_button = QPushButton("Exporter",self)
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_action)
-        self.vlc_widget.enable_segmentation.connect(self.export_button_state)
         self.toolbar.addWidget(self.export_button)
 
         self.extraction_button = QPushButton("Extraire une séquence",self)
@@ -200,7 +199,7 @@ class VLCMainWindow(QMainWindow):
                 self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
                 self.side_menu.setVisible(False)
                 self.side_menu.change.connect(self.change)
-                self.export_button.setEnabled(False)
+                self.export_button.setEnabled(True)      
 
                 self.project=ProjectManager(self.side_menu,self.vlc_widget)
                 val=self.project.open_project(project_path)
@@ -224,6 +223,7 @@ class VLCMainWindow(QMainWindow):
             self.removeDockWidget(self.side_menu)
             self.side_menu.deleteLater()
             self.side_menu=None
+            self.export_button.setEnabled(False)
             
     #capture image et vidéo
     def capture_action(self):
@@ -266,7 +266,6 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
-        self.vlc_widget.enable_segmentation.connect(self.export_button_state)
 
         self.vlc_widget.enable_recording.connect(self.update_capture_video_button)
 
@@ -328,7 +327,8 @@ class VLCMainWindow(QMainWindow):
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)
-            self.export_button.setEnabled(True)
+            #self.export_button.setEnabled(True)
+            self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
         else:
             self.side_menu.setVisible(not self.side_menu.isVisible())
 
@@ -338,14 +338,6 @@ class VLCMainWindow(QMainWindow):
     def export_action(self):
         if(self.side_menu):
             self.export=ExportManager(self.side_menu,self.vlc_widget)
-
-    def export_button_state(self,state:bool):
-        if state:
-            if(self.side_menu):
-                self.export_button.setEnabled(state)
-        else:
-            self.export_button.setEnabled(state)
-
 
 
     #annotation pas encore implémenté
