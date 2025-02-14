@@ -20,3 +20,10 @@ if __name__ == "__main__":
 # --add-binary "/usr/lib/x86_64-linux-gnu/libvlccore.so.9:." main.py
 
 
+#pyinstaller -w --add-binary "C:\Program Files\VideoLAN\VLC\libvlc.dll;." main.py
+
+#penser à intégrer le plugin vlc dans le dossier
+#--add-binary "C:\\Program Files\\VideoLAN\\VLC\\libvlccore.dll;." à tester avec
+#-w pour normalement enlever le terminal
+
+#pyinstaller --name "SLV" --icon=icon/icon3.ico -w --add-data "icon;icon" --add-binary "C:\Program Files\VideoLAN\VLC\libvlc.dll;." main.py
