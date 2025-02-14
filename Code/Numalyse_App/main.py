@@ -26,4 +26,8 @@ if __name__ == "__main__":
 #--add-binary "C:\\Program Files\\VideoLAN\\VLC\\libvlccore.dll;." à tester avec
 #-w pour normalement enlever le terminal
 
+#windows 
 #pyinstaller --name "SLV" --icon=icon/icon3.ico -w --add-data "icon;icon" --add-binary "C:\Program Files\VideoLAN\VLC\libvlc.dll;." main.py
+
+#linux ne fonctionne pas
+#pyinstaller --name "SLV" --icon=icon/icon3.ico -w --exclude PyQt5 --exclude PyQt6 --add-binary "/usr/lib/x86_64-linux-gnu/libvlc.so:." main.py

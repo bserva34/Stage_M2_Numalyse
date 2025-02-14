@@ -9,6 +9,7 @@ from datetime import datetime
 from segmentation import SegmentationThread
 from time_selector import TimeSelector
 from time_manager import TimeManager
+from message_popup import MessagePopUp
 
 class SideMenuWidget(QDockWidget):
     change = Signal(bool)
@@ -297,9 +298,10 @@ class SideMenuWidget(QDockWidget):
             os.makedirs(self.vlc_widget.capture_dir)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        capture_path = os.path.join(self.vlc_widget.capture_dir, f"extrait_{timestamp}.mp4")
+        capture_path = os.path.join(self.vlc_widget.capture_dir, f"{button.text()}_{timestamp}.mp4")
 
         self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time//1000,duration//1000,capture_path)
+        affichage=MessagePopUp(self)
 
     #ajout d'une séquence
     def add_action(self):
