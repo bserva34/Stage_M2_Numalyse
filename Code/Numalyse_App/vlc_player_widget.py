@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 
 import vlc
 
@@ -34,7 +35,7 @@ class VLCPlayerWidget(QWidget):
         else : 
             self.player.audio_set_mute(False)
         
-        self.capture_dir = "captures"
+        self.capture_dir = os.path.join(str(Path.home()), "Videos", "Capture_SLV")
         self.path_of_media=""
 
         # Layout principal

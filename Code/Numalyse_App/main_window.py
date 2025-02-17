@@ -21,8 +21,8 @@ class VLCMainWindow(QMainWindow):
 
         self.setWindowTitle("SLV")
         self.setGeometry(100, 100, 1400, 1200)
-        #self.showMaximized()
-        #self.showFullScreen()
+        self.showMaximized()
+        #self.showFullScreen() #enlève la barre menu etc
 
         # Initialisation du widget principal
         self.vlc_widget = VLCPlayerWidget(True)

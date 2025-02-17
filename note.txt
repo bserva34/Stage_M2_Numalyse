@@ -1,0 +1,183 @@
+SLV (super lecteur vidéo) : PC/MAC/Linux
+!= VLC, Quicktime, Screen, lina
+https://videovillage.com/screen/ -> 176€
+https://iina.io/ -> os
+
+interface ergonomique et intuitive inspirée de Screen 
+-lecture de plusieurs vidéos en simultanement et synchroniquement
+-zoom
+-affichage d'image fixes, texte
+-lecture de son
+-système de calque/grille
+-outil de segmentation
+-interface d'annotation manuelle
+-capture images fixe et capture sonore
+-découpage et encodage de segment source vidéo en format commun
+étude iconographique : 1. Étude descriptive des différentes représentations figurées d'un même sujet ; ensemble classé des images correspondantes.
+-recherche iconographique en ligne
+
+
+article 1 : https://ieeexplore.ieee.org/document/8547093
+
+article 2 : méthode corrélation classique SAD/SSD
+			méthode flot optique (gradients)
+			modélisation flou du nvd des pixels (utilise histogramme quasi continue et théorie de possibilités)
+				-QCH (Histogrammes quasi-continuous) utilisent une partition floue de l'espace paramétrique (améliore la robustesse face au bruit et au erreur de dicrétisation)
+					Chaque cellule de l'histogramme est définie par une fonction d'appartenance triangulaire qui se chevauche avec ses voisines. 
+				-classification floue (qui permet d'attenuer les variations de lumières) :
+					classe "blanc" et classes "noir" : clair et sombres
+				-L’estimation du mouvement repose sur un vote pondéré des pixels dans un histogramme flou multidimensionnel (Tx, Ty, Rotation), et le mouvement principal est déterminé en recherchant le mode de cet histogramme à l’aide de la théorie des probabilités imprécises et de la théorie des possibilités.
+				-Avantages et inconvénient : 
+					estimation du mouvement et mesure de confiance (seuil de pertinance de l'estimation fixé par les données)
+					temps de calcul élevé
+					taux de chevauchement entre 2 images minimum 75% pour une bonne estimation.
+				-comparaison :
+					méthode classique limité par la sensibilité au bruit
+					La méthode QCH est plus robuste face aux variations d'illumination, aux objets parasites en mouvement et aux erreurs de quantification.
+
+
+article 7 : téléchargé
+	https://kinoai.inria.fr/ logiciel utilisé dans l'article 
+		détection de personnages et calcul de cadrage automatique les plus pertinant 
+		détection de personnage : utilisation de la librairie OpenPose.
+		découpage : algo d'optimisation temporelle
+
+		1h de captation = 10h de découpage
+		version client-serveur avec visualisation en ligne pour éviter une limite de temps sur les données fournis/traité
+
+		annotation avec timeline
+			-mode table: 
+				notation simplement importé et associé
+				note en rouge quand l'action associé apparait 
+				note cliquable pour visionner la scène associé
+			-mode planche:
+					choix des cadres en fonction des notations
+					séquence découpé en fonction des notations
+					plan large et plan résseré choisit par ingénieur en fonction de la note
+
+		prise en main compliqué et temps de traitement trop élevé
+
+
+
+
+Pour développer un logiciel de traitement vidéo et implémenter ces fonctionnalités, voici quelques techniques et technologies utiles :
+
+Interface ergonomique et intuitive : Utilisation de frameworks comme Qt (C++) ou SwiftUI (macOS).
+Lecture vidéo simultanée : Utilisation de FFmpeg ou de bibliothèques comme OpenCV pour la gestion des flux vidéo multiples.
+Zoom et affichage d'images fixes : Manipulation de la vidéo avec OpenGL ou Vulkan.
+Système de calque/grille : Création de couches superposées avec des graphics frameworks (e.g., Qt).
+Segmentation et découpage vidéo : FFmpeg ou OpenCV pour la détection et le découpage de segments.
+Annotation manuelle : Canvas API pour la superposition d'annotations.
+Encodage de vidéo : Utilisation de FFmpeg pour le transcodage dans des formats communs.
+Recherche iconographique : Implémentation d'algorithmes de vision par ordinateur avec TensorFlow ou OpenCV.
+
+
+
+
+comparaison des logiciels
+Segmentations de scènes : Méthodes comme Shot Boundary Detection (SBD) pour détecter automatiquement les transitions.
+Reconnaissance de texte dans les vidéos : Exploitation d’OCR (Reconnaissance Optique de Caractères) pour extraire du texte des images ou vidéos.
+Traitement des métadonnées vidéo : Gestion et extraction d'informations intégrées dans les fichiers vidéo (par exemple, EXIF, sous-titres).
+
+Inclure un aperçu des techniques pour optimiser les performances dans les applications de traitement vidéo en temps réel, comme l’utilisation de l’accélération GPU (CUDA, OpenCL) ou des optimisations de parallélisme.
+
+
+
+
+
+Prise de note Réunion 1 :
+
+livre blanc -> différent logiciel
+
+capture d'écran la base
+
+découpage analytique
+
+lecture synchroniser avec lancement automatique
+
+cinéma codifié avec des scènes types : western duel	
+
+cinéma classique hitchcock
+
+moyen d'estimer les faux positifs et faux negatifs.
+
+
+
+Réunion 10/02
+
+séquence affichage de début fin
+
+faire un menu d'extraction de séquence -> fait
+
+problème capture vidéo logo qui n'est pas en rouge (géré le problème des 3 secondes noir) -> manque un connect dans recreate passage en librairies et plus avec subprocess
+
+ratio capture combiné -> gérer faudra proposer les diff options
+
+readme -> fait 
+
+21/02 réunion à partir de 10h30 -> organiser
+
+
+----to----do------
+son  -> ok
+moyen qui montre que l'on a une vidéo chargé -> timer en rouge
+choix du timecode de démarrage de l'extrait
+capture d'écran combiné -> gérer le cas ou toutes les lecteurs ne sont pas avec des vidéo chargé
+capture vidéo -> fait
+association de touche à différentes action -> espace pour lecture
+trouver un système pour détecter quand il y a eu modif pour éviter de save pour rien -> émit
+temps en minutes + secondes pour l'ajout de bouton -> fait mais à améliorer
+segmentation -> plan de coupe et fondu avec affichage des différentes scènes dans une liste -> ajout de note par scène, rennomage de scène -> fait
+sauvegarde si aucun projet mais vidéo + segmentation -> fait
+
+séquence affichage de début fin : mettre un qlabel en dessous de chaque bouton -> empacter dans un qframe
+
+mettre un moyen visuel qui prouve que l'extraction a fonctionné, pareil pour l'exportation -> message classique
+
+faire une classe gestionnaire de temps qui permet de faire les affichages -> fait time_manager
+
+super vidéo -> fait mais ne prend pas en charge les accents et d'autres caractères ni le cas de superposition de séquence
+
+mettre en place un système de chargement pour indiquer que le calcul se fait -> message
+
+tester de créer un exécutable windows, linux, mac (faudra trouver une solution pour voir si ca fonctionne) -> fonctionne sous windows sauf extraction séquence
+
+
+systeme de grille -> pas réussit on verra plus tard si nécessaire ou pas
+système d'annotation-> avec systeme d'exportation/partage et aussi système de chargement des notes et de lecture -> intégrer à la seg à voir si c'est suffisant
+
+
+#lecture sync faire du multi thread car léger décalage 
+#segmentation bouton calcul auto
+#travailler la super vidéo pour combiner les séquences qui se chevauche
+#thread pour l'exportation vidéo
+#erreur sur ffmpeg -> le problème vient soit de la création de dossier soit du datetime
+#faire en sorte que ca s'ouvre en grand écran -> show maximized
+
+
+!!!!!!!Problèmes!!!!!!
+problème son quand on décharge individuellement puis qu'on charge collectivement -> résolu (l'état du bouton n'était pas bien modifié)
+capture d'écran combiné problème de résultat quand deux sources de qualité différentes -> résolu avec redimension de taille la plus petite
+gérer le problème de fin de vidéo avec impossible de revenir en arrière -> on restart la vidéo
+thread segmentation stop -> ok
+chargement nouveau projet, nouvelle vidéo ou lecture sync pas de sauvegarde -> à verifier mais normalement c'est bon
+
+problème capture d'écran sync quand on charge décharge -> pas de problème finalement
+enregistrement vidéo pas de son -> pas sur à verifier si ca ce reproduit
+extract qui apparait avant la fin du calcul de segmentation -> c'est bon
+export pdf pas de tab et entré -> gére comme dans la vidéo
+
+
+problème son quand ca reload la vidéo quand ca arrive à la fin -> réglé mais potentiellement encore un problème
+
+enregistrement vidéo avec ou sans son en fonction de la vidéo
+exportation sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux 
+
+
+----to----do------
+
+
+
+
+
+

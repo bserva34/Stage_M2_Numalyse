@@ -54,10 +54,3 @@ if __name__ == "__main__":
 #linux ne fonctionne pas
 #pyinstaller --name "SLV" --icon=icon/icon3.ico -w --exclude PyQt5 --exclude PyQt6 --add-binary "/usr/lib/x86_64-linux-gnu/libvlc.so:." main.py
 
-
-#lecture sync faire du multi thread car léger décalage 
-#segmentation bouton calcul auto
-#travailler la super vidéo pour combiner les séquences qui se chevauche
-#thread pour l'exportation vidéo
-#erreur sur ffmpeg
-#faire en sorte que ca s'ouvre en grand écran
