@@ -1,6 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QPalette
+from PySide6.QtCore import Qt
 from main_window import VLCMainWindow
 
 if __name__ == "__main__":
@@ -8,6 +9,24 @@ if __name__ == "__main__":
 
     app.setApplicationName("SLV")
     app.setWindowIcon(QIcon("icon/icon3.ico"))
+
+    # app.setStyle("Fusion")
+
+    # palette = QPalette()
+    # palette.setColor(QPalette.Window, Qt.black)
+    # palette.setColor(QPalette.WindowText, Qt.white)
+    # palette.setColor(QPalette.Base, Qt.black)
+    # palette.setColor(QPalette.AlternateBase, Qt.gray)
+    # palette.setColor(QPalette.ToolTipBase, Qt.black)
+    # palette.setColor(QPalette.ToolTipText, Qt.white)
+    # palette.setColor(QPalette.Text, Qt.white)
+    # palette.setColor(QPalette.Button, Qt.darkGray)
+    # palette.setColor(QPalette.ButtonText, Qt.white)
+    # palette.setColor(QPalette.BrightText, Qt.red)
+    # palette.setColor(QPalette.Highlight, Qt.blue)
+    # palette.setColor(QPalette.HighlightedText, Qt.black)
+
+    # app.setPalette(palette)
 
     window = VLCMainWindow()
     window.show()
@@ -26,8 +45,19 @@ if __name__ == "__main__":
 #--add-binary "C:\\Program Files\\VideoLAN\\VLC\\libvlccore.dll;." à tester avec
 #-w pour normalement enlever le terminal
 
-#windows 
-#pyinstaller --name "SLV" --icon=icon/icon3.ico -w --add-data "icon;icon" --add-binary "C:\Program Files\VideoLAN\VLC\libvlc.dll;." main.py
+#windows slv_installeur inno_setup
+#pyinstaller --name "SLV" --icon=icon/icon3.ico -w --add-data "icon;icon" --add-binary "C:\ffmpeg\bin\ffmpeg.exe;." --add-binary "C:\Program Files\VideoLAN\VLC\libvlc.dll;." main.py
+#--add-binary "C:\ffmpeg\bin\ffmpeg.exe;."
+#--add-binary "C:\Users\33652\AppData\Local\Programs\Python\Python310\python310.dll;."
+
 
 #linux ne fonctionne pas
 #pyinstaller --name "SLV" --icon=icon/icon3.ico -w --exclude PyQt5 --exclude PyQt6 --add-binary "/usr/lib/x86_64-linux-gnu/libvlc.so:." main.py
+
+
+#lecture sync faire du multi thread car léger décalage 
+#segmentation bouton calcul auto
+#travailler la super vidéo pour combiner les séquences qui se chevauche
+#thread pour l'exportation vidéo
+#erreur sur ffmpeg
+#faire en sorte que ca s'ouvre en grand écran

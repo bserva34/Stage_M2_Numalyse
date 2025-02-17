@@ -21,6 +21,8 @@ class VLCMainWindow(QMainWindow):
 
         self.setWindowTitle("SLV")
         self.setGeometry(100, 100, 1400, 1200)
+        #self.showMaximized()
+        #self.showFullScreen()
 
         # Initialisation du widget principal
         self.vlc_widget = VLCPlayerWidget(True)
@@ -381,6 +383,6 @@ class VLCMainWindow(QMainWindow):
             print("Mode Segmentation désactivé")
             self.overlay_grid.hide()
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 
+    # def resizeEvent(self, event):
+    #     super().resizeEvent(event)
+    #     self.overlay_grid.setGeometry(self.vlc_widget.geometry()) 

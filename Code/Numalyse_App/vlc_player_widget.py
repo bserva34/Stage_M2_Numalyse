@@ -1,15 +1,5 @@
 import sys
 import os
-import ctypes
-
-# Assure-toi de charger la bonne bibliothèque VLC dans l'exécutable
-libvlc_path = "/usr/lib/x86_64-linux-gnu/libvlc.so.5"
-libvlccore_path = "/usr/lib/x86_64-linux-gnu/libvlccore.so.9"
-
-if os.path.exists(libvlc_path):
-    os.environ["LD_LIBRARY_PATH"] = os.path.dirname(libvlc_path)
-    ctypes.CDLL(libvlc_path, mode=ctypes.RTLD_GLOBAL)
-    ctypes.CDLL(libvlccore_path, mode=ctypes.RTLD_GLOBAL)
 
 import vlc
 
