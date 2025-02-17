@@ -20,8 +20,8 @@ class SegmentationThread(QThread):
             print("Impossible d'ouvrir la vidéo.")
             return
 
-        output_dir = "segmentation"
-        os.makedirs(output_dir, exist_ok=True)
+        # output_dir = "segmentation"
+        # os.makedirs(output_dir, exist_ok=True)
 
         video = open_video(self.video_path)
         scene_manager = SceneManager()

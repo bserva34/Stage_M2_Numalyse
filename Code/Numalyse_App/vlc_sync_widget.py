@@ -1,6 +1,7 @@
 import vlc
 import sys
 import os
+from pathlib import Path
 from PIL import Image, ImageDraw
 from datetime import datetime
 
@@ -191,7 +192,7 @@ class SyncWidget(QWidget):
     #capture d'écran combiné
     def capture_screenshot(self):
         images = []
-        capture_dir = "captures"
+        capture_dir = os.path.join(str(Path.home()), "Videos", "Capture_SLV")
 
         # Capture des screenshots et ajout des chemins d'accès
         for i in range(self.num_windows):
