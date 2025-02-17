@@ -148,10 +148,13 @@ système d'annotation-> avec systeme d'exportation/partage et aussi système de 
 
 
 #lecture sync faire du multi thread car léger décalage 
-#segmentation bouton calcul auto
+#segmentation bouton calcul auto -> pas fait à en discuter
 #travailler la super vidéo pour combiner les séquences qui se chevauche
 #thread pour l'exportation vidéo
-#erreur sur ffmpeg -> le problème vient soit de la création de dossier soit du datetime
+#enregistrement projet sans séquence 
+#calcul des frames sur l'ajout de bouton
+
+#erreur sur ffmpeg -> le problème vient soit de la création de dossier car on avait pas les droits
 #faire en sorte que ca s'ouvre en grand écran -> show maximized
 
 

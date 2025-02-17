@@ -324,7 +324,7 @@ class VLCMainWindow(QMainWindow):
         """Affiche ou cache le menu latéral."""
         if not self.side_menu:
             #self.vlc_widget.pause_video()
-            self.side_menu = SideMenuWidget(self.vlc_widget, self)
+            self.side_menu = SideMenuWidget(self.vlc_widget, self,False)
             self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
             if self.project : 
                 self.project.seg=self.side_menu

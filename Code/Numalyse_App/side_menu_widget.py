@@ -52,8 +52,7 @@ class SideMenuWidget(QDockWidget):
             self.start_segmentation()
         else:
             self.add_button = QPushButton("Ajouter",self)
-            self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
-            #self.add_button.setFixedSize(180, 25) 
+            self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;") 
             self.add_button.clicked.connect(self.add_action)
             self.layout.addWidget(self.add_button)
 
@@ -104,6 +103,8 @@ class SideMenuWidget(QDockWidget):
         for btn_data in self.stock_button:
             self.layout.addWidget(btn_data["frame"])
 
+        self.layout.addStretch()
+
 
 
     #fonction d'ajout d'une nouveaux bouton
@@ -134,7 +135,8 @@ class SideMenuWidget(QDockWidget):
         else:
             time_label = QLabel(f"Début : {self.time_manager.m_to_mst(time)} / Fin : {self.time_manager.m_to_mst(end)}", self)
 
-        # Ajouter bouton et label dans le layout du frame
+        time_label.setFixedHeight(25)
+
         frame_layout.addWidget(button)
         frame_layout.addWidget(time_label)
 
@@ -151,6 +153,7 @@ class SideMenuWidget(QDockWidget):
 
         if verif:
             self.change.emit(True)
+            self.segmentation_done.emit(True)
 
         return button
 
