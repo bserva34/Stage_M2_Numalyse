@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QRadioButton, QLabel, QLineEdit, QDialog, QButtonGroup, QHBoxLayout, QApplication
 from PySide6.QtCore import Qt
 
-import ffmpeg
+from moviepy.editor import VideoFileClip
+
 import os
 import cv2
 import numpy as np
@@ -178,47 +179,59 @@ class ExportManager(QWidget):
             if not self.file_path.lower().endswith(".mp4"):
                 self.file_path += ".mp4"
 
+            temp_video_path = "temp_video.mp4"
+
+            # Création de la vidéo sans audio avec OpenCV
             cap = cv2.VideoCapture(self.vlc.path_of_media)
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-            out = cv2.VideoWriter(self.file_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
-            cpt=0
-            txt=""
-            txt2=""
-            txt3=[]
-            while cap.isOpened():               
-                
-                for i in range(0,len(self.seg.stock_frame)):
-                    if (self.seg.stock_frame[i][0]==cpt):
-                        btn_data=self.seg.stock_button[i]
-                        button = btn_data["button"]
-                        time_str = self.time_manager.m_to_mst(btn_data["time"])
-                        end_str = self.time_manager.m_to_mst(btn_data["end"]-btn_data["time"])
-                        txt=button.text()
-                        txt2="Debut : "+time_str+" / Duree : "+end_str
-                        txt3=[]
-                        for note_widget in self.seg.button_notes.get(button, []):
-                            note_text = note_widget.toPlainText()
-                            txt3.append(note_text)
-                        break
+            out = cv2.VideoWriter(temp_video_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
 
+            cpt = 0
+            active_texts = []
+
+            while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret:
-                    break   
-   
-                cv2.putText(frame, txt, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
-                            1, (0, 0, 255), 2, cv2.LINE_AA)
+                    break
 
-                cv2.putText(frame, txt2, (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 
-                            0.7, (0, 255, 0), 1, cv2.LINE_AA)
+                active_texts = [btn_data for btn_data in self.seg.stock_button if btn_data["frame1"] <= cpt < btn_data["frame2"]]
+                decalage=0
+                for btn_data in active_texts:
+                    button = btn_data["button"]
+                    time_str = self.time_manager.m_to_mst(btn_data["time"])
+                    end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+                    txt = button.text()
+                    txt2 = f"Debut : {time_str} / Duree : {end_str}"
+                    txt3 = [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]
 
-                for i in range(len(txt3)):
-                    self.put_multiline_text_video(frame,txt3[i],(50, 110 + (i * 20)))
+                    decalage=self.write_text_on_video(frame,txt,txt2,txt3,decalage)                    
 
                 out.write(frame)
-                cpt+=1
+                cpt += 1
 
             cap.release()
             out.release()
+
+            # Utilisation de MoviePy pour ajouter l'audio original
+            video_clip = VideoFileClip(temp_video_path)
+            audio_clip = VideoFileClip(self.vlc.path_of_media).audio
+
+            final_clip = video_clip.set_audio(audio_clip)
+            final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac")
+
+            # Suppression du fichier vidéo temporaire
+            os.remove(temp_video_path)
+
+    def write_text_on_video(self,frame,txt,txt2,txt3,decalage):
+        cv2.putText(frame, txt, (50, decalage+50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
+        cv2.putText(frame, txt2, (50, decalage+80), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 1, cv2.LINE_AA)
+
+        val=decalage+80
+        for i, text in enumerate(txt3):
+            val=decalage + 110 + (i * 20)
+            self.put_multiline_text_video(frame, text, (50,val))
+
+        return val+10
 
 
     def put_multiline_text_video(self,frame, text, position, font_scale=0.5, color=(255, 0, 0), line_spacing=15):

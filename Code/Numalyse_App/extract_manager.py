@@ -32,13 +32,13 @@ class ExtractManager(QWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.start_time = TimeSelector(dialog, (self.vlc.player.get_length()-1000) // 1000, self.vlc.player.get_time() // 1000)
+        self.start_time = TimeSelector(dialog, (self.vlc.player.get_length()-1000), self.vlc.player.get_time())
         layout.addWidget(self.start_time)
         # Choix du temps de fin
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.end_time = TimeSelector(dialog, self.vlc.player.get_length() // 1000, self.vlc.player.get_time() // 1000 + 10)
+        self.end_time = TimeSelector(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000)
         layout.addWidget(self.end_time)
 
         dialog_load=QHBoxLayout()
@@ -60,8 +60,8 @@ class ExtractManager(QWidget):
         # Action du bouton OK
         def on_ok():
             try:
-                deb = self.start_time.get_time_in_seconds()
-                fin = self.end_time.get_time_in_seconds()
+                deb = self.start_time.get_time_in_milliseconds()
+                fin = self.end_time.get_time_in_milliseconds()
                 temps = fin - deb
 
                 if self.file_path and temps>0:
@@ -69,7 +69,7 @@ class ExtractManager(QWidget):
                         self.file_path += ".mp4"
                     load.setText("exportation en cours ⌛")
                     QApplication.processEvents() 
-                    self.vlc.extract_segment_with_ffmpeg(self.vlc.path_of_media, deb, temps, self.file_path)
+                    self.vlc.extract_segment_with_ffmpeg(self.vlc.path_of_media, deb//1000, temps//1000, self.file_path)
                     affichage=MessagePopUp(self)
                     dialog.accept()
             except ValueError:

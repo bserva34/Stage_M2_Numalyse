@@ -5,7 +5,7 @@ class TimeSelector(QWidget):
     def __init__(self, parent=None, max_time=3600, time=-1):
         super().__init__(parent)
         self.max_time = max_time
-        self.time_in_seconds = 0  # Valeur initiale en secondes
+        self.time= 0  
 
         # Layout principal vertical
         self.main_layout = QVBoxLayout(self)
@@ -76,40 +76,39 @@ class TimeSelector(QWidget):
         # Mise à jour de l'état des boutons
         self.update_buttons()
 
-    def get_time_in_seconds(self):
-        minutes = int(float(self.minutes_label.text()))  # Convertir en float avant int
-        seconds = int(float(self.seconds_label.text()))  # Pareil ici
-        return minutes * 60 + seconds
+    def get_time_in_milliseconds(self):
+        return self.time
 
 
-    def set_time(self, seconds):
+    def set_time(self, milliseconds):
         """Met à jour l'affichage du temps en MM:SS."""
-        self.time_in_seconds = max(0, min(seconds, self.max_time))  # Assure que le temps reste dans les limites
-        minutes = int(self.time_in_seconds // 60)
-        seconds = int(self.time_in_seconds % 60)
+        self.time = max(0, min(milliseconds, self.max_time))  # Assure que le temps reste dans les limites
+        minutes = int(self.time // 60000)
+        seconds = int((self.time % 60000) // 1000)  # Diviser par 1000 pour obtenir les secondes
         self.minutes_label.setText(f"{minutes:02}")
         self.seconds_label.setText(f"{seconds:02}")
         self.update_buttons()
 
+
     def increment_minutes(self):
         """Incrémente les minutes de 1."""
-        self.set_time(self.get_time_in_seconds() + 60)
+        self.set_time(self.time + 60000)
 
     def decrement_minutes(self):
         """Décrémente les minutes de 1."""
-        self.set_time(self.get_time_in_seconds() - 60)
+        self.set_time(self.time - 60000)
 
     def increment_seconds(self):
         """Incrémente les secondes de 1."""
-        self.set_time(self.get_time_in_seconds() + 1)
+        self.set_time(self.time + 1000)
 
     def decrement_seconds(self):
         """Décrémente les secondes de 1."""
-        self.set_time(self.get_time_in_seconds() - 1)
+        self.set_time(self.time - 1000)
 
     def update_buttons(self):
         """Désactive les boutons en fonction des limites."""
-        current_time = self.get_time_in_seconds()
+        current_time = self.time
 
         # Désactiver le bouton - si on est déjà à 00:00
         self.minus_minutes_button.setEnabled(current_time > 0)

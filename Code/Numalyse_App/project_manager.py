@@ -44,19 +44,17 @@ class ProjectManager:
         
         if self.seg is not None:
             button_data = []
-            cpt=0
             for btn_data in self.seg.stock_button:
                 button = btn_data["button"]
                 button_info = {
                     "name": button.text(),
                     "time": btn_data["time"],
                     "end": btn_data["end"],
-                    "frame": self.seg.stock_frame[cpt][0],
-                    "frame_end": self.seg.stock_frame[cpt][1],
+                    "frame": btn_data["frame1"],
+                    "frame_end": btn_data["frame2"],
                     "notes": [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]  
                 }
                 button_data.append(button_info)
-                cpt+=1
 
             project_data = {
                 "nom": self.project_name,
@@ -102,8 +100,7 @@ class ProjectManager:
                 self.video_name = os.path.basename(video_path)
                 print(f"Vidéo chargée : {video_path}")
             else:
-                print("Erreur : Fichier vidéo introuvable !")
-
+                return False
             self.load_buttons(project_data.get("segmentation", []))
 
         except Exception as e:
@@ -118,11 +115,12 @@ class ProjectManager:
             name = button_info.get("name", "")
             time = button_info.get("time", 0)
             end = button_info.get("end",0)
-            self.seg.stock_frame.append([button_info.get("frame",0),button_info.get("frame_end",0)])
+            frame1 = button_info.get("frame",0)
+            frame2 = button_info.get("frame_end",0)
             notes = button_info.get("notes", [])  # Récupérer les notes
 
             # Créer le bouton
-            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False)
+            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False, frame1=frame1, frame2=frame2)
 
             # Ajouter les notes associées
             for note_text in notes:

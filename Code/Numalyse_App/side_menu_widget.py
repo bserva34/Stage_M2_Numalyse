@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt, QTimer, Signal
 import cv2 
 import os
 from datetime import datetime
+from moviepy.editor import VideoFileClip
 
 from segmentation import SegmentationThread
 from time_selector import TimeSelector
@@ -41,28 +42,36 @@ class SideMenuWidget(QDockWidget):
         # Liste pour stocker les boutons et leurs informations
         self.stock_button = []
         self.button_notes = {}
-        self.stock_frame = []
+
+        self.seg_ok=False
 
         if(start):
-            self.affichage = QLabel("Calcul Segmentation en cours ⌛", self)
-            self.affichage.setStyleSheet("color: blue;")
-            self.affichage.setAlignment(Qt.AlignCenter)
-            self.layout.addWidget(self.affichage)
-
-            self.start_segmentation()
+            self.seg_button = QPushButton("Segmentation Auto",self)
+            self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;") 
+            self.seg_button.clicked.connect(self.seg_action)
+            self.layout.addWidget(self.seg_button)
         else:
-            self.add_button = QPushButton("Ajouter",self)
-            self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;") 
-            self.add_button.clicked.connect(self.add_action)
-            self.layout.addWidget(self.add_button)
+            self.seg_ok=True
+
+        self.add_button = QPushButton("Ajouter",self)
+        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;") 
+        self.add_button.clicked.connect(self.add_action)
+        self.layout.addWidget(self.add_button)
+
+        self.layout.addStretch()
+
+        self.fps=None
+
+        self.max_time=self.vlc_widget.player.get_length()
+
+        self.time_manager=TimeManager()
+
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_buttons_color)
         self.timer.start(50) #actu en ms
 
-        self.max_time=self.vlc_widget.player.get_length()
-
-        self.time_manager=TimeManager()
+        
 
     #affichage du bouton en rouge
     def update_buttons_color(self):
@@ -70,45 +79,48 @@ class SideMenuWidget(QDockWidget):
             return
 
         current_time = self.vlc_widget.player.get_time()
-        self.max_time=self.vlc_widget.player.get_length()
+        self.max_time = self.vlc_widget.player.get_length()
 
-        # Trouver le bouton qui correspond au temps actuel
-        active_button = None
+        # Appliquer la couleur en fonction du temps actuel
         for btn_data in self.stock_button:
             button_time = btn_data["time"]
-            
-            if button_time <= current_time:
-                active_button = btn_data  # Dernier bouton trouvé avant ou égal au temps actuel
-            else:
-                break
+            button_end = btn_data["end"]
 
-        # Appliquer la couleur uniquement au bon bouton
-        for btn_data in self.stock_button:
-            if btn_data == active_button:
+            if button_time <= current_time <= button_end:
                 btn_data["button"].setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;")
             else:
                 btn_data["button"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
 
+
     #fonction de tri appeler après ajout de bouton pour un affichage logique
     def reorganize_buttons(self):
-        """Réorganise les frames dans le layout après un tri."""
-        # Supprime tous les widgets sauf `add_button`
         for i in reversed(range(self.layout.count())):
-            widget = self.layout.itemAt(i).widget()
-            if widget and widget != self.add_button:
-                self.layout.removeWidget(widget)
-                widget.setParent(None)
+            item = self.layout.itemAt(i)
+            if item is not None:
+                widget = item.widget()
+                if widget:
+                    self.layout.removeWidget(widget)
+                    widget.setParent(None)
+                else: 
+                    self.layout.removeItem(item)
+
+        # Réajoute les boutons fixes
+        if(not self.seg_ok):
+            self.layout.addWidget(self.seg_button)
+        self.layout.addWidget(self.add_button)
 
         # Réinsère les frames triés
         for btn_data in self.stock_button:
             self.layout.addWidget(btn_data["frame"])
 
+        # Réajoute un stretch à la fin
         self.layout.addStretch()
 
 
 
+
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, end=0, verif=True):
+    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
         if verif and time >= self.max_time:
             return
 
@@ -141,7 +153,7 @@ class SideMenuWidget(QDockWidget):
         frame_layout.addWidget(time_label)
 
         # Ajouter le frame à la liste des boutons stockés
-        self.stock_button.append({"frame": frame, "button": button, "time": time, "end": end, "label": time_label})
+        self.stock_button.append({"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
 
         # Trier les boutons
         self.stock_button.sort(key=lambda btn_data: btn_data["time"])
@@ -214,8 +226,6 @@ class SideMenuWidget(QDockWidget):
                 if button in self.button_notes:
                     del self.button_notes[button]
 
-                #suppr les frames
-                self.stock_frame.pop(cpt)
 
                 # Supprimer le bouton de la liste
                 self.stock_button.remove(btn_data)
@@ -324,13 +334,13 @@ class SideMenuWidget(QDockWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length() // 1000, self.vlc_widget.player.get_time() // 1000)
+        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time())
         layout.addWidget(self.time)        
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeSelector(dialog, self.vlc_widget.player.get_length() // 1000, self.vlc_widget.player.get_time() // 1000 + 5)
+        self.time2 = TimeSelector(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5)
         layout.addWidget(self.time2)        
 
 
@@ -346,11 +356,16 @@ class SideMenuWidget(QDockWidget):
 
         # Action du bouton OK
         def on_ok():
+            if(self.fps==None):
+                video=VideoFileClip(self.vlc_widget.path_of_media)
+                self.fps = video.fps
             name = name_input.text().strip()
-            new_time = self.time.get_time_in_seconds()*1000
-            end_time = self.time2.get_time_in_seconds()*1000
+            new_time = self.time.get_time_in_milliseconds()
+            end_time = self.time2.get_time_in_milliseconds()
+            frame1 = int((new_time/1000)*self.fps)
+            frame2 = int((end_time/1000)*self.fps)
             if name and 0<new_time<=self.max_time:
-                self.add_new_button(name=name, time=new_time, end=end_time)
+                self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
                 dialog.accept()
 
         ok_button.clicked.connect(on_ok)
@@ -375,13 +390,13 @@ class SideMenuWidget(QDockWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length() // 1000, start // 1000)
+        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length(), start)
         layout.addWidget(self.time)        
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeSelector(dialog, self.vlc_widget.player.get_length() // 1000, end // 1000)
+        self.time2 = TimeSelector(dialog, self.vlc_widget.player.get_length(), end )
         layout.addWidget(self.time2)        
 
         # Boutons OK et Annuler
@@ -395,8 +410,8 @@ class SideMenuWidget(QDockWidget):
 
         # Action du bouton OK
         def on_ok():
-            new_time = self.time.get_time_in_seconds()*1000
-            end_time = self.time2.get_time_in_seconds()*1000
+            new_time = self.time.get_time_in_milliseconds()
+            end_time = self.time2.get_time_in_milliseconds()
             new_label ="Début : "+self.time_manager.m_to_mst(new_time)+" / Fin : "+self.time_manager.m_to_mst(end_time)
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
@@ -426,8 +441,13 @@ class SideMenuWidget(QDockWidget):
         self.vlc_widget.set_position_timecode(int(time))
 
 
+    def seg_action(self):
+        self.seg_button.setText("Calcul Segmentation en cours ⌛")
+        self.seg_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
+        self.start_segmentation()
 
-    #segmentation appelé automatiquement à la création
+
+    #segmentation appelé automatiquement à la création plus maintenant
     def start_segmentation(self):
         video_path = self.vlc_widget.path_of_media
         self.segmentation_thread = SegmentationThread(video_path)
@@ -438,17 +458,11 @@ class SideMenuWidget(QDockWidget):
         self.segmentation_thread.start()  # Démarrer le thread
 
     def on_segmentation_complete(self, timecodes):
-        """Callback exécuté une fois la segmentation terminée."""
-        self.layout.removeWidget(self.affichage)
-        self.affichage.deleteLater()
-        self.add_button = QPushButton("Ajouter",self)
-        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
-        #self.add_button.setFixedSize(180, 25)
-        self.add_button.clicked.connect(self.add_action)
-        self.layout.addWidget(self.add_button)
+        self.seg_ok=True
+        self.layout.removeWidget(self.seg_button)
+        self.seg_button.deleteLater()
         for time in timecodes:
-            self.stock_frame.append([time[2],time[3]])
-            self.add_new_button(time=time[0],end=time[1])  # Crée un bouton pour chaque changement de plan
+            self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])  # Crée un bouton pour chaque changement de plan
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
 

@@ -197,7 +197,7 @@ class VLCMainWindow(QMainWindow):
             if project_path :
                 self.recreate_window()
 
-                self.side_menu=SideMenuWidget(self.vlc_widget, self,False)
+                self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
                 self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
                 self.side_menu.setVisible(False)
                 self.side_menu.change.connect(self.change)
@@ -207,6 +207,7 @@ class VLCMainWindow(QMainWindow):
                 val=self.project.open_project(project_path)
                 if not val :
                     self.project=None
+                    self.side_menu=None
                 self.save_state=False
 
 
@@ -324,7 +325,7 @@ class VLCMainWindow(QMainWindow):
         """Affiche ou cache le menu latéral."""
         if not self.side_menu:
             #self.vlc_widget.pause_video()
-            self.side_menu = SideMenuWidget(self.vlc_widget, self,False)
+            self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
             self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
             if self.project : 
                 self.project.seg=self.side_menu

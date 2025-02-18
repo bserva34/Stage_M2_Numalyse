@@ -148,13 +148,14 @@ système d'annotation-> avec systeme d'exportation/partage et aussi système de 
 
 
 #lecture sync faire du multi thread car léger décalage 
-#segmentation bouton calcul auto -> pas fait à en discuter
-#travailler la super vidéo pour combiner les séquences qui se chevauche
-#thread pour l'exportation vidéo
-#enregistrement projet sans séquence 
-#calcul des frames sur l'ajout de bouton
 
-#erreur sur ffmpeg -> le problème vient soit de la création de dossier car on avait pas les droits
+#affichage des boutons différentes séquences concernés -> ok
+#segmentation bouton calcul auto -> fait
+#thread pour l'exportation vidéo -> pas nécessaire
+#travailler la super vidéo pour combiner les séquences qui se chevauche -> fait 
+#calcul des frames sur l'ajout de bouton -> stockage dans le stock_button et calcul fait en fonction des fps
+#enregistrement projet sans séquence -> pas de problème mal identifié vient des frames
+#erreur sur ffmpeg -> le problème vient de la création de dossier car on avait pas les droits
 #faire en sorte que ca s'ouvre en grand écran -> show maximized
 
 
@@ -173,14 +174,13 @@ export pdf pas de tab et entré -> gére comme dans la vidéo
 
 problème son quand ca reload la vidéo quand ca arrive à la fin -> réglé mais potentiellement encore un problème
 
-enregistrement vidéo avec ou sans son en fonction de la vidéo
-exportation sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux 
-
+exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux -> extraction et combinaison avec moviepy
 
 ----to----do------
 
 
 
-
+--------vérif exe -------
+exportation super vidéo -> test du son
 
 
