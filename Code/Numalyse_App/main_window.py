@@ -9,6 +9,8 @@ from side_menu_widget import SideMenuWidget
 from project_manager import ProjectManager
 from export_manager import ExportManager
 from extract_manager import ExtractManager
+from message_popup import MessagePopUp
+from aug_mode import AugMode
 
 import os
 import json
@@ -56,14 +58,16 @@ class VLCMainWindow(QMainWindow):
 
         self.extract_manager=None      
 
+        self.aug_mode=None
+
 
     #création interface
     def create_menu_bar(self):
         """ Crée une barre de menu avec plusieurs menus déroulants. """
-        menu_bar = self.menuBar()
+        self.menu_bar = self.menuBar()
 
         # Menu Fichier
-        file_menu = menu_bar.addMenu("Fichier")
+        file_menu = self.menu_bar.addMenu("Fichier")
 
         open_action = QAction("Ouvrir...\tCtrl+O", self)
         open_action.triggered.connect(self.load_video_action)
@@ -86,18 +90,18 @@ class VLCMainWindow(QMainWindow):
 
 
         # Menu Mode
-        mode_menu = menu_bar.addMenu("Mode")
+        mode_menu = self.menu_bar.addMenu("Mode")
         sync_mode_action = QAction("Lecture Synchronisée", self)
         sync_mode_action.triggered.connect(self.sync_button_use)
         mode_menu.addAction(sync_mode_action)
 
-        annotation_mode_action = QAction("Annotation", self)
-        annotation_mode_action.triggered.connect(self.annotation_button_use)
-        annotation_mode_action.setEnabled(False)
-        mode_menu.addAction(annotation_mode_action)
+        self.aug_mode_action = QAction("Lecture Augmentée", self)
+        self.aug_mode_action.triggered.connect(self.aug_button_use)
+        self.aug_mode_action.setEnabled(False)
+        mode_menu.addAction(self.aug_mode_action)
 
         # Menu Outils
-        outil_menu = menu_bar.addMenu("Outils")
+        outil_menu = self.menu_bar.addMenu("Outils")
         self.seg_mode_action = QAction("Segmentation", self)
         self.seg_mode_action.triggered.connect(self.seg_button_use)
         self.seg_mode_action.setEnabled(False)
@@ -163,6 +167,9 @@ class VLCMainWindow(QMainWindow):
         self.open_video_shortcut = QShortcut(QKeySequence("Ctrl+O"), self)
         self.open_video_shortcut.activated.connect(self.load_video_action) 
 
+        self.echap_aug_mode = QShortcut(QKeySequence(Qt.Key_Escape), self)
+        self.echap_aug_mode.activated.connect(self.echap_button_use)
+
 
     #gestion du projet 
     def save_action(self):
@@ -201,7 +208,8 @@ class VLCMainWindow(QMainWindow):
                 self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
                 self.side_menu.setVisible(False)
                 self.side_menu.change.connect(self.change)
-                self.export_button.setEnabled(True)      
+                self.export_button.setEnabled(True) 
+                self.aug_mode_action.setEnabled(True)     
 
                 self.project=ProjectManager(self.side_menu,self.vlc_widget)
                 val=self.project.open_project(project_path)
@@ -227,6 +235,7 @@ class VLCMainWindow(QMainWindow):
             self.side_menu.deleteLater()
             self.side_menu=None
             self.export_button.setEnabled(False)
+            self.aug_mode_action.setEnabled(False) 
             
     #capture image et vidéo
     def capture_action(self):
@@ -332,6 +341,7 @@ class VLCMainWindow(QMainWindow):
             self.side_menu.change.connect(self.change)
             #self.export_button.setEnabled(True)
             self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
+            self.side_menu.segmentation_done.connect(self.aug_mode_action.setEnabled)
         else:
             self.side_menu.setVisible(not self.side_menu.isVisible())
 
@@ -340,12 +350,33 @@ class VLCMainWindow(QMainWindow):
     #exportation du travail
     def export_action(self):
         if(self.side_menu):
-            self.export=ExportManager(self.side_menu,self.vlc_widget)
+            self.export=ExportManager(self.side_menu,self.vlc_widget,self.project)
 
 
-    #annotation pas encore implémenté
-    def annotation_button_use(self):
-        print('annotation mode')
+    def echap_button_use(self):
+        if self.aug_mode:
+            self.aug_button_use()
+
+    #lecture augmentée
+    def aug_button_use(self):
+        if self.aug_mode : 
+            self.toolbar.setVisible(True)
+            self.menu_bar.setVisible(True)
+            if self.side_menu:
+                self.side_menu.setVisible(True)
+            self.aug_mode.exit_aug()
+            self.aug_mode=None
+            self.showMaximized()
+            self.vlc_widget.display(True)
+            self.msg.hide_message_2()
+        else : 
+            self.showFullScreen()
+            self.aug_mode=AugMode(self.vlc_widget,self.side_menu,self.project.path_of_super)
+            self.toolbar.setVisible(False)
+            self.side_menu.setVisible(False)    
+            self.menu_bar.setVisible(False) 
+            self.vlc_widget.display(False)  
+            self.msg=MessagePopUp(self,False)  
 
 
     #gestion de la sauvegarde automatique

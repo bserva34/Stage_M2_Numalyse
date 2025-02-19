@@ -15,6 +15,8 @@ class ProjectManager:
 
         self.video_name=None
 
+        self.path_of_super=None
+
 
     #création du projet dossier + copie de la vidéo + fichier json
     def save_project(self):
@@ -60,6 +62,7 @@ class ProjectManager:
                 "nom": self.project_name,
                 "chemin_du_projet": self.project_path,
                 "video": self.destination_path,
+                "super": self.path_of_super,
                 "segmentation": button_data  # Liste des boutons avec notes
             }
         else:
@@ -92,7 +95,7 @@ class ProjectManager:
         try:
             with open(self.save_file_path, "r", encoding="utf-8") as f:
                 project_data = json.load(f)
-
+            self.path_of_super=project_data.get("super")
             video_path = project_data.get("video")
             if video_path and os.path.isfile(video_path):
                 # Charger la vidéo dans VLC

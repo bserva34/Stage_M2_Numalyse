@@ -147,8 +147,10 @@ systeme de grille -> pas réussit on verra plus tard si nécessaire ou pas
 système d'annotation-> avec systeme d'exportation/partage et aussi système de chargement des notes et de lecture -> intégrer à la seg à voir si c'est suffisant
 
 
-#lecture sync faire du multi thread car léger décalage 
+#test exe avec les modifs
+#mode lecture de la super video avec pause à chaque séquence -> régler le problème 
 
+#lecture sync léger décalage -> pas très génant à voir
 #affichage des boutons différentes séquences concernés -> ok
 #segmentation bouton calcul auto -> fait
 #thread pour l'exportation vidéo -> pas nécessaire

@@ -1,17 +1,39 @@
-from PySide6.QtWidgets import QWidget, QMessageBox
-from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QWidget, QMessageBox, QLabel
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QFont
 
-class MessagePopUp(QWidget):  # Hérite maintenant de QWidget
-    def __init__(self,parent):
-        super().__init__()
+class MessagePopUp(QWidget):  
+    def __init__(self, parent, msg1=True):
+        super().__init__(parent)
+        
+        self.affichage = QLabel("Appuyez sur Échap pour quitter le plein écran", parent)
+        self.affichage.setFixedSize(600, 80)  # Taille plus petite et fixe
+        self.affichage.move(
+            (parent.width() - self.affichage.width()) // 2, 
+            (parent.height() - self.affichage.height()) // 2
+        )  # Centre le label dans la fenêtre
+        
+        self.affichage.setAlignment(Qt.AlignCenter)  # Centre le texte
+        self.affichage.setStyleSheet("""
+            color: white; 
+            background-color: rgba(0, 0, 0, 150);  /* Fond semi-transparent réduit */
+            font-size: 24px;  
+            padding: 10px;
+            border-radius: 10px;
+        """)
+        self.affichage.setFont(QFont("Arial", 20, QFont.Bold))  # Police plus grande
+        self.affichage.hide()
 
-        self.parent=parent
-        self.show_message("Succès", "L'action a été effectuée avec succès !", "info")
+        self.parent = parent
 
-    def show_message(self, title, message, message_type="info", timeout=1000):
-        msg_box = QMessageBox(self.parent)  # self est maintenant un QWidget
+        if msg1:
+            self.show_message("Succès", "L'action a été effectuée avec succès !", "info")
+        else:
+            self.show_message_2()
 
-        # Définir l'icône du message
+    def show_message(self, title, message, message_type="info", timeout=2000):
+        msg_box = QMessageBox(self.parent)  
+
         if message_type == "info":
             msg_box.setIcon(QMessageBox.Information)
         elif message_type == "warning":
@@ -23,12 +45,15 @@ class MessagePopUp(QWidget):  # Hérite maintenant de QWidget
 
         msg_box.setWindowTitle(title)
         msg_box.setText(message)
-
-        # Supprimer les boutons
         msg_box.setStandardButtons(QMessageBox.NoButton)
 
-        # Fermer automatiquement après un délai
         QTimer.singleShot(timeout, msg_box.accept)
-
-        # Affichage du message
         msg_box.show()
+
+    def show_message_2(self, timeout=1000):
+        """ Affiche le message en transparence pendant `timeout` ms """
+        self.affichage.show()
+        QTimer.singleShot(timeout, self.affichage.hide)  # Cache le message après le timeout
+    
+    def hide_message_2(self):
+        self.affichage.hide()

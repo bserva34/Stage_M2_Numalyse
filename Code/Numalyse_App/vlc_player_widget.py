@@ -75,19 +75,30 @@ class VLCPlayerWidget(QWidget):
 
         self.time_manager=TimeManager()
 
+    def display(self,visible):
+        self.toggle_layout_visibility(self.button_layout,visible)
+        self.toggle_layout_visibility(self.time_layout,visible)
+        self.progress_slider.setVisible(visible)
+
+    def toggle_layout_visibility(self, layout, visible):
+        for i in range(layout.count()):
+            widget = layout.itemAt(i).widget()
+            if widget:
+                widget.setVisible(visible)
+
     def create_control_buttons(self, parent_layout):
         """ Crée et ajoute automatiquement les boutons de contrôle au layout donné. """
-        button_layout = QHBoxLayout()
+        self.button_layout = QHBoxLayout()
 
         self.play_pause_button = QPushButton("⏯️ Lire", self)
         self.play_pause_button.clicked.connect(self.toggle_play_pause)
-        button_layout.addWidget(self.play_pause_button)
+        self.button_layout.addWidget(self.play_pause_button)
 
         self.stop_button = QPushButton("⏹ Arrêter", self)
         self.stop_button.clicked.connect(self.stop_video)
-        button_layout.addWidget(self.stop_button)
+        self.button_layout.addWidget(self.stop_button)
 
-        parent_layout.addLayout(button_layout)
+        parent_layout.addLayout(self.button_layout)
 
     def create_keyboard(self):
         self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
@@ -96,7 +107,7 @@ class VLCPlayerWidget(QWidget):
 
     def create_window_time(self, parent_layout):
         # Layout pour le temps + bouton mute
-        time_layout = QHBoxLayout()
+        self.time_layout = QHBoxLayout()
 
         self.line_edit=QLineEdit()
         self.line_edit.setText("00:00")
@@ -123,11 +134,11 @@ class VLCPlayerWidget(QWidget):
         self.mute_button.clicked.connect(self.toggle_mute)  
 
         # Ajouter les éléments au layout
-        time_layout.addWidget(self.line_edit)
-        time_layout.addWidget(self.time_label)
-        time_layout.addWidget(self.speed_button)
-        time_layout.addWidget(self.mute_button)
-        parent_layout.addLayout(time_layout)
+        self.time_layout.addWidget(self.line_edit)
+        self.time_layout.addWidget(self.time_label)
+        self.time_layout.addWidget(self.speed_button)
+        self.time_layout.addWidget(self.mute_button)
+        parent_layout.addLayout(self.time_layout)
 
         # Slider pour la progression
         self.progress_slider = CustomSlider(Qt.Horizontal, self)
@@ -193,7 +204,7 @@ class VLCPlayerWidget(QWidget):
         self.play_pause_button.setText("⏯️ Lire")
         self.timer.stop()
 
-    def stop_video(self):
+    def stop_video(self,emit=True):
         """ Arrête et décharge la vidéo. """
         self.player.stop()
         self.media = None
@@ -204,8 +215,9 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider.setEnabled(False)
         self.time_label.setText("00:00 / 00:00")
         self.time_label.setStyleSheet("color: white;")
-        self.disable_segmentation()
-        self.enable_load.emit(False)
+        if(emit):
+            self.disable_segmentation()
+            self.enable_load.emit(False)
 
     def restart_video(self):
         self.player.stop()
