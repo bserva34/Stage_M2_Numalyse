@@ -308,7 +308,7 @@ class SideMenuWidget(QDockWidget):
                 duration = end - time
 
         if not os.path.exists(self.vlc_widget.capture_dir):
-            os.makedirs(self.vlc_widget.capture_dir)
+            os.makedirs(self.vlc_widget.capture_dir,exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         capture_path = os.path.join(self.vlc_widget.capture_dir, f"{button.text()}_{timestamp}.mp4")

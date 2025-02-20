@@ -235,7 +235,7 @@ class VLCPlayerWidget(QWidget):
     def capture_screenshot(self, name=""):
         """ Capture un screenshot de la vidéo. """
         if not os.path.exists(self.capture_dir):
-            os.makedirs(self.capture_dir)
+            os.makedirs(self.capture_dir,exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         

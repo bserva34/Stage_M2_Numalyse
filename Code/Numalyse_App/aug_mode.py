@@ -39,7 +39,6 @@ class AugMode(QObject):
                 self.timecodes.pop(0)  # Supprime le timecode détecté
 
         if(self.paused and self.vlc_widget.player.is_playing()):
-            print("lire")
             self.paused=False
                 
     def exit_aug(self):
