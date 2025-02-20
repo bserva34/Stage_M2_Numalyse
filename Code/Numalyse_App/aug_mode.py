@@ -31,12 +31,9 @@ class AugMode(QObject):
             return
 
         acc = self.vlc_widget.player.get_time()  
-        print(acc)
         if self.timecodes and acc >= self.timecodes[0]:
-            print("séquence détecté")
             if not self.paused:
                 if abs(acc-self.timecodes[0])<200:
-                    print("arreter")
                     self.vlc_widget.pause_video()
                     self.paused = True
                 self.timecodes.pop(0)  # Supprime le timecode détecté

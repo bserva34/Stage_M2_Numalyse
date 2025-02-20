@@ -6,7 +6,7 @@ import os
 import cv2
 import numpy as np
 
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -159,51 +159,52 @@ class ExportManager(QWidget):
 
     #exporte la seg dans une super vidéo sans son  
     def export_video(self):
-            self.file_path=os.path.join(self.file_path, f"{self.title}.mp4")
-            self.project_manager.path_of_super=self.file_path
-            
-            temp_video_path = "temp_video.mp4"
+        self.file_path = os.path.join(self.file_path, f"{self.title}.mp4")
+        self.project_manager.path_of_super = self.file_path
 
-            # Création de la vidéo sans audio avec OpenCV
-            cap = cv2.VideoCapture(self.vlc.path_of_media)
-            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-            out = cv2.VideoWriter(temp_video_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
+        temp_video_path = "temp_video.mp4"
 
-            cpt = 0
-            active_texts = []
+        # Création de la vidéo sans audio avec OpenCV
+        cap = cv2.VideoCapture(self.vlc.path_of_media)
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(temp_video_path, fourcc, 30.0, (int(cap.get(3)), int(cap.get(4))))
 
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
+        cpt = 0
+        active_texts = []
 
-                active_texts = [btn_data for btn_data in self.seg.stock_button if btn_data["frame1"] <= cpt < btn_data["frame2"]]
-                decalage=0
-                for btn_data in active_texts:
-                    button = btn_data["button"]
-                    time_str = self.time_manager.m_to_mst(btn_data["time"])
-                    end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
-                    txt = button.text()
-                    txt2 = f"Debut : {time_str} / Duree : {end_str}"
-                    txt3 = [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-                    decalage=self.write_text_on_video(frame,txt,txt2,txt3,decalage)                    
+            active_texts = [btn_data for btn_data in self.seg.stock_button if btn_data["frame1"] <= cpt < btn_data["frame2"]]
+            decalage = 0
+            for btn_data in active_texts:
+                button = btn_data["button"]
+                time_str = self.time_manager.m_to_mst(btn_data["time"])
+                end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+                txt = button.text()
+                txt2 = f"Debut : {time_str} / Duree : {end_str}"
+                txt3 = [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]
 
-                out.write(frame)
-                cpt += 1
+                decalage = self.write_text_on_video(frame, txt, txt2, txt3, decalage)
 
-            cap.release()
-            out.release()
+            out.write(frame)
+            cpt += 1
 
-            # Utilisation de MoviePy pour ajouter l'audio original
-            video_clip = VideoFileClip(temp_video_path)
-            audio_clip = VideoFileClip(self.vlc.path_of_media).audio
+        cap.release()
+        out.release()
 
-            final_clip = video_clip.set_audio(audio_clip)
-            final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac")
+        # Utilisation de MoviePy pour ajouter l'audio original
+        video_clip = VideoFileClip(temp_video_path)
+        audio_clip = VideoFileClip(self.vlc.path_of_media).audio
 
-            # Suppression du fichier vidéo temporaire
-            os.remove(temp_video_path)
+        final_clip = video_clip.with_audio(audio_clip)  # Remplacez set_audio par with_audio
+        final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac")
+
+        # Suppression du fichier vidéo temporaire
+        os.remove(temp_video_path)
+
 
     def write_text_on_video(self,frame,txt,txt2,txt3,decalage):
         cv2.putText(frame, txt, (50, decalage+50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)

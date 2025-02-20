@@ -229,14 +229,16 @@ class VLCMainWindow(QMainWindow):
                 self.vlc_widget.load_file()
 
     def media_load_action(self):
+        print("appele")
         self.project=None
         if(self.side_menu):
+            print("supp seg")
             self.side_menu.stop_segmentation()
             self.removeDockWidget(self.side_menu)
             self.side_menu.deleteLater()
             self.side_menu=None
-            self.export_button.setEnabled(False)
-            self.aug_mode_action.setEnabled(False) 
+        self.export_button.setEnabled(False)
+        self.aug_mode_action.setEnabled(False) 
             
     #capture image et vidéo
     def capture_action(self):

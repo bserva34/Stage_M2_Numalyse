@@ -20,6 +20,7 @@ Ce projet utilise plusieurs bibliothèques pour assurer la gestion des vidéos, 
 - **vlc-python** : Utilisation de VLC pour la lecture et le contrôle des vidéos dans l'application.
 - **ffmpeg-python** : Interface Python pour FFmpeg, permettant l'édition et la conversion de vidéos.
 - **PIL** (Pillow) : Gestion avancée des images, y compris l'ouverture, la modification et la sauvegarde.
+- **MoviePy** : Pour l'édition de vidéo et de sons (version 1.0.3)
 
 ## Installation des dépendances
 Pour installer toutes les bibliothèques nécessaires, utilisez la commande suivante :
