@@ -180,6 +180,7 @@ exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffm
 
 
 faire un ratio pour la barre de lecture en fonction de la longueur de la vidéo
+upgrade python sur linux pour utiliser moviepy
 
 ----to----do------
 

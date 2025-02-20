@@ -204,7 +204,7 @@ class VLCPlayerWidget(QWidget):
         self.play_pause_button.setText("⏯️ Lire")
         self.timer.stop()
 
-    def stop_video(self,emit=True):
+    def stop_video(self):
         """ Arrête et décharge la vidéo. """
         self.player.stop()
         self.media = None
@@ -215,9 +215,9 @@ class VLCPlayerWidget(QWidget):
         self.progress_slider.setEnabled(False)
         self.time_label.setText("00:00 / 00:00")
         self.time_label.setStyleSheet("color: white;")
-        if(emit):
-            self.disable_segmentation()
-            self.enable_load.emit(False)
+
+        self.disable_segmentation()
+        self.enable_load.emit(False)
 
     def restart_video(self):
         self.player.stop()
