@@ -188,6 +188,7 @@ class VLCMainWindow(QMainWindow):
         else:
             self.project.write_json()
         self.save_state=False
+        self.save_button.setEnabled(False)
 
     def open_project_action(self):
         if(self.auto_save()):
@@ -349,8 +350,11 @@ class VLCMainWindow(QMainWindow):
 
     #exportation du travail
     def export_action(self):
-        if(self.side_menu):
+        if self.project:
             self.export=ExportManager(self.side_menu,self.vlc_widget,self.project)
+            self.save_state=True
+        else:
+            msg=MessagePopUp(self,titre="Attention",txt="Vous devez d'abord créer un projet",type="error")
 
 
     def echap_button_use(self):
@@ -369,14 +373,20 @@ class VLCMainWindow(QMainWindow):
             self.showMaximized()
             self.vlc_widget.display(True)
             self.msg.hide_message_2()
-        else : 
-            self.showFullScreen()
-            self.aug_mode=AugMode(self.vlc_widget,self.side_menu,self.project.path_of_super)
-            self.toolbar.setVisible(False)
-            self.side_menu.setVisible(False)    
-            self.menu_bar.setVisible(False) 
-            self.vlc_widget.display(False)  
-            self.msg=MessagePopUp(self,False)  
+        else :
+            if self.project:
+                if self.project.path_of_super: 
+                    self.showFullScreen()
+                    self.aug_mode=AugMode(self.vlc_widget,self.side_menu,self.project.path_of_super, callback=self.aug_button_use)
+                    self.toolbar.setVisible(False)
+                    self.side_menu.setVisible(False)    
+                    self.menu_bar.setVisible(False) 
+                    self.vlc_widget.display(False)  
+                    self.msg=MessagePopUp(self,False)  
+                else :
+                    msg=MessagePopUp(self,titre="Erreur",txt="Exporter d'abord une super vidéo",type="warning")
+            else:
+                msg=MessagePopUp(self,titre="Attention",txt="Vous devez d'abord créer un projet",type="error")
 
 
     #gestion de la sauvegarde automatique
@@ -405,6 +415,8 @@ class VLCMainWindow(QMainWindow):
 
     def change(self,state:bool):
         self.save_state=state
+        if(self.project):
+            self.save_button.setEnabled(not state)
 
     # grille mais ne fonctionne pas pour l'instant
     def grille_button_use(self):

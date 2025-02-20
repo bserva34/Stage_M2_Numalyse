@@ -148,7 +148,10 @@ système d'annotation-> avec systeme d'exportation/partage et aussi système de 
 
 
 #test exe avec les modifs
+
 #mode lecture de la super video avec pause à chaque séquence -> régler le problème 
+	msg si pas de super video
+	tester avec un projet vierge
 
 #lecture sync léger décalage -> pas très génant à voir
 #affichage des boutons différentes séquences concernés -> ok
@@ -172,11 +175,11 @@ problème capture d'écran sync quand on charge décharge -> pas de problème fi
 enregistrement vidéo pas de son -> pas sur à verifier si ca ce reproduit
 extract qui apparait avant la fin du calcul de segmentation -> c'est bon
 export pdf pas de tab et entré -> gére comme dans la vidéo
-
-
 problème son quand ca reload la vidéo quand ca arrive à la fin -> réglé mais potentiellement encore un problème
-
 exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux -> extraction et combinaison avec moviepy
+
+
+faire un ratio pour la barre de lecture en fonction de la longueur de la vidéo
 
 ----to----do------
 

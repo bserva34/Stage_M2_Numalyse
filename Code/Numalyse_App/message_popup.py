@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
 
 class MessagePopUp(QWidget):  
-    def __init__(self, parent, msg1=True):
+    def __init__(self, parent, msg1=True,titre="Succès",txt="L'action a été effectuée avec succès !",type="info",time=2000):
         super().__init__(parent)
         
         self.affichage = QLabel("Appuyez sur Échap pour quitter le plein écran", parent)
@@ -27,7 +27,7 @@ class MessagePopUp(QWidget):
         self.parent = parent
 
         if msg1:
-            self.show_message("Succès", "L'action a été effectuée avec succès !", "info")
+            self.show_message(titre,txt,type,time)
         else:
             self.show_message_2()
 
