@@ -392,6 +392,8 @@ class VLCMainWindow(QMainWindow):
     #gestion de la sauvegarde automatique
     def closeEvent(self, event):    
         if(self.auto_save()):
+            if(self.side_menu):
+                self.side_menu.stop_segmentation()
             event.accept()
         else:
             event.ignore()

@@ -5,6 +5,7 @@ import json
 import os
 import cv2
 import numpy as np
+import tempfile
 
 from moviepy import VideoFileClip
 
@@ -162,7 +163,8 @@ class ExportManager(QWidget):
         self.file_path = os.path.join(self.file_path, f"{self.title}.mp4")
         self.project_manager.path_of_super = self.file_path
 
-        temp_video_path = "temp_video.mp4"
+        temp_dir = tempfile.gettempdir()
+        temp_video_path = os.path.join(temp_dir, "temp_video.mp4")
 
         # Création de la vidéo sans audio avec OpenCV
         cap = cv2.VideoCapture(self.vlc.path_of_media)
@@ -201,6 +203,10 @@ class ExportManager(QWidget):
 
         final_clip = video_clip.with_audio(audio_clip)  # Remplacez set_audio par with_audio
         final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac")
+
+        video_clip.close()
+        audio_clip.close()
+        final_clip.close()
 
         # Suppression du fichier vidéo temporaire
         os.remove(temp_video_path)
