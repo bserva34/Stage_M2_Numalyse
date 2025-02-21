@@ -118,6 +118,25 @@ readme -> fait
 21/02 réunion à partir de 10h30 -> organiser
 
 
+Réunion 21/02
+
+nom de fichier_timecode_date
+png jpeg
+capture native ou contrasté
+
+heure min s image pour extraction etc
+
+plan en horizontal avec ratio taille/temps
+zoom et affichage du détail dans le menu actuel
+
+exportation pdf -> image représentative du plan 
+
+exportation vidéo -> affichage horizontal avec par exemple blanc contour noir
+
+prise en charge des sous titres avec options enlever/mettre
+plein écran pour lecture sync
+capture vidéo lecture sync
+
 ----to----do------
 son  -> ok
 moyen qui montre que l'on a une vidéo chargé -> timer en rouge
@@ -182,9 +201,10 @@ exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffm
 faire un ratio pour la barre de lecture en fonction de la longueur de la vidéo
 upgrade python sur linux pour utiliser moviepy
 option -w qui casse la segmentation
+donner le droit admin à l'appli à travers innosetup -> écrire en app ne fonctionne pas 
+
 
 stop seg quand fermeture fenetre -> stop seg close event
-donner le droit admin à l'appli à travers innosetup -> écriture dans un répertoire autorisé
 
 
 ----to----do------
@@ -192,6 +212,6 @@ donner le droit admin à l'appli à travers innosetup -> écriture dans un répe
 
 
 --------vérif exe -------
-exportation super vidéo -> test du son
+
 
 
