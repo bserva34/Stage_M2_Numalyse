@@ -6,6 +6,7 @@ import cv2
 import os
 from datetime import datetime
 from moviepy.editor import VideoFileClip
+from pathlib import Path
 
 from segmentation import SegmentationThread
 from time_selector import TimeSelector
@@ -307,11 +308,12 @@ class SideMenuWidget(QDockWidget):
                 end = btn_data["end"]
                 duration = end - time
 
-        if not os.path.exists(self.vlc_widget.capture_dir):
-            os.makedirs(self.vlc_widget.capture_dir,exist_ok=True)
+        capture_dir = os.path.join(str(Path.home()), "Vidéos", "Capture_SLV")
+        if not os.path.exists(capture_dir):
+            os.makedirs(capture_dir,exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        capture_path = os.path.join(self.vlc_widget.capture_dir, f"{button.text()}_{timestamp}.mp4")
+        timestamp = datetime.now().strftime("%d-%m-%Y")
+        capture_path = os.path.join(capture_dir, f"{button.text()}_{self.time_manager.m_to_hms(time)}_{self.time_manager.m_to_hms(end)}_{timestamp}.mp4")
 
         self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time//1000,duration//1000,capture_path)
         affichage=MessagePopUp(self)

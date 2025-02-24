@@ -137,6 +137,7 @@ prise en charge des sous titres avec options enlever/mettre
 plein écran pour lecture sync
 capture vidéo lecture sync
 
+
 ----to----do------
 son  -> ok
 moyen qui montre que l'on a une vidéo chargé -> timer en rouge
@@ -150,28 +151,16 @@ segmentation -> plan de coupe et fondu avec affichage des différentes scènes d
 sauvegarde si aucun projet mais vidéo + segmentation -> fait
 
 séquence affichage de début fin : mettre un qlabel en dessous de chaque bouton -> empacter dans un qframe
-
 mettre un moyen visuel qui prouve que l'extraction a fonctionné, pareil pour l'exportation -> message classique
-
 faire une classe gestionnaire de temps qui permet de faire les affichages -> fait time_manager
-
 super vidéo -> fait mais ne prend pas en charge les accents et d'autres caractères ni le cas de superposition de séquence
-
 mettre en place un système de chargement pour indiquer que le calcul se fait -> message
-
 tester de créer un exécutable windows, linux, mac (faudra trouver une solution pour voir si ca fonctionne) -> fonctionne sous windows sauf extraction séquence
 
-
-systeme de grille -> pas réussit on verra plus tard si nécessaire ou pas
-système d'annotation-> avec systeme d'exportation/partage et aussi système de chargement des notes et de lecture -> intégrer à la seg à voir si c'est suffisant
-
-
 #test exe avec les modifs
-
 #mode lecture de la super video avec pause à chaque séquence -> régler le problème 
 	msg si pas de super video
 	tester avec un projet vierge
-
 #lecture sync léger décalage -> pas très génant à voir
 #affichage des boutons différentes séquences concernés -> ok
 #segmentation bouton calcul auto -> fait
@@ -181,6 +170,13 @@ système d'annotation-> avec systeme d'exportation/partage et aussi système de 
 #enregistrement projet sans séquence -> pas de problème mal identifié vient des frames
 #erreur sur ffmpeg -> le problème vient de la création de dossier car on avait pas les droits
 #faire en sorte que ca s'ouvre en grand écran -> show maximized
+
+systeme de grille -> pas réussit on verra plus tard si nécessaire ou pas
+système d'annotation-> avec systeme d'exportation/partage et aussi système de chargement des notes et de lecture -> intégrer à la seg à voir si c'est suffisant
+
+
+faire le fichier de sauvegarde des choix préférentielles de l'appli
+
 
 
 !!!!!!!Problèmes!!!!!!
@@ -196,6 +192,9 @@ extract qui apparait avant la fin du calcul de segmentation -> c'est bon
 export pdf pas de tab et entré -> gére comme dans la vidéo
 problème son quand ca reload la vidéo quand ca arrive à la fin -> réglé mais potentiellement encore un problème
 exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux -> extraction et combinaison avec moviepy
+stop seg quand fermeture fenetre -> stop seg close event
+
+
 
 
 faire un ratio pour la barre de lecture en fonction de la longueur de la vidéo
@@ -204,8 +203,7 @@ option -w qui casse la segmentation
 donner le droit admin à l'appli à travers innosetup -> écrire en app ne fonctionne pas 
 
 
-stop seg quand fermeture fenetre -> stop seg close event
-
+ratio capture fichier m4v
 
 ----to----do------
 

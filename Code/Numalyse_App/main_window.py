@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QButtonGroup, QRadioButton
 from PySide6.QtGui import QAction, QKeySequence, QShortcut
 from PySide6.QtCore import Qt, QTimer
 
@@ -60,6 +60,10 @@ class VLCMainWindow(QMainWindow):
 
         self.aug_mode=None
 
+        #option capture
+        self.format_capture=False
+        self.post_traitement=False
+        self.format_export_text=[False,False,True]
 
     #création interface
     def create_menu_bar(self):
@@ -94,6 +98,7 @@ class VLCMainWindow(QMainWindow):
         sync_mode_action = QAction("Lecture Synchronisée", self)
         sync_mode_action.triggered.connect(self.sync_button_use)
         mode_menu.addAction(sync_mode_action)
+        file_menu.addSeparator()
 
         self.aug_mode_action = QAction("Lecture Augmentée", self)
         self.aug_mode_action.triggered.connect(self.aug_button_use)
@@ -113,11 +118,16 @@ class VLCMainWindow(QMainWindow):
         self.grille_button.toggled.connect(self.grille_button_use)
         #outil_menu.addAction(self.grille_button)
 
+        option_menu= self.menu_bar.addMenu("Options")
+        self.capture_menu = QAction("Options de captures",self)
+        self.capture_menu.triggered.connect(self.capture_option)
+        option_menu.addAction(self.capture_menu)
+        option_menu.addSeparator()
 
-        autres_mode_action = QAction("Autres...", self)
-        autres_mode_action.triggered.connect(self.seg_button_use)
-        autres_mode_action.setEnabled(False)
-        outil_menu.addAction(autres_mode_action)
+        self.export_menu = QAction("Option d'exportation",self)
+        self.export_menu.triggered.connect(self.export_option)
+        option_menu.addAction(self.export_menu)
+
 
     def create_toolbar(self):
         """ Crée une barre d'outils avec des boutons d'action. """
@@ -241,12 +251,14 @@ class VLCMainWindow(QMainWindow):
     #capture image et vidéo
     def capture_action(self):
         if self.sync_mode:
-            self.sync_widget.capture_screenshot()
+            self.sync_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
         else:
-            self.vlc_widget.capture_screenshot()
+            self.vlc_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
 
     def capture_video_action(self):
-        if self.sync_mode==False:
+        if self.sync_mode:
+            self.sync_widget.capture_video()
+        else:
             self.vlc_widget.capture_video()
 
     def update_capture_video_button(self, is_recording):
@@ -313,6 +325,8 @@ class VLCMainWindow(QMainWindow):
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
+        self.sync_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
+        self.sync_widget.enable_recording.connect(self.update_capture_video_button)
 
     def add_quit_button(self):
         """ Ajoute le bouton 'Quitter' à la barre d'outils. """
@@ -364,23 +378,16 @@ class VLCMainWindow(QMainWindow):
     #lecture augmentée
     def aug_button_use(self):
         if self.aug_mode : 
-            self.toolbar.setVisible(True)
-            self.menu_bar.setVisible(True)
-            if self.side_menu:
-                self.side_menu.setVisible(True)
             self.aug_mode.exit_aug()
             self.aug_mode=None
-            self.showMaximized()
+            self.display(True)
             self.vlc_widget.display(True)
             self.msg.hide_message_2()
         else :
             if self.project:
                 if self.project.path_of_super: 
-                    self.showFullScreen()
                     self.aug_mode=AugMode(self.vlc_widget,self.side_menu,self.project.path_of_super, callback=self.aug_button_use)
-                    self.toolbar.setVisible(False)
-                    self.side_menu.setVisible(False)    
-                    self.menu_bar.setVisible(False) 
+                    self.display(False)
                     self.vlc_widget.display(False)  
                     self.msg=MessagePopUp(self,False)  
                 else :
@@ -388,6 +395,15 @@ class VLCMainWindow(QMainWindow):
             else:
                 msg=MessagePopUp(self,titre="Attention",txt="Vous devez d'abord créer un projet",type="error")
 
+    def display(self,visible):
+        self.toolbar.setVisible(visible)
+        self.menu_bar.setVisible(visible)
+        if self.side_menu:
+            self.side_menu.setVisible(visible)
+        if(visible):
+            self.showMaximized()
+        else:
+            self.showFullScreen()
 
     #gestion de la sauvegarde automatique
     def closeEvent(self, event):    
@@ -419,6 +435,124 @@ class VLCMainWindow(QMainWindow):
         self.save_state=state
         if(self.project):
             self.save_button.setEnabled(not state)
+
+    def capture_option(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Option des captures")
+
+        dialog_layout = QVBoxLayout(dialog)
+
+        # Options pour le nombre de fenêtres
+        num_label = QLabel("Format :", dialog)
+        dialog_layout.addWidget(num_label)
+
+        num_group = QButtonGroup(dialog)
+        option_2 = QRadioButton(".png", dialog)
+        option_4 = QRadioButton(".jpeg", dialog)
+        num_group.addButton(option_2)
+        num_group.addButton(option_4)
+        option_2.setChecked(not self.format_capture)
+        option_4.setChecked(self.format_capture)
+
+        dialog_layout.addWidget(option_2)
+        dialog_layout.addWidget(option_4)
+
+        contraste = QLabel("Post Traitement:", dialog)
+        dialog_layout.addWidget(contraste)
+
+        c = QButtonGroup(dialog)
+        none = QRadioButton("aucun", dialog)
+        yes = QRadioButton("réhaussement de contraste", dialog)
+        c.addButton(none)
+        c.addButton(yes)
+        none.setChecked(not self.post_traitement)
+        yes.setChecked(self.post_traitement)
+
+        dialog_layout.addWidget(none)
+        dialog_layout.addWidget(yes)
+
+        # Boutons OK/Annuler
+        button_layout = QHBoxLayout()
+        ok_button = QPushButton("OK", dialog)
+        cancel_button = QPushButton("Annuler", dialog)
+
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        dialog_layout.addLayout(button_layout)
+
+        def on_ok():
+            if option_2.isChecked():
+                self.format_capture=False
+            elif option_4.isChecked():
+                self.format_capture=True
+
+            if(none.isChecked()):
+                self.post_traitement=False
+            elif yes.isChecked():
+                self.post_traitement=True
+            dialog.accept()
+
+        def on_cancel():
+            dialog.reject()
+
+        ok_button.clicked.connect(on_ok)
+        cancel_button.clicked.connect(on_cancel)
+
+        dialog.exec()
+
+    def export_option(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Option d'exportation")
+
+        dialog_layout = QVBoxLayout(dialog)
+
+        # Options pour le nombre de fenêtres
+        num_label = QLabel("Format :", dialog)
+        dialog_layout.addWidget(num_label)
+
+        format_option = QButtonGroup(dialog)
+        option1 = QRadioButton(".doxc", dialog)
+        option2 = QRadioButton(".odt", dialog)
+        option3=  QRadioButton(".pdf",dialog)
+        format_option.addButton(option1)
+        format_option.addButton(option2)
+        format_option.addButton(option3)
+
+        option1.setChecked(self.format_export_text[0])
+        option2.setChecked(self.format_export_text[1])
+        option3.setChecked(self.format_export_text[2])
+
+        dialog_layout.addWidget(option1)
+        dialog_layout.addWidget(option2)
+        dialog_layout.addWidget(option3)
+
+        # Boutons OK/Annuler
+        button_layout = QHBoxLayout()
+        ok_button = QPushButton("OK", dialog)
+        cancel_button = QPushButton("Annuler", dialog)
+
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        dialog_layout.addLayout(button_layout)
+
+        def on_ok():
+            self.format_export_text[:] = [False, False, False] 
+            if option1.isChecked():
+                self.format_export_text[0]=True
+            elif option2.isChecked():
+                self.format_export_text[1]=True
+            elif option3.isChecked():
+                self.format_export_text[2]=True
+            dialog.accept()
+
+        def on_cancel():
+            dialog.reject()
+
+        ok_button.clicked.connect(on_ok)
+        cancel_button.clicked.connect(on_cancel)
+
+        dialog.exec()
+
 
     # grille mais ne fonctionne pas pour l'instant
     def grille_button_use(self):

@@ -15,3 +15,11 @@ class TimeManager():  # Hérite maintenant de QWidget
         minutes = seconds // 60
         seconds = seconds % 60
         return f"{minutes:02}:{seconds:02}"
+
+    def m_to_hms(self, milliseconds):
+        """ Formate un temps donné en millisecondes en hh:mm:ss.d """
+        total_seconds = milliseconds / 1000
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        seconds = int(total_seconds % 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02}"

@@ -1,6 +1,9 @@
 import sys
 import os
 from pathlib import Path
+from PIL import Image
+import cv2
+import numpy as np
 
 import vlc
 
@@ -26,7 +29,6 @@ class VLCPlayerWidget(QWidget):
 
         self.instance = vlc.Instance("--quiet")
         self.player = self.instance.media_player_new()
-
         self.media = None  # Pour suivre le fichier chargé
         self.ac = add_controls
         self.mute = m
@@ -35,7 +37,8 @@ class VLCPlayerWidget(QWidget):
         else : 
             self.player.audio_set_mute(False)
         
-        self.capture_dir = os.path.join(str(Path.home()), "Videos", "Capture_SLV")
+        self.capture_dir = os.path.join(str(Path.home()), "Images", "Capture_SLV")
+        self.capture_video_dir = os.path.join(str(Path.home()), "Vidéos", "Capture_SLV")
         self.path_of_media=""
 
         # Layout principal
@@ -48,7 +51,6 @@ class VLCPlayerWidget(QWidget):
 
         if add_window_time:
             self.create_window_time(main_layout)
-
         if add_controls : 
             self.create_control_buttons(main_layout)
         if c :
@@ -64,7 +66,7 @@ class VLCPlayerWidget(QWidget):
 
         # Timer pour mettre à jour le slider et l'affichage du temps
         self.timer = QTimer(self)
-        self.timer.setInterval(500)
+        self.timer.setInterval(200)
         self.timer.timeout.connect(self.update_ui)
 
         self.begin=True
@@ -172,7 +174,7 @@ class VLCPlayerWidget(QWidget):
 
 
     def load_file(self,auto=True):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", "", "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov)")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Ouvrir une vidéo", "", "Fichiers vidéo (*.mp4 *.avi *.mkv *.mov *.m4v)")
         if auto : self.load_video(file_path)
         self.path_of_media=file_path
         return file_path
@@ -202,7 +204,7 @@ class VLCPlayerWidget(QWidget):
     def pause_video(self):
         self.player.set_pause(1)
         self.play_pause_button.setText("⏯️ Lire")
-        self.timer.stop()
+        #self.timer.stop()
 
     def stop_video(self):
         """ Arrête et décharge la vidéo. """
@@ -232,23 +234,56 @@ class VLCPlayerWidget(QWidget):
         self.load_video(self.path_of_media,False)
 
 
-    def capture_screenshot(self, name=""):
+    def capture_screenshot(self, name="",post_traitement=False,format_capture=False):
         """ Capture un screenshot de la vidéo. """
         if not os.path.exists(self.capture_dir):
-            os.makedirs(self.capture_dir,exist_ok=True)
+            os.makedirs(self.capture_dir, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # Si un nom est fourni, il est ajouté après un underscore
+        file_name = os.path.splitext(os.path.basename(self.path_of_media))[0]
+        timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        timecode = self.time_manager.m_to_hms(self.player.get_time())
+
+        # Définir le chemin du fichier en fonction du format
         if name:
-            capture_path = os.path.join(self.capture_dir, f"capture_{timestamp}_{name}.png")
+            capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{timestamp}_{name}.png")
         else:
-            capture_path = os.path.join(self.capture_dir, f"capture_{timestamp}.png")
+            capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{timestamp}.png")
 
-        if self.player.video_take_snapshot(0, capture_path, 0, 0):
+        # Capturer l'image (mais ne pas se fier au retour de la fonction)
+        self.player.video_take_snapshot(0, capture_path, 0, 0)
+
+        # Vérifier si l'image a bien été enregistrée
+        if os.path.exists(capture_path):
             print(f" Capture enregistrée : {capture_path}")
+
+            if post_traitement:
+                image = cv2.imread(capture_path)
+                image_corrige=self.adjust_gamma(image)
+
+                cv2.imwrite(capture_path,image_corrige)
+
+            # Si le format demandé est JPEG, convertir l'image
+            if format_capture:  # Vérifie si format_capture existe et est True
+                print("Conversion en JPEG...")
+                jpeg_path = capture_path.replace(".png", ".jpg")
+                try:
+                    img = Image.open(capture_path)
+                    img = img.convert("RGB")  # Supprime la transparence pour JPEG
+                    img.save(jpeg_path, "JPEG", quality=60)
+                    os.remove(capture_path)  # Supprimer l'ancien fichier PNG
+                    capture_path = jpeg_path
+                    print(f" Converti en JPEG : {jpeg_path}")
+                except Exception as e:
+                    print(f" Erreur lors de la conversion en JPEG : {e}")
+        else:
+            print("Erreur : La capture n'a pas été enregistrée !")
+
         return capture_path
 
+    def adjust_gamma(self,image, gamma=1.4):
+        inv_gamma = 1.0 / gamma
+        table = np.array([(i / 255.0) ** inv_gamma * 255 for i in np.arange(0, 256)]).astype("uint8")
+        return cv2.LUT(image, table)
 
     def update_ui(self):
         """ Met à jour le slider et l'affichage du temps. """
@@ -308,9 +343,8 @@ class VLCPlayerWidget(QWidget):
         self.enable_segmentation.emit(False)
 
     def capture_video(self):
-        print("capture video")
         if self.is_recording:
-            self.stop_recording()
+            return self.stop_recording()
         else:
             self.start_recording()
 
@@ -337,15 +371,18 @@ class VLCPlayerWidget(QWidget):
     def stop_recording(self):
         self.is_recording = False
         self.enable_recording.emit(False)
-        self.end = self.player.get_time() // 1000  # Conversion en secondes
-        self.start = self.start // 1000            # Conversion en secondes
-        duration = self.end - self.start
+        end_acc = self.player.get_time()
+        self.end = end_acc // 1000  # Conversion en secondes
+        duration = self.end - (self.start // 1000 )
 
-        if not os.path.exists(self.capture_dir):
-            os.makedirs(self.capture_dir)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        capture_path = os.path.join(self.capture_dir, f"capture_{timestamp}.mp4")
-        self.extract_segment_with_ffmpeg(self.path_of_media, self.start, duration, capture_path)
+        if not os.path.exists(self.capture_video_dir):
+            os.makedirs(self.capture_video_dir)
+        file_name = os.path.splitext(os.path.basename(self.path_of_media))[0]
+        timestamp = datetime.now().strftime("%d-%m-%Y")
+        capture_path = os.path.join(self.capture_video_dir, f"{file_name}_{self.time_manager.m_to_hms(self.start)}_{self.time_manager.m_to_hms(end_acc)}_{timestamp}.mp4")
+        self.extract_segment_with_ffmpeg(self.path_of_media, self.start//1000, duration, capture_path)
+
+        return capture_path
 
 
 
