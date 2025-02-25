@@ -247,12 +247,13 @@ class SyncWidget(QWidget):
 
         # Sauvegarder l'image combinée
         timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        
+        name = "_".join(i.name_of_video()[:5] for i in self.player_widgets)
+
         if format_capture:
-            combined_path = os.path.join(capture_dir, f"capture_combiné_{timestamp}.jpg")
+            combined_path = os.path.join(capture_dir, f"{name}_{timestamp}.jpg")
             combined_image.save(combined_path,format="JPEG")
         else:
-            combined_path = os.path.join(capture_dir, f"capture_combiné_{timestamp}.png")
+            combined_path = os.path.join(capture_dir, f"{name}_{timestamp}.png")
             combined_image.save(combined_path)
 
 
@@ -338,59 +339,63 @@ class SyncWidget(QWidget):
             self.enable_recording.emit(self.is_recording) 
 
     def merge_video(self, video_paths):
-        if not video_paths:
-            print("Aucune vidéo à fusionner.")
-            return
+        # Ouvrir chaque vidéo avec cv2.VideoCapture
+        captures = []
+        for path in video_paths:
+            cap = cv2.VideoCapture(path)
+            if not cap.isOpened():
+                print(f"Erreur : impossible d'ouvrir la vidéo {path}")
+                return
+            captures.append(cap)
 
-        # Ouvrir toutes les vidéos
-        captures = [cv2.VideoCapture(path) for path in video_paths]
-        
-        # Vérifier si toutes les vidéos sont bien ouvertes
-        if not all(cap.isOpened() for cap in captures):
-            print("Erreur lors de l'ouverture des vidéos.")
-            return
+        # Récupérer le FPS de la première vidéo (on suppose que tous ont le même FPS)
+        fps = captures[0].get(cv2.CAP_PROP_FPS)
 
-        # Récupérer la largeur, hauteur et FPS de la première vidéo
-        width = int(captures[0].get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(captures[0].get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps = int(captures[0].get(cv2.CAP_PROP_FPS))
-        
-        # Définir le chemin de sortie de la vidéo fusionnée
-        output_path = os.path.join(str(Path.home()), "Vidéos", "video_fusionnée.mp4")
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width * 2, height * 2))
-        
+        out_writer = None
+        # Définir le chemin de la vidéo fusionnée (par exemple dans le même dossier que la première vidéo)
+        output_path = os.path.join(os.path.dirname(video_paths[0]), "merged_video.mp4")
+
         while True:
-            frames = []
-            
+            frames_pil = []
             # Lire une frame de chaque vidéo
             for cap in captures:
                 ret, frame = cap.read()
                 if not ret:
-                    break  # Arrêter si une vidéo est terminée
-                frames.append(frame)
-            
-            if len(frames) != len(video_paths):
-                break  # Si toutes les vidéos n'ont pas la même durée, on arrête
-            
-            # Convertir les frames en images PIL
-            pil_frames = [Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)) for frame in frames]
-            
-            # Fusionner les images avec la fonction merge_image
-            merged_image = self.merge_image(pil_frames)
-            
-            # Convertir l'image fusionnée en numpy array et BGR pour OpenCV
-            merged_frame = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
-            
-            # Écrire la frame fusionnée dans la vidéo de sortie
-            out.write(merged_frame)
-        
-        # Libérer les ressources
+                    # Si l'une des vidéos est terminée, on arrête la fusion
+                    break
+                # Convertir la frame (BGR) en RGB puis en image PIL
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(frame_rgb)
+                frames_pil.append(pil_image)
+
+            # Si on n'a pas pu lire une frame de chaque vidéo, sortir de la boucle
+            if len(frames_pil) != len(captures):
+                break
+
+            # Combiner les images avec la méthode merge_image existante
+            combined_pil = self.merge_image(frames_pil)
+
+            # Convertir l'image combinée (PIL) en numpy array pour cv2 (et repasser en BGR)
+            combined_np = np.array(combined_pil)
+            combined_bgr = cv2.cvtColor(combined_np, cv2.COLOR_RGB2BGR)
+
+            # Initialiser le VideoWriter dès la première frame fusionnée
+            if out_writer is None:
+                height, width, _ = combined_bgr.shape
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                out_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+            # Écrire la frame fusionnée dans le fichier de sortie
+            out_writer.write(combined_bgr)
+
+        # Libérer les captures et le writer
         for cap in captures:
             cap.release()
-        out.release()
-        
-        print(f"Vidéo fusionnée enregistrée à : {output_path}")
+        if out_writer is not None:
+            out_writer.release()
+
+        print(f"Vidéo fusionnée enregistrée : {output_path}")
+
 
         
 

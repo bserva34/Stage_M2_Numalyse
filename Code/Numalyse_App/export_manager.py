@@ -7,8 +7,10 @@ import cv2
 import numpy as np
 import tempfile
 
+
 from moviepy.editor import VideoFileClip
 from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
 
 # Pour PDF
 from reportlab.lib import colors
@@ -16,6 +18,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph, SimpleDocTemplate
+from reportlab.platypus import Image
 # Pour DOCX
 from docx import Document  
 # Pour ODT
@@ -139,27 +142,88 @@ class ExportManager(QWidget):
     #exporte dans la segmentation et annotations dans un fichier pdf
     def export_pdf(self):
         self.file_path = os.path.join(self.file_path, f"{self.title}.pdf")
+
+        # Initialisation des images à capturer
+        stock_images = []
+        stock_frames = [btn_data["frame1"]+10 for btn_data in self.seg.stock_button]
+
+        # Ouverture de la vidéo pour récupérer les images
+        cap = cv2.VideoCapture(self.vlc.path_of_media)
+        if not cap.isOpened():
+            print("Impossible d'ouvrir la vidéo.")
+            return  # Sortir de la fonction si la vidéo ne peut pas être ouverte
+
+        frame_idx = 0
+        stock_frames_set = set(stock_frames)  # Optimisation
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            if frame_idx in stock_frames_set:
+                stock_images.append(frame)
+
+            frame_idx += 1
+
+        cap.release()
+
         try:
             # Création du document PDF
             doc = SimpleDocTemplate(self.file_path, pagesize=A4)
             elements = []
 
-            # Titre principal
-            elements.append(Paragraph("Étude cinématographique", self.title_style))
+            # Styles pour le document
+            styles = getSampleStyleSheet()
+            title_style = styles['Title']
+            subtitle_style = styles['Heading2']
 
-            # Ajout des boutons et notes
-            for btn_data in self.seg.stock_button:
+            # Titre principal
+            elements.append(Paragraph("Étude cinématographique", title_style))
+
+            # Dimensions maximales pour les images
+            max_width = 300  # Largeur maximale en points
+            max_height = 200  # Hauteur maximale en points
+
+            # Ajout des boutons et notes avec leurs images
+            for idx, btn_data in enumerate(self.seg.stock_button):
                 button = btn_data["button"]
                 time_str = self.time_manager.m_to_mst(btn_data["time"])
                 end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
 
                 # Titre pour chaque bouton
-                elements.append(Paragraph(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", self.subtitle_style))
+                elements.append(Paragraph(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", subtitle_style))
 
                 # Notes associées
                 for note_widget in self.seg.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
                     self.put_multiline_text(elements, note_text)
+
+                # Si une image existe pour ce bouton, l'ajouter dans le PDF
+                if idx < len(stock_images):
+                    img = stock_images[idx]  # Image associée au bouton actuel
+
+                    # Convertir l'image OpenCV en format compatible avec reportlab (BytesIO)
+                    _, img_bytes = cv2.imencode('.png', img)
+                    img_stream = BytesIO(img_bytes.tobytes())
+
+                    # Récupérer la taille de l'image avec OpenCV
+                    height, width, _ = img.shape
+
+                    # Calculer le ratio de redimensionnement pour conserver les proportions
+                    width_ratio = max_width / float(width)
+                    height_ratio = max_height / float(height)
+                    ratio = min(width_ratio, height_ratio, 1.0) 
+
+                    # Appliquer le redimensionnement
+                    new_width = int(width * ratio)
+                    new_height = int(height * ratio)
+
+                    # Charger l'image dans le PDF avec les nouvelles dimensions
+                    img_obj = Image(img_stream, width=new_width, height=new_height)
+
+                    # Ajouter l'image dans les éléments du PDF
+                    elements.append(img_obj)
 
             # Génération du fichier PDF
             doc.build(elements)
@@ -167,6 +231,7 @@ class ExportManager(QWidget):
 
         except Exception as e:
             print(f"Erreur lors de l'exportation PDF : {e}")
+
 
     def export_docx(self):
         self.file_path = os.path.join(self.file_path, f"{self.title}.docx")

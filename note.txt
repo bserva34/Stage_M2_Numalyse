@@ -174,10 +174,15 @@ tester de créer un exécutable windows, linux, mac (faudra trouver une solution
 systeme de grille -> pas réussit on verra plus tard si nécessaire ou pas
 système d'annotation-> avec systeme d'exportation/partage et aussi système de chargement des notes et de lecture -> intégrer à la seg à voir si c'est suffisant
 
-
 faire le fichier de sauvegarde des choix préférentielles de l'appli -> json à la racine de l'appli
 
-exporttaion docx odt améliorer la mise en page et rajouter l'image représentative du plan
+
+
+exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> à faire pour doxc et odt
+
+thread capture vidéo combiné
+
+affichage heure minutes secondes pour timecodes
 
 
 
@@ -205,7 +210,6 @@ option -w qui casse la segmentation
 donner le droit admin à l'appli à travers innosetup -> écrire en app ne fonctionne pas 
 
 
-ratio capture fichier m4v
 
 ----to----do------
 
@@ -215,3 +219,4 @@ ratio capture fichier m4v
 
 
 fichier de config
+exportation pdf temps de calcul

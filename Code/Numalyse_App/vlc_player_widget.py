@@ -238,7 +238,7 @@ class VLCPlayerWidget(QWidget):
         if not os.path.exists(self.capture_dir):
             os.makedirs(self.capture_dir, exist_ok=True)
 
-        file_name = os.path.splitext(os.path.basename(self.path_of_media))[0]
+        file_name = self.name_of_video()
         timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         timecode = self.time_manager.m_to_hms(self.player.get_time())
 
@@ -283,6 +283,9 @@ class VLCPlayerWidget(QWidget):
         inv_gamma = 1.0 / gamma
         table = np.array([(i / 255.0) ** inv_gamma * 255 for i in np.arange(0, 256)]).astype("uint8")
         return cv2.LUT(image, table)
+
+    def name_of_video(self):
+        return os.path.splitext(os.path.basename(self.path_of_media))[0]
 
     def update_ui(self):
         """ Met à jour le slider et l'affichage du temps. """
