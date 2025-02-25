@@ -127,7 +127,7 @@ class SideMenuWidget(QDockWidget):
 
         if name == "":
             cpt = len(self.stock_button)
-            name = "Sequence " + f"{cpt+1}"
+            name = "Plan " + f"{cpt+1}"
 
         # Création du cadre pour regrouper le bouton et ses éléments associés
         frame = QFrame(self)

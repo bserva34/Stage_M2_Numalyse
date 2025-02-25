@@ -1,0 +1,9 @@
+{
+    "format_capture": false,
+    "post_traitement": false,
+    "format_export_text": [
+        false,
+        false,
+        true
+    ]
+}

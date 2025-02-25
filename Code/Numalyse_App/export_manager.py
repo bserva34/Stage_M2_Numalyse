@@ -8,15 +8,22 @@ import numpy as np
 import tempfile
 
 from moviepy.editor import VideoFileClip
-
 from PIL import Image, ImageDraw, ImageFont
 
+# Pour PDF
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph, SimpleDocTemplate
+# Pour DOCX
+from docx import Document  
+# Pour ODT
+from odf.opendocument import OpenDocumentText  
+from odf.text import P
 
+
+#importation class
 from message_popup import MessagePopUp
 from time_manager import TimeManager
 
@@ -48,7 +55,7 @@ class ExportManager(QWidget):
     )
 
 
-    def __init__(self,parent=None,vlc=None,projectmanager=None):
+    def __init__(self,parent=None,vlc=None,projectmanager=None,format_export_text=[]):
         super().__init__(parent)
         self.seg=parent
         self.vlc=vlc
@@ -59,6 +66,8 @@ class ExportManager(QWidget):
         self.title=self.project_manager.project_name
 
         self.time_manager=TimeManager()
+
+        self.format_export_text=format_export_text
 
         self.configure()
 
@@ -105,7 +114,16 @@ class ExportManager(QWidget):
             if(self.file_path):
                 load.setText("exportation en cours ⌛")
                 QApplication.processEvents() 
-                self.export_pdf() if option_1.isChecked() else self.export_video()
+                if option_1.isChecked():
+                    if self.format_export_text[0]:
+                        self.export_docx()
+                    elif self.format_export_text[1]:
+                        self.export_odt()
+                    elif self.format_export_text[2]:
+                        self.export_pdf()
+
+                else:
+                    self.export_video()
                 affichage=MessagePopUp(self)
                 dialog.accept()
 
@@ -149,6 +167,53 @@ class ExportManager(QWidget):
 
         except Exception as e:
             print(f"Erreur lors de l'exportation PDF : {e}")
+
+    def export_docx(self):
+        self.file_path = os.path.join(self.file_path, f"{self.title}.docx")
+        try:
+            doc = Document()
+            doc.add_heading("Étude cinématographique", level=1)
+
+            for btn_data in self.seg.stock_button:
+                button = btn_data["button"]
+                time_str = self.time_manager.m_to_mst(btn_data["time"])
+                end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+
+                doc.add_heading(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", level=2)
+
+                for note_widget in self.seg.button_notes.get(button, []):
+                    note_text = note_widget.toPlainText()
+                    doc.add_paragraph(note_text)
+
+            doc.save(self.file_path)
+            print(f"Fichier DOCX enregistré : {self.file_path}")
+
+        except Exception as e:
+            print(f"Erreur lors de l'exportation DOCX : {e}")
+
+    def export_odt(self):
+        self.file_path = os.path.join(self.file_path, f"{self.title}.odt")
+        try:
+            doc = OpenDocumentText()
+            doc.text.addElement(P(text="Étude cinématographique"))
+
+            for btn_data in self.seg.stock_button:
+                button = btn_data["button"]
+                time_str = self.time_manager.m_to_mst(btn_data["time"])
+                end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+
+                doc.text.addElement(P(text=f"- {button.text()} -> Début : {time_str} / Durée : {end_str}"))
+
+                for note_widget in self.seg.button_notes.get(button, []):
+                    note_text = note_widget.toPlainText()
+                    doc.text.addElement(P(text=note_text))
+
+            doc.save(self.file_path)
+            print(f"Fichier ODT enregistré : {self.file_path}")
+
+        except Exception as e:
+            print(f"Erreur lors de l'exportation ODT : {e}")
+
 
 
     def put_multiline_text(self, elements, text):

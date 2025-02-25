@@ -188,18 +188,17 @@ class VLCPlayerWidget(QWidget):
             self.player.audio_set_mute(self.mute)
             if(self.begin):
                 self.player.play()
-                self.play_pause_button.setText("⏯️ Pause")
-                self.timer.start()            
+                self.play_pause_button.setText("⏯️ Pause")          
             self.progress_slider.setEnabled(True)
             self.time_label.setStyleSheet("color: red;")            
             self.active_segmentation()
             if (suppr_seg):
                 self.enable_load.emit(True)
+            self.timer.start()  
     
     def play_video(self):
         self.player.play()
         self.play_pause_button.setText("⏯️ Pause")
-        self.timer.start()
 
     def pause_video(self):
         self.player.set_pause(1)

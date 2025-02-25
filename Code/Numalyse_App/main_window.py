@@ -11,6 +11,7 @@ from export_manager import ExportManager
 from extract_manager import ExtractManager
 from message_popup import MessagePopUp
 from aug_mode import AugMode
+from preference_manager import PreferenceManager
 
 import os
 import json
@@ -64,6 +65,8 @@ class VLCMainWindow(QMainWindow):
         self.format_capture=False
         self.post_traitement=False
         self.format_export_text=[False,False,True]
+
+        self.pref_manager = PreferenceManager(self)
 
     #création interface
     def create_menu_bar(self):
@@ -365,7 +368,7 @@ class VLCMainWindow(QMainWindow):
     #exportation du travail
     def export_action(self):
         if self.project:
-            self.export=ExportManager(self.side_menu,self.vlc_widget,self.project)
+            self.export=ExportManager(self.side_menu,self.vlc_widget,self.project,self.format_export_text)
             self.save_state=True
         else:
             msg=MessagePopUp(self,titre="Attention",txt="Vous devez d'abord créer un projet",type="error")
@@ -490,6 +493,7 @@ class VLCMainWindow(QMainWindow):
                 self.post_traitement=False
             elif yes.isChecked():
                 self.post_traitement=True
+            self.pref_manager.save_preferences()
             dialog.accept()
 
         def on_cancel():
@@ -543,6 +547,7 @@ class VLCMainWindow(QMainWindow):
                 self.format_export_text[1]=True
             elif option3.isChecked():
                 self.format_export_text[2]=True
+            self.pref_manager.save_preferences()
             dialog.accept()
 
         def on_cancel():
