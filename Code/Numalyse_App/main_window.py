@@ -101,7 +101,7 @@ class VLCMainWindow(QMainWindow):
         sync_mode_action = QAction("Lecture Synchronisée", self)
         sync_mode_action.triggered.connect(self.sync_button_use)
         mode_menu.addAction(sync_mode_action)
-        file_menu.addSeparator()
+        mode_menu.addSeparator()
 
         self.aug_mode_action = QAction("Lecture Augmentée", self)
         self.aug_mode_action.triggered.connect(self.aug_button_use)
@@ -115,6 +115,11 @@ class VLCMainWindow(QMainWindow):
         self.seg_mode_action.setEnabled(False)
         self.vlc_widget.enable_segmentation.connect(self.seg_mode_action.setEnabled)
         outil_menu.addAction(self.seg_mode_action)
+        outil_menu.addSeparator()
+
+        self.subtitle_button = QAction("Sous Titres", self)
+        self.subtitle_button.triggered.connect(self.subtitle_button_use)
+        outil_menu.addAction(self.subtitle_button)
 
         self.grille_button = QAction("Affichage Grille", self)
         self.grille_button.setCheckable(True)
@@ -558,6 +563,8 @@ class VLCMainWindow(QMainWindow):
 
         dialog.exec()
 
+    def subtitle_button_use(self):
+        pass
 
     # grille mais ne fonctionne pas pour l'instant
     def grille_button_use(self):

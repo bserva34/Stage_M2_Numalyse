@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt, QTimer
 
 import os
 from time_selector import TimeSelector
+from time_editor import TimeEditor
 from message_popup import MessagePopUp
 
 class ExtractManager(QWidget):
@@ -32,13 +33,13 @@ class ExtractManager(QWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.start_time = TimeSelector(dialog, (self.vlc.player.get_length()-1000), self.vlc.player.get_time())
+        self.start_time = TimeEditor(dialog, (self.vlc.player.get_length()-1000), self.vlc.player.get_time())
         layout.addWidget(self.start_time)
         # Choix du temps de fin
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.end_time = TimeSelector(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000)
+        self.end_time = TimeEditor(dialog, self.vlc.player.get_length(), self.vlc.player.get_time() + 10000)
         layout.addWidget(self.end_time)
 
         dialog_load=QHBoxLayout()

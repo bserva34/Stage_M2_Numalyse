@@ -13,7 +13,7 @@ class MessagePopUp(QWidget):
             (parent.height() - self.affichage.height()) // 2
         )  # Centre le label dans la fenêtre
         
-        self.affichage.setAlignment(Qt.AlignCenter)  # Centre le texte
+        self.affichage.setAlignment(Qt.AlignCenter) 
         self.affichage.setStyleSheet("""
             color: white; 
             background-color: rgba(0, 0, 0, 150);  /* Fond semi-transparent réduit */
@@ -21,7 +21,7 @@ class MessagePopUp(QWidget):
             padding: 10px;
             border-radius: 10px;
         """)
-        self.affichage.setFont(QFont("Arial", 20, QFont.Bold))  # Police plus grande
+        self.affichage.setFont(QFont("Arial", 20, QFont.Bold)) 
         self.affichage.hide()
 
         self.parent = parent
@@ -32,23 +32,27 @@ class MessagePopUp(QWidget):
             self.show_message_2()
 
     def show_message(self, title, message, message_type="info", timeout=2000):
-        msg_box = QMessageBox(self.parent)  
+        self.msg_box = QMessageBox(self.parent)  
 
         if message_type == "info":
-            msg_box.setIcon(QMessageBox.Information)
+            self.msg_box.setIcon(QMessageBox.Information)
         elif message_type == "warning":
-            msg_box.setIcon(QMessageBox.Warning)
+            self.msg_box.setIcon(QMessageBox.Warning)
         elif message_type == "error":
-            msg_box.setIcon(QMessageBox.Critical)
+            self.msg_box.setIcon(QMessageBox.Critical)
         else:
-            msg_box.setIcon(QMessageBox.NoIcon)
+            self.msg_box.setIcon(QMessageBox.NoIcon)
 
-        msg_box.setWindowTitle(title)
-        msg_box.setText(message)
-        msg_box.setStandardButtons(QMessageBox.NoButton)
+        self.msg_box.setWindowTitle(title)
+        self.msg_box.setText(message)
+        self.msg_box.setStandardButtons(QMessageBox.NoButton)
 
-        QTimer.singleShot(timeout, msg_box.accept)
-        msg_box.show()
+        if(timeout>0):
+            QTimer.singleShot(timeout, self.msg_box.accept)
+        self.msg_box.show()
+
+    def hide_message(self):
+        self.msg_box.hide()
 
     def show_message_2(self, timeout=1000):
         """ Affiche le message en transparence pendant `timeout` ms """

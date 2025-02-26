@@ -10,6 +10,7 @@ from pathlib import Path
 
 from segmentation import SegmentationThread
 from time_selector import TimeSelector
+from time_editor import TimeEditor
 from time_manager import TimeManager
 from message_popup import MessagePopUp
 
@@ -336,13 +337,13 @@ class SideMenuWidget(QDockWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time())
+        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time())
         layout.addWidget(self.time)        
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeSelector(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5)
+        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5)
         layout.addWidget(self.time2)        
 
 
@@ -392,13 +393,13 @@ class SideMenuWidget(QDockWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.time = TimeSelector(dialog, self.vlc_widget.player.get_length(), start)
+        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), start)
         layout.addWidget(self.time)        
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeSelector(dialog, self.vlc_widget.player.get_length(), end )
+        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length(), end )
         layout.addWidget(self.time2)        
 
         # Boutons OK et Annuler

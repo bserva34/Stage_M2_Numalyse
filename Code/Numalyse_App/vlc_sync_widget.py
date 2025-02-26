@@ -12,9 +12,12 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QPushButton, QFrame, QLabel, QSlider, QDialog, QRadioButton, QButtonGroup, QApplication
 )
 from PySide6.QtCore import Qt, QTimer, QRect, Signal
-from vlc_player_widget import VLCPlayerWidget
 from PySide6.QtGui import QImage, QPainter, QKeySequence, QShortcut
 
+
+from vlc_player_widget import VLCPlayerWidget
+from message_popup import MessagePopUp
+from mergevideo_thread import MergeVideoThread
 
 class SyncWidget(QWidget):
     """ Widget permettant la lecture synchronisée de vidéos. """
@@ -330,13 +333,20 @@ class SyncWidget(QWidget):
                 video_path.append(i.capture_video())
             self.is_recording=not self.is_recording
             self.enable_recording.emit(self.is_recording)
-            self.merge_video(video_path)
-
+            self.merge_thread=MergeVideoThread(self,video_path)
+            self.merge_thread.segmentation_done.connect(self.merge_video_end)
+            self.merge_thread.start()
+            self.affichage_temp=MessagePopUp(self,titre="",txt="Exportation en cours",type="warning",time=0)
         else:
             for i in self.player_widgets:
                 i.capture_video()
             self.is_recording=not self.is_recording  
             self.enable_recording.emit(self.is_recording) 
+
+    def merge_video_end(self):
+        self.affichage_temp.hide_message()
+        msg=MessagePopUp(self,txt="Capture vidéo combiné enregistré dans Vidéo/Capture_SLV")
+
 
     def merge_video(self, video_paths):
         # Ouvrir chaque vidéo avec cv2.VideoCapture
@@ -352,8 +362,9 @@ class SyncWidget(QWidget):
         fps = captures[0].get(cv2.CAP_PROP_FPS)
 
         out_writer = None
-        # Définir le chemin de la vidéo fusionnée (par exemple dans le même dossier que la première vidéo)
-        output_path = os.path.join(os.path.dirname(video_paths[0]), "merged_video.mp4")
+        timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        name = "_".join(i.name_of_video()[:5] for i in self.player_widgets)
+        output_path = os.path.join(os.path.dirname(video_paths[0]), f"{name}_{timestamp}_merged_video.mp4")
 
         while True:
             frames_pil = []
