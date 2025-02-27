@@ -35,6 +35,17 @@ class ProjectManager:
         except Exception as e:
             print(f"Erreur lors de la copie de la vidéo : {e}")
 
+        srt_path = os.path.splitext(pof)[0]
+        srt_path = srt_path+".srt"
+        if os.path.isfile(srt_path):
+            srt_name=os.path.basename(srt_path)
+            srt_destination = os.path.join(self.project_path,srt_name)
+            try:
+                shutil.copy2(srt_path, srt_destination)
+            except Exception as e:
+                print(f"Erreur lors de la copie du srt : {e}")
+
+
         #création fichier sauvegarde
         self.save_file_path = os.path.join(self.project_path, f"{self.project_name}.json")
 

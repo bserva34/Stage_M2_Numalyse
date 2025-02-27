@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QButtonGroup, QRadioButton
-from PySide6.QtGui import QAction, QKeySequence, QShortcut
+from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton
+from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup
 from PySide6.QtCore import Qt, QTimer
 
 from vlc_player_widget import VLCPlayerWidget
@@ -118,8 +118,15 @@ class VLCMainWindow(QMainWindow):
         outil_menu.addSeparator()
 
         self.subtitle_button = QAction("Sous Titres", self)
-        self.subtitle_button.triggered.connect(self.subtitle_button_use)
+        self.subtitle_button.setEnabled(False)
+        self.vlc_widget.enable_segmentation.connect(self.subtitle_button.setEnabled)
+        self.subtitle_create=False
+        self.subtitle_menu = QMenu(self)
+        self.subtitle_button.setMenu(self.subtitle_menu)
+        self.subtitle_menu.aboutToShow.connect(self.update_subtitle_menu)
+
         outil_menu.addAction(self.subtitle_button)
+
 
         self.grille_button = QAction("Affichage Grille", self)
         self.grille_button.setCheckable(True)
@@ -224,7 +231,7 @@ class VLCMainWindow(QMainWindow):
                 self.recreate_window()
 
                 self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
-                self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
+                self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
                 self.side_menu.setVisible(False)
                 self.side_menu.change.connect(self.change)
                 self.export_button.setEnabled(True) 
@@ -255,6 +262,7 @@ class VLCMainWindow(QMainWindow):
             self.side_menu=None
         self.export_button.setEnabled(False)
         self.aug_mode_action.setEnabled(False) 
+        self.subtitle_create=False
             
     #capture image et vidéo
     def capture_action(self):
@@ -299,6 +307,7 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.vlc_widget.enable_segmentation.connect(self.save_button.setEnabled)
+        self.vlc_widget.enable_segmentation.connect(self.subtitle_button.setEnabled)
 
         self.vlc_widget.enable_recording.connect(self.update_capture_video_button)
 
@@ -358,7 +367,7 @@ class VLCMainWindow(QMainWindow):
         if not self.side_menu:
             #self.vlc_widget.pause_video()
             self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
-            self.addDockWidget(Qt.RightDockWidgetArea, self.side_menu)
+            self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)
@@ -563,8 +572,41 @@ class VLCMainWindow(QMainWindow):
 
         dialog.exec()
 
-    def subtitle_button_use(self):
-        pass
+
+    def update_subtitle_menu(self):
+        if not self.subtitle_create:
+            self.subtitle_menu.clear()
+
+            # Crée un QActionGroup exclusif pour gérer les coches
+            action_group = QActionGroup(self)
+            action_group.setExclusive(True)
+
+            liste = self.vlc_widget.get_subtitles()
+            if len(liste)==0:
+                action=QAction("Aucun Sous-Titres",self)
+                action.setEnabled(False)
+                action_group.addAction(action)
+                self.subtitle_menu.addAction(action)
+            else :
+                track=self.vlc_widget.get_track()
+
+                # Ajoute les actions pour chaque sous-titre disponible
+                for subtitle in liste:
+                    nom = subtitle["nom"]
+                    if isinstance(nom, bytes):
+                        nom = nom.decode('utf-8', errors='ignore')
+                    action = QAction(nom, self)
+                    action.setCheckable(True)
+                    if(subtitle["id"]==track):
+                        action.setChecked(True)
+                    action_group.addAction(action)
+                    action.triggered.connect(lambda *args, id=subtitle["id"]: self.vlc_widget.set_subtitles(id))
+                    self.subtitle_menu.addAction(action)
+            self.subtitle_create=True
+
+
+
+
 
     # grille mais ne fonctionne pas pour l'instant
     def grille_button_use(self):

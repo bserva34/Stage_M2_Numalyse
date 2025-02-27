@@ -177,9 +177,12 @@ système d'annotation-> avec systeme d'exportation/partage et aussi système de 
 faire le fichier de sauvegarde des choix préférentielles de l'appli -> json à la racine de l'appli
 thread exportation vidéo avec possibilité d'annuler -> comme la segmentation
 thread capture vidéo combiné -> comme exportation
+thread export texte -> comme capture vidéo
+gestion sous titres avec liaison fichier .str et option sélection piste -> fait
+exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> manque que les img pour odt
 
-exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> à faire pour doxc et odt
-gestion sous titres avec liaison fichier .str et option sélection piste
+
+
 
 
 !!!!!!!Problèmes!!!!!!
@@ -198,12 +201,11 @@ exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffm
 stop seg quand fermeture fenetre -> stop seg close event
 
 
-
-
-faire un ratio pour la barre de lecture en fonction de la longueur de la vidéo
 upgrade python sur linux pour utiliser moviepy
 option -w qui casse la segmentation
-donner le droit admin à l'appli à travers innosetup -> écrire en app ne fonctionne pas 
+donner le droit admin à l'appli à travers innosetup -> écrire en appdata ne fonctionne pas 
+
+problème de son
 
 
 

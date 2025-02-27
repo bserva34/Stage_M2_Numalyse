@@ -388,3 +388,21 @@ class VLCPlayerWidget(QWidget):
 
 
 
+    def get_subtitles(self):
+        descriptions = self.player.video_get_spu_description()
+        
+        if descriptions is None:
+            return []
+
+        pistes = []
+        for desc in descriptions:
+            pistes.append({'id': desc[0], 'nom': desc[1]})
+    
+        return pistes
+
+    def get_track(self):
+        return self.player.video_get_spu()
+
+    def set_subtitles(self,id=-1):
+        self.player.video_set_spu(id)
+

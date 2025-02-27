@@ -19,12 +19,12 @@ class SideMenuWidget(QDockWidget):
     segmentation_done = Signal(bool)
 
     def __init__(self, vlc_widget, parent=None,start=True):
-        super().__init__("", parent)  # Titre du dock
+        super().__init__("Segmentation", parent)  # Titre du dock
         self.vlc_widget = vlc_widget
-        self.setAllowedAreas(Qt.BottomDockWidgetArea)  # Zones autorisées
+        self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)  # Zones autorisées
 
         # Définir la largeur du dock
-        self.setFixedHeight(200)
+        self.setFixedWidth(300)
 
         # Créer un widget de conteneur pour le contenu
         self.container = QWidget(self)
@@ -38,7 +38,7 @@ class SideMenuWidget(QDockWidget):
         self.setWidget(self.scroll_area)
 
         # Layout vertical pour stocker les boutons
-        self.layout = QHBoxLayout(self.container)
+        self.layout = QVBoxLayout(self.container)
         self.container.setLayout(self.layout)
 
         # Liste pour stocker les boutons et leurs informations
