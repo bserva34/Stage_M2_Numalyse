@@ -13,6 +13,7 @@ from time_selector import TimeSelector
 from time_editor import TimeEditor
 from time_manager import TimeManager
 from message_popup import MessagePopUp
+from side_menu_widget_display import SideMenuWidgetDisplay
 
 class SideMenuWidget(QDockWidget):
     change = Signal(bool)
@@ -22,6 +23,7 @@ class SideMenuWidget(QDockWidget):
         super().__init__("", parent)  # Titre du dock
         self.vlc_widget = vlc_widget
         self.setAllowedAreas(Qt.BottomDockWidgetArea)  # Zones autorisées
+        self.parent=parent
 
         # Définir la largeur du dock
         self.setFixedHeight(200)
@@ -40,10 +42,6 @@ class SideMenuWidget(QDockWidget):
         # Layout vertical pour stocker les boutons
         self.layout = QHBoxLayout(self.container)
         self.container.setLayout(self.layout)
-
-        # Liste pour stocker les boutons et leurs informations
-        self.stock_button = []
-        self.button_notes = {}
 
         self.seg_ok=False
 
@@ -73,7 +71,11 @@ class SideMenuWidget(QDockWidget):
         self.timer.timeout.connect(self.update_buttons_color)
         self.timer.start(50) #actu en ms
 
+        self.display=SideMenuWidgetDisplay(self.vlc_widget,self)
+        self.parent.addDockWidget(Qt.RightDockWidgetArea, self.display)
         
+    def emit_change(self):
+        self.change.emit(True)
 
     #affichage du bouton en rouge
     def update_buttons_color(self):
@@ -84,14 +86,14 @@ class SideMenuWidget(QDockWidget):
         self.max_time = self.vlc_widget.player.get_length()
 
         # Appliquer la couleur en fonction du temps actuel
-        for btn_data in self.stock_button:
+        for btn_data in self.display.stock_button:
             button_time = btn_data["time"]
             button_end = btn_data["end"]
 
-            if button_time <= current_time <= button_end:
-                btn_data["button"].setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;")
+            if button_time < current_time <= button_end:
+                btn_data["btn"].setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;")
             else:
-                btn_data["button"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
+                btn_data["btn"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
 
 
     #fonction de tri appeler après ajout de bouton pour un affichage logique
@@ -112,14 +114,11 @@ class SideMenuWidget(QDockWidget):
         self.layout.addWidget(self.add_button)
 
         # Réinsère les frames triés
-        for btn_data in self.stock_button:
-            self.layout.addWidget(btn_data["frame"])
+        for btn_data in self.display.stock_button:
+            self.layout.addWidget(btn_data["btn"])
 
         # Réajoute un stretch à la fin
         self.layout.addStretch()
-
-
-
 
     #fonction d'ajout d'une nouveaux bouton
     def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
@@ -127,72 +126,40 @@ class SideMenuWidget(QDockWidget):
             return
 
         if name == "":
-            cpt = len(self.stock_button)
+            cpt = len(self.display.stock_button)
             name = "Plan " + f"{cpt+1}"
-
-        # Création du cadre pour regrouper le bouton et ses éléments associés
-        frame = QFrame(self)
-        frame.setStyleSheet("border: 1px solid gray; padding: 5px; border-radius: 5px;")
-        frame_layout = QVBoxLayout(frame)
 
         # Création du bouton
         button = QPushButton(name, self)
         button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
         button.setContextMenuPolicy(Qt.CustomContextMenu)
-        button.customContextMenuRequested.connect(lambda pos, btn=button: self.show_context_menu(pos, btn))
+        button.customContextMenuRequested.connect(lambda pos, btn=button,t=time,e=end: self.show_context_menu(pos, btn,t,e))
         button.clicked.connect(lambda *_: self.set_position(button))
-        #button.setFixedSize(180, 25)
+        button.setFixedSize(80, 150)
 
-        # Création du label pour afficher le timecode
-        if end == 0:
-            time_label = QLabel("Début : " + self.time_manager.m_to_mst(time), self)
-        else:
-            time_label = QLabel(f"Début : {self.time_manager.m_to_mst(time)} / Fin : {self.time_manager.m_to_mst(end)}", self)
+        btn=self.display.add_new_button(btn=button,name=button.text(),time=time,end=end,frame1=frame1,frame2=frame2) 
 
-        time_label.setFixedHeight(25)
-
-        frame_layout.addWidget(button)
-        frame_layout.addWidget(time_label)
-
-        # Ajouter le frame à la liste des boutons stockés
-        self.stock_button.append({"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
-
-        # Trier les boutons
-        self.stock_button.sort(key=lambda btn_data: btn_data["time"])
-
-        # Réorganiser les boutons dans l'affichage
         self.reorganize_buttons()
-
-        self.button_notes[button] = []  # Associer une liste vide de notes au bouton
 
         if verif:
             self.change.emit(True)
-            self.segmentation_done.emit(True)
 
-        return button
-
-
+        return btn
 
     #menu clique droit du bouton/séquence
-    def show_context_menu(self, pos, button):
+    def show_context_menu(self, pos, button,time,end):
         """Affiche un menu contextuel avec options de renommer et modifier valeurs."""
         menu = QMenu(self)
 
-        rename_action = QAction("Renommer", self)
-        rename_action.triggered.connect(lambda: self.rename_button(button))
-        menu.addAction(rename_action)
+        if(time>0):
+            delete_action = QAction("Supprimer et concaténer avec le précedent", self)
+            delete_action.triggered.connect(lambda: self.delate_button_prec(button))
+            menu.addAction(delete_action)
 
-        mod_action = QAction("Modifier TimeCode", self)
-        mod_action.triggered.connect(lambda: self.modify_time(button))
-        menu.addAction(mod_action)
-
-        delete_action = QAction("Supprimer", self)
-        delete_action.triggered.connect(lambda: self.delate_button(button))
-        menu.addAction(delete_action)
-
-        add_note_action = QAction("Ajouter une note")
-        add_note_action.triggered.connect(lambda: self.add_note_menu(button))
-        menu.addAction(add_note_action)
+        if (end<self.max_time):
+            delete_action2 = QAction("Supprimer et concaténer avec le suivant", self)
+            delete_action2.triggered.connect(lambda: self.delate_button_suiv(button))
+            menu.addAction(delete_action2)
 
         extract_action = QAction("Extraire la séquence")
         extract_action.triggered.connect(lambda: self.extract_action(button))
@@ -200,111 +167,50 @@ class SideMenuWidget(QDockWidget):
 
         menu.exec_(button.mapToGlobal(pos))
 
-    #fonction 1
-    def rename_button(self, button):
-        """Ouvre une boîte de dialogue pour renommer le bouton."""
-        new_name, ok = QInputDialog.getText(self, "Renommer le bouton", "Nouveau nom :", text=button.text())
-        if ok and new_name.strip():
-            button.setText(new_name)
-            # Mettre à jour dans stock_button
-            for btn_data in self.stock_button:
-                if btn_data["button"] == button:
-                    btn_data["button"].setText(new_name)
-        self.change.emit(True)
-
     #fonction 2
     def delate_button(self, button):
         """Supprime un bouton et son cadre associé."""
-        cpt=0
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
-                frame = btn_data["frame"]
-                
+        time=0
+        end=0
+        for btn_data in self.display.stock_button:
+            if btn_data["btn"] == button:
+                time = btn_data["time"]
+                end = btn_data["end"]
                 # Supprimer le frame entier
-                self.layout.removeWidget(frame)
-                frame.deleteLater()
+                self.layout.removeWidget(button)
 
                 # Supprimer les notes associées
-                if button in self.button_notes:
+                if button in self.display.button_notes:
                     del self.button_notes[button]
-
+                button.deleteLater()
 
                 # Supprimer le bouton de la liste
-                self.stock_button.remove(btn_data)
+                self.display.stock_button.remove(btn_data)
                 break
-            cpt+=1
 
         self.change.emit(True)
+        return time,end
+
+    def delate_button_prec(self,button):
+        time,end=self.delate_button(button)
+        for btn_data in self.display.stock_button:
+            if btn_data["end"]==time:
+                btn_data["end"]=end
+        self.display.reorganize_buttons()
 
 
-    #fonction 3
-    def add_note_menu(self, button):
-        self.add_note(button, "")  # Ajoute une note vide directement
-        self.change.emit(True)
+    def delate_button_suiv(self,button):
+        time,end=self.delate_button(button)
+        for btn_data in self.display.stock_button:
+            if btn_data["time"]==end:
+                btn_data["time"]=time
+        self.display.reorganize_buttons()
 
-    def add_note(self, button, text=""):
-        note_widget = QTextEdit(self)
-        note_widget.setPlainText(text)
-        note_widget.setReadOnly(False)
-        note_widget.setStyleSheet("color: gray; font-style: italic;")
-        #note_widget.setFixedSize(180, 50)
-        note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        note_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        note_widget.customContextMenuRequested.connect(lambda pos: self.show_note_context_menu(note_widget, pos))
-
-        if button not in self.button_notes:
-            self.button_notes[button] = []
-
-        self.button_notes[button].append(note_widget)
-
-        # Trouver le `frame` associé au bouton et ajouter la note dedans
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
-                frame_layout = btn_data["frame"].layout()
-                frame_layout.addWidget(note_widget)
-                break  # On sort de la boucle une fois trouvé
-
-        # Détecte si du texte est ajouté
-        note_widget.textChanged.connect(lambda: self.on_text_changed(note_widget))
-
-        self.change.emit(True)
-
-
-    def on_text_changed(self, note_widget):
-        text = note_widget.toPlainText().strip()
-        if text:
-            note_widget.setStyleSheet("")  # Normal
-        else:
-            note_widget.setStyleSheet("color: gray; font-style: italic;")
-        self.change.emit(True)
-
-    #menu clique droit note
-    def show_note_context_menu(self, note_widget, pos):
-        """ Affiche un menu contextuel sur un clic droit. """
-        menu = QMenu(self)
-
-        delete_action = QAction("Supprimer la note", self)
-        delete_action.triggered.connect(lambda: self.remove_note(note_widget))
-
-        menu.addAction(delete_action)
-        
-        menu.exec_(note_widget.mapToGlobal(pos))
-
-    #fonction 1 clique droit note
-    def remove_note(self, note_widget):
-        """ Supprime la note de l'interface et de la liste. """
-        for button, notes in self.button_notes.items():
-            if note_widget in notes:
-                notes.remove(note_widget)
-                self.layout.removeWidget(note_widget)
-                note_widget.deleteLater()
-                break
-        self.change.emit(True)
 
     #fonction 4 extraction
     def extract_action(self, button): 
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
+        for btn_data in self.display.stock_button:
+            if btn_data["btn"] == button:
                 time = btn_data["time"]
                 end = btn_data["end"]
                 duration = end - time
@@ -346,8 +252,6 @@ class SideMenuWidget(QDockWidget):
         self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5)
         layout.addWidget(self.time2)        
 
-
-
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
         ok_button = QPushButton("OK", dialog)
@@ -376,70 +280,14 @@ class SideMenuWidget(QDockWidget):
 
         dialog.exec()
 
-    #modif temps non utilisé
-    def modify_time(self, button):
-
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
-                start = btn_data["time"]
-                end = btn_data["end"]
-
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Ajouter une séquence")
-        dialog.setModal(True)
-
-        layout = QVBoxLayout(dialog)
-        # Slider pour choisir le temps
-        time_label = QLabel("Début :", dialog)
-        layout.addWidget(time_label)
-
-        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), start)
-        layout.addWidget(self.time)        
-
-        time_label2 = QLabel("Fin :", dialog)
-        layout.addWidget(time_label2)
-
-        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length(), end )
-        layout.addWidget(self.time2)        
-
-        # Boutons OK et Annuler
-        button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
-
-        button_layout.addWidget(ok_button)
-        button_layout.addWidget(cancel_button)
-        layout.addLayout(button_layout)
-
-        # Action du bouton OK
-        def on_ok():
-            new_time = self.time.get_time_in_milliseconds()
-            end_time = self.time2.get_time_in_milliseconds()
-            new_label ="Début : "+self.time_manager.m_to_mst(new_time)+" / Fin : "+self.time_manager.m_to_mst(end_time)
-            for btn_data in self.stock_button:
-                if btn_data["button"] == button:
-                    btn_data["time"] = new_time
-                    btn_data["end"] = end_time
-
-                    btn_data["label"].setText(new_label)
-
-            dialog.accept()
-            self.reorganize_buttons()
-            self.change.emit(True)
-
-
-        ok_button.clicked.connect(on_ok)
-        cancel_button.clicked.connect(dialog.reject)
-
-        dialog.exec()
-
-
     #fonction appeler quand on clique sur un bouton
     def set_position(self, button):
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
+        for i,btn_data in enumerate(self.display.stock_button):
+            if btn_data["btn"] == button:
                 time = btn_data["time"]
-            
+                self.display.select_plan(i)
+                break
+        
         # Passer le temps au VLCWidget
         self.vlc_widget.set_position_timecode(int(time))
 
@@ -465,7 +313,7 @@ class SideMenuWidget(QDockWidget):
         self.layout.removeWidget(self.seg_button)
         self.seg_button.deleteLater()
         for time in timecodes:
-            self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])  # Crée un bouton pour chaque changement de plan
+            self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3]) 
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
 

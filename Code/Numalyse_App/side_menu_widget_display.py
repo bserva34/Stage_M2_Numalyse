@@ -14,15 +14,16 @@ from time_editor import TimeEditor
 from time_manager import TimeManager
 from message_popup import MessagePopUp
 
-class SideMenuWidget(QDockWidget):
+class SideMenuWidgetDisplay(QDockWidget):
     change = Signal(bool)
     segmentation_done = Signal(bool)
 
-    def __init__(self, vlc_widget, parent=None,start=True):
+    def __init__(self, vlc_widget, parent=None):
         super().__init__("Segmentation", parent)  # Titre du dock
         self.vlc_widget = vlc_widget
         self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)  # Zones autorisées
 
+        self.parent=parent
         # Définir la largeur du dock
         self.setFixedWidth(300)
 
@@ -45,22 +46,7 @@ class SideMenuWidget(QDockWidget):
         self.stock_button = []
         self.button_notes = {}
 
-        self.seg_ok=False
-
-        if(start):
-            self.seg_button = QPushButton("Segmentation Auto",self)
-            self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;") 
-            self.seg_button.clicked.connect(self.seg_action)
-            self.layout.addWidget(self.seg_button)
-        else:
-            self.seg_ok=True
-
-        self.add_button = QPushButton("Ajouter",self)
-        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;") 
-        self.add_button.clicked.connect(self.add_action)
-        self.layout.addWidget(self.add_button)
-
-        self.layout.addStretch()
+        self.id_affichage = -1
 
         self.fps=None
 
@@ -69,29 +55,9 @@ class SideMenuWidget(QDockWidget):
         self.time_manager=TimeManager()
 
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_buttons_color)
-        self.timer.start(50) #actu en ms
-
-        
-
-    #affichage du bouton en rouge
-    def update_buttons_color(self):
-        if not self.vlc_widget.media:
-            return
-
-        current_time = self.vlc_widget.player.get_time()
-        self.max_time = self.vlc_widget.player.get_length()
-
-        # Appliquer la couleur en fonction du temps actuel
-        for btn_data in self.stock_button:
-            button_time = btn_data["time"]
-            button_end = btn_data["end"]
-
-            if button_time <= current_time <= button_end:
-                btn_data["button"].setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;")
-            else:
-                btn_data["button"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
+    def select_plan(self,i):
+        self.id_affichage=i
+        self.reorganize_buttons()
 
 
     #fonction de tri appeler après ajout de bouton pour un affichage logique
@@ -106,14 +72,13 @@ class SideMenuWidget(QDockWidget):
                 else: 
                     self.layout.removeItem(item)
 
-        # Réajoute les boutons fixes
-        if(not self.seg_ok):
-            self.layout.addWidget(self.seg_button)
-        self.layout.addWidget(self.add_button)
-
         # Réinsère les frames triés
-        for btn_data in self.stock_button:
-            self.layout.addWidget(btn_data["frame"])
+        for i,btn_data in enumerate(self.stock_button):
+            if self.id_affichage==i:
+                self.layout.addWidget(btn_data["frame"])
+                btn_data["frame"].setVisible(True)
+            else:
+                btn_data["frame"].setVisible(False)
 
         # Réajoute un stretch à la fin
         self.layout.addStretch()
@@ -122,7 +87,7 @@ class SideMenuWidget(QDockWidget):
 
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
+    def add_new_button(self, btn,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
         if verif and time >= self.max_time:
             return
 
@@ -140,8 +105,9 @@ class SideMenuWidget(QDockWidget):
         button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
         button.setContextMenuPolicy(Qt.CustomContextMenu)
         button.customContextMenuRequested.connect(lambda pos, btn=button: self.show_context_menu(pos, btn))
-        button.clicked.connect(lambda *_: self.set_position(button))
         #button.setFixedSize(180, 25)
+
+        frame.setVisible(False)
 
         # Création du label pour afficher le timecode
         if end == 0:
@@ -154,8 +120,9 @@ class SideMenuWidget(QDockWidget):
         frame_layout.addWidget(button)
         frame_layout.addWidget(time_label)
 
+
         # Ajouter le frame à la liste des boutons stockés
-        self.stock_button.append({"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
+        self.stock_button.append({"btn":btn,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
 
         # Trier les boutons
         self.stock_button.sort(key=lambda btn_data: btn_data["time"])
@@ -166,7 +133,7 @@ class SideMenuWidget(QDockWidget):
         self.button_notes[button] = []  # Associer une liste vide de notes au bouton
 
         if verif:
-            self.change.emit(True)
+            self.parent.emit_change()
             self.segmentation_done.emit(True)
 
         return button
@@ -185,10 +152,6 @@ class SideMenuWidget(QDockWidget):
         mod_action = QAction("Modifier TimeCode", self)
         mod_action.triggered.connect(lambda: self.modify_time(button))
         menu.addAction(mod_action)
-
-        delete_action = QAction("Supprimer", self)
-        delete_action.triggered.connect(lambda: self.delate_button(button))
-        menu.addAction(delete_action)
 
         add_note_action = QAction("Ajouter une note")
         add_note_action.triggered.connect(lambda: self.add_note_menu(button))
@@ -210,37 +173,15 @@ class SideMenuWidget(QDockWidget):
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
                     btn_data["button"].setText(new_name)
-        self.change.emit(True)
+                    btn_data["btn"].setText(new_name)
+        self.parent.emit_change()
 
-    #fonction 2
-    def delate_button(self, button):
-        """Supprime un bouton et son cadre associé."""
-        cpt=0
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
-                frame = btn_data["frame"]
-                
-                # Supprimer le frame entier
-                self.layout.removeWidget(frame)
-                frame.deleteLater()
-
-                # Supprimer les notes associées
-                if button in self.button_notes:
-                    del self.button_notes[button]
-
-
-                # Supprimer le bouton de la liste
-                self.stock_button.remove(btn_data)
-                break
-            cpt+=1
-
-        self.change.emit(True)
 
 
     #fonction 3
     def add_note_menu(self, button):
         self.add_note(button, "")  # Ajoute une note vide directement
-        self.change.emit(True)
+        self.parent.emit_change()
 
     def add_note(self, button, text=""):
         note_widget = QTextEdit(self)
@@ -267,7 +208,6 @@ class SideMenuWidget(QDockWidget):
         # Détecte si du texte est ajouté
         note_widget.textChanged.connect(lambda: self.on_text_changed(note_widget))
 
-        self.change.emit(True)
 
 
     def on_text_changed(self, note_widget):
@@ -276,7 +216,7 @@ class SideMenuWidget(QDockWidget):
             note_widget.setStyleSheet("")  # Normal
         else:
             note_widget.setStyleSheet("color: gray; font-style: italic;")
-        self.change.emit(True)
+        self.parent.emit_change()
 
     #menu clique droit note
     def show_note_context_menu(self, note_widget, pos):
@@ -299,7 +239,7 @@ class SideMenuWidget(QDockWidget):
                 self.layout.removeWidget(note_widget)
                 note_widget.deleteLater()
                 break
-        self.change.emit(True)
+        self.parent.emit_change()
 
     #fonction 4 extraction
     def extract_action(self, button): 
@@ -319,62 +259,6 @@ class SideMenuWidget(QDockWidget):
         self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time//1000,duration//1000,capture_path)
         affichage=MessagePopUp(self)
 
-    #ajout d'une séquence
-    def add_action(self):
-        """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Ajouter une séquence")
-        dialog.setModal(True)
-
-        layout = QVBoxLayout(dialog)
-
-        # Zone de texte pour le nom
-        name_label = QLabel("Nom de la séquence :", dialog)
-        layout.addWidget(name_label)
-        name_input = QLineEdit(dialog)
-        layout.addWidget(name_input)
-
-        time_label = QLabel("Début :", dialog)
-        layout.addWidget(time_label)
-
-        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time())
-        layout.addWidget(self.time)        
-
-        time_label2 = QLabel("Fin :", dialog)
-        layout.addWidget(time_label2)
-
-        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5)
-        layout.addWidget(self.time2)        
-
-
-
-        # Boutons OK et Annuler
-        button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
-
-        button_layout.addWidget(ok_button)
-        button_layout.addWidget(cancel_button)
-        layout.addLayout(button_layout)
-
-        # Action du bouton OK
-        def on_ok():
-            if(self.fps==None):
-                video=VideoFileClip(self.vlc_widget.path_of_media)
-                self.fps = video.fps
-            name = name_input.text().strip()
-            new_time = self.time.get_time_in_milliseconds()
-            end_time = self.time2.get_time_in_milliseconds()
-            frame1 = int((new_time/1000)*self.fps)
-            frame2 = int((end_time/1000)*self.fps)
-            if name and 0<new_time<=self.max_time:
-                self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
-                dialog.accept()
-
-        ok_button.clicked.connect(on_ok)
-        cancel_button.clicked.connect(dialog.reject)
-
-        dialog.exec()
 
     #modif temps non utilisé
     def modify_time(self, button):
@@ -385,7 +269,7 @@ class SideMenuWidget(QDockWidget):
                 end = btn_data["end"]
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Ajouter une séquence")
+        dialog.setWindowTitle("Modification TimeCode")
         dialog.setModal(True)
 
         layout = QVBoxLayout(dialog)
@@ -425,55 +309,12 @@ class SideMenuWidget(QDockWidget):
 
             dialog.accept()
             self.reorganize_buttons()
-            self.change.emit(True)
+            self.parent.emit_change()
 
 
         ok_button.clicked.connect(on_ok)
         cancel_button.clicked.connect(dialog.reject)
 
         dialog.exec()
-
-
-    #fonction appeler quand on clique sur un bouton
-    def set_position(self, button):
-        for btn_data in self.stock_button:
-            if btn_data["button"] == button:
-                time = btn_data["time"]
-            
-        # Passer le temps au VLCWidget
-        self.vlc_widget.set_position_timecode(int(time))
-
-
-    def seg_action(self):
-        self.seg_button.setText("Calcul Segmentation en cours ⌛")
-        self.seg_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
-        self.start_segmentation()
-
-
-    #segmentation appelé automatiquement à la création plus maintenant
-    def start_segmentation(self):
-        video_path = self.vlc_widget.path_of_media
-        self.segmentation_thread = SegmentationThread(video_path)
-        
-        # Connecte le signal pour recevoir les timecodes
-        self.segmentation_thread.segmentation_done.connect(self.on_segmentation_complete)
-        
-        self.segmentation_thread.start()  # Démarrer le thread
-
-    def on_segmentation_complete(self, timecodes):
-        self.seg_ok=True
-        self.layout.removeWidget(self.seg_button)
-        self.seg_button.deleteLater()
-        for time in timecodes:
-            self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])  # Crée un bouton pour chaque changement de plan
-        print("Segmentation terminée en arrière-plan.")
-        self.segmentation_done.emit(True)
-
-
-    def stop_segmentation(self):
-        """Arrête la segmentation si elle est en cours."""
-        if hasattr(self, 'segmentation_thread') and self.segmentation_thread.isRunning():
-            print("Arrêt de la segmentation en cours...")
-            self.segmentation_thread.stop()
 
 

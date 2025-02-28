@@ -182,6 +182,10 @@ gestion sous titres avec liaison fichier .str et option sélection piste -> fait
 exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> manque que les img pour odt
 
 
+changer vitesse lecture par un menu comme youtube et rajouter plus de possibilité
+check le retour de l'autre
+
+suppr plan modify time and label
 
 
 

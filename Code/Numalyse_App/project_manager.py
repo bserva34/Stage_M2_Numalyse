@@ -138,5 +138,5 @@ class ProjectManager:
 
             # Ajouter les notes associées
             for note_text in notes:
-                self.seg.add_note(button, note_text)
+                self.seg.display.add_note(button, note_text)
 
