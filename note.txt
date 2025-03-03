@@ -183,10 +183,10 @@ exportation docx odt améliorer la mise en page et rajouter l'image représentat
 
 
 changer vitesse lecture par un menu comme youtube et rajouter plus de possibilité
-check le retour de l'autre
 
-suppr plan modify time and label
+actualisation couleur qui est mauvaise
 
+taille bouton proportionnel et zoom
 
 
 !!!!!!!Problèmes!!!!!!
@@ -222,3 +222,7 @@ problème de son
 
 fichier de config
 exportation pdf temps de calcul
+
+
+baguette valentin
+0.95 * 1

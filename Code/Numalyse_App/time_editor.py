@@ -64,7 +64,7 @@ class TimeEditor(QWidget):
         """
         # On s'assure que le temps reste dans les limites autorisées
         self.time = max(0, min(milliseconds, self.max_time))
-        total_seconds = self.time // 1000
+        total_seconds = self.time / 1000
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
         seconds = total_seconds % 60

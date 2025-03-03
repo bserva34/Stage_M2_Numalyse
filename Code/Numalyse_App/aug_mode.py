@@ -9,7 +9,7 @@ class AugMode(QObject):
         self.path_of_super = path
 
         self.path_of_video = self.vlc_widget.path_of_media
-        self.timecodes = sorted([btn_data["time"] for btn_data in self.seg.stock_button])  # Tri pour éviter les erreurs
+        self.timecodes = sorted([btn_data["time"] for btn_data in self.seg.display.stock_button])  # Tri pour éviter les erreurs
 
         self.paused = False  # Évite les pauses répétées
 

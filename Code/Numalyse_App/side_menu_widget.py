@@ -22,6 +22,10 @@ class SideMenuWidget(QDockWidget):
     def __init__(self, vlc_widget, parent=None,start=True):
         super().__init__("", parent)  # Titre du dock
         self.vlc_widget = vlc_widget
+
+        self.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        #self.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable) 
+
         self.setAllowedAreas(Qt.BottomDockWidgetArea)  # Zones autorisées
         self.parent=parent
 
@@ -49,6 +53,7 @@ class SideMenuWidget(QDockWidget):
             self.seg_button = QPushButton("Segmentation Auto",self)
             self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;") 
             self.seg_button.clicked.connect(self.seg_action)
+            self.seg_button.setFixedHeight(130)
             self.layout.addWidget(self.seg_button)
         else:
             self.seg_ok=True
@@ -56,6 +61,7 @@ class SideMenuWidget(QDockWidget):
         self.add_button = QPushButton("Ajouter",self)
         self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;") 
         self.add_button.clicked.connect(self.add_action)
+        self.add_button.setFixedHeight(130)
         self.layout.addWidget(self.add_button)
 
         self.layout.addStretch()
@@ -73,6 +79,7 @@ class SideMenuWidget(QDockWidget):
 
         self.display=SideMenuWidgetDisplay(self.vlc_widget,self)
         self.parent.addDockWidget(Qt.RightDockWidgetArea, self.display)
+        self.display.setVisible(False)
         
     def emit_change(self):
         self.change.emit(True)
@@ -90,7 +97,7 @@ class SideMenuWidget(QDockWidget):
             button_time = btn_data["time"]
             button_end = btn_data["end"]
 
-            if button_time < current_time <= button_end:
+            if button_time <= current_time < button_end:
                 btn_data["btn"].setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;")
             else:
                 btn_data["btn"].setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
@@ -135,9 +142,9 @@ class SideMenuWidget(QDockWidget):
         button.setContextMenuPolicy(Qt.CustomContextMenu)
         button.customContextMenuRequested.connect(lambda pos, btn=button,t=time,e=end: self.show_context_menu(pos, btn,t,e))
         button.clicked.connect(lambda *_: self.set_position(button))
-        button.setFixedSize(80, 150)
+        button.setFixedSize(80, 130)
 
-        btn=self.display.add_new_button(btn=button,name=button.text(),time=time,end=end,frame1=frame1,frame2=frame2) 
+        btn=self.display.add_new_button(btn=button,name=button.text(),time=time,end=end,verif=False,frame1=frame1,frame2=frame2) 
 
         self.reorganize_buttons()
 
@@ -196,6 +203,7 @@ class SideMenuWidget(QDockWidget):
         for btn_data in self.display.stock_button:
             if btn_data["end"]==time:
                 btn_data["end"]=end
+                self.display.change_label_time(btn_data["label"],btn_data["time"],btn_data["end"])
         self.display.reorganize_buttons()
 
 
@@ -204,6 +212,7 @@ class SideMenuWidget(QDockWidget):
         for btn_data in self.display.stock_button:
             if btn_data["time"]==end:
                 btn_data["time"]=time
+                self.display.change_label_time(btn_data["label"],btn_data["time"],btn_data["end"])
         self.display.reorganize_buttons()
 
 
@@ -249,7 +258,7 @@ class SideMenuWidget(QDockWidget):
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5)
+        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000)
         layout.addWidget(self.time2)        
 
         # Boutons OK et Annuler
@@ -273,6 +282,7 @@ class SideMenuWidget(QDockWidget):
             frame2 = int((end_time/1000)*self.fps)
             if name and 0<new_time<=self.max_time:
                 self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
+                self.display.adjust_neighbors(new_time,end_time)
                 dialog.accept()
 
         ok_button.clicked.connect(on_ok)
@@ -290,11 +300,12 @@ class SideMenuWidget(QDockWidget):
         
         # Passer le temps au VLCWidget
         self.vlc_widget.set_position_timecode(int(time))
-
+        self.display.setVisible(True)
 
     def seg_action(self):
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
         self.seg_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
+        self.seg_button.setEnabled(False)
         self.start_segmentation()
 
 
@@ -325,3 +336,7 @@ class SideMenuWidget(QDockWidget):
             self.segmentation_thread.stop()
 
 
+    def remove_display(self):
+        self.parent.removeDockWidget(self.display)
+        self.display.deleteLater()
+        self.display=None

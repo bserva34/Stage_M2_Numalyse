@@ -21,6 +21,12 @@ class SideMenuWidgetDisplay(QDockWidget):
     def __init__(self, vlc_widget, parent=None):
         super().__init__("Segmentation", parent)  # Titre du dock
         self.vlc_widget = vlc_widget
+
+        self.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        #self.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable) 
+
+
+
         self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)  # Zones autorisées
 
         self.parent=parent
@@ -133,7 +139,6 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.button_notes[button] = []  # Associer une liste vide de notes au bouton
 
         if verif:
-            self.parent.emit_change()
             self.segmentation_done.emit(True)
 
         return button
@@ -299,14 +304,12 @@ class SideMenuWidgetDisplay(QDockWidget):
         def on_ok():
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
-            new_label ="Début : "+self.time_manager.m_to_mst(new_time)+" / Fin : "+self.time_manager.m_to_mst(end_time)
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
                     btn_data["time"] = new_time
                     btn_data["end"] = end_time
-
-                    btn_data["label"].setText(new_label)
-
+                    self.change_label_time(btn_data["label"],new_time,end_time)
+            self.adjust_neighbors(new_time,end_time)
             dialog.accept()
             self.reorganize_buttons()
             self.parent.emit_change()
@@ -317,4 +320,45 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         dialog.exec()
 
+
+    def change_label_time(self,label,new_time,end_time):
+        new_label ="Début : "+self.time_manager.m_to_mst(new_time)+" / Fin : "+self.time_manager.m_to_mst(end_time)
+        label.setText(new_label)
+
+    # def change_time_neighbors(self,old_time,old_end_time,new_time,end_time):
+    #     tab_suppr=[]
+    #     for btn_data in self.stock_button:
+    #         if btn_data["time"]==old_end_time or (btn_data["time"]<=end_time and btn_data["time"]>old_end_time) :
+    #             if end_time<btn_data["end"]:
+    #                 btn_data["time"]=end_time
+    #                 self.change_label_time(btn_data["label"],end_time,btn_data["end"])
+    #             else:
+    #                 tab_suppr.append(btn_data["btn"])
+    #         if btn_data["end"]==old_time or (btn_data["end"]>=new_time and btn_data["end"]<old_time):
+    #             if new_time>btn_data["time"]:
+    #                 btn_data["end"]=new_time
+    #                 self.change_label_time(btn_data["label"],btn_data["time"],new_time)
+    #             else:
+    #                 tab_suppr.append(btn_data["btn"])   
+    #     for btn in tab_suppr:
+    #         print("suppr")
+    #         self.parent.delate_button(btn)     
+
+    def adjust_neighbors(self, new_time, new_end_time):
+        tab_suppr = []
+        for btn_data in self.stock_button:
+            if btn_data["time"] == new_end_time or (btn_data["time"] <= new_end_time and btn_data["time"] > new_time):
+                if new_end_time < btn_data["end"]:
+                    btn_data["time"] = new_end_time
+                    self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
+                else:
+                    tab_suppr.append(btn_data["btn"])
+            if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
+                if new_time > btn_data["time"]:
+                    btn_data["end"] = new_time
+                    self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                else:
+                    tab_suppr.append(btn_data["btn"])
+        for btn in tab_suppr:
+            self.parent.delate_button(btn)
 

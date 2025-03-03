@@ -257,6 +257,7 @@ class VLCMainWindow(QMainWindow):
         self.project=None
         if(self.side_menu):
             self.side_menu.stop_segmentation()
+            self.side_menu.remove_display()
             self.removeDockWidget(self.side_menu)
             self.side_menu.deleteLater()
             self.side_menu=None
@@ -345,19 +346,34 @@ class VLCMainWindow(QMainWindow):
         self.sync_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.sync_widget.enable_recording.connect(self.update_capture_video_button)
 
-    def add_quit_button(self):
-        """ Ajoute le bouton 'Quitter' à la barre d'outils. """
-        quit_action = QAction("Quitter", self)
-        quit_action.triggered.connect(self.sync_button_use)  # Ferme l'application
-        self.toolbar.addAction(quit_action)
+    def add_quit_button(self,sync=True):
+        self.quit_action = QAction("Quitter", self)
+        if sync:
+            self.quit_action.triggered.connect(self.sync_button_use)
+        else:
+            self.quit_action.triggered.connect(self.seg_button_use)
+
+        # Créer un QToolButton et lui associer l'action
+        self.quit_button = QToolButton()
+        self.quit_button.setDefaultAction(self.quit_action)
+        
+        # Appliquer une feuille de style pour changer la couleur du texte en rouge
+        self.quit_button.setStyleSheet("QToolButton { color: red; }")
+        
+        # Ajouter le bouton personnalisé à la barre d'outils
+        self.toolbar.addWidget(self.quit_button)
+
 
     def remove_quit_button(self):
-        """ Retire le bouton 'Quitter' de la barre d'outils. """
-        actions = self.toolbar.actions()
-        for action in actions:
-            if action.text() == "Quitter":
+        if self.quit_button:
+            # Récupérer l'action associée au QToolButton
+            action = self.quit_button.defaultAction()
+            if action:
+                # Retirer l'action de la barre d'outils
                 self.toolbar.removeAction(action)
-                break  
+            # Supprimer le QToolButton
+            self.quit_button.deleteLater()
+            self.quit_button = None
 
 
 
@@ -375,7 +391,15 @@ class VLCMainWindow(QMainWindow):
             self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
             self.side_menu.segmentation_done.connect(self.aug_mode_action.setEnabled)
         else:
-            self.side_menu.setVisible(not self.side_menu.isVisible())
+            val=not self.side_menu.isVisible()
+            self.side_menu.setVisible(val)
+            self.side_menu.display.setVisible(val)
+            if val:
+                self.add_quit_button_seg_mode()
+            else:
+                self.remove_quit_button_seg_mode()
+
+
 
 
 

@@ -57,7 +57,7 @@ class ProjectManager:
         
         if self.seg is not None:
             button_data = []
-            for btn_data in self.seg.stock_button:
+            for btn_data in self.seg.display.stock_button:
                 button = btn_data["button"]
                 button_info = {
                     "name": button.text(),
@@ -65,7 +65,7 @@ class ProjectManager:
                     "end": btn_data["end"],
                     "frame": btn_data["frame1"],
                     "frame_end": btn_data["frame2"],
-                    "notes": [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]  
+                    "notes": [note_widget.toPlainText() for note_widget in self.seg.display.button_notes.get(button, [])]  
                 }
                 button_data.append(button_info)
 

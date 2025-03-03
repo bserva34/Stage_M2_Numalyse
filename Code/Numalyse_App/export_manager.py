@@ -17,7 +17,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Image
+from reportlab.platypus import Paragraph, SimpleDocTemplate
+from reportlab.platypus import Image as PDFImage
 # Pour DOCX
 from docx import Document  
 from docx.shared import Pt, RGBColor, Inches
@@ -26,7 +27,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from odf.opendocument import OpenDocumentText  
 from odf.text import P, LineBreak
 from odf.style import Style, TextProperties, ParagraphProperties, GraphicProperties
-from odf.draw import Frame, Image
+from odf.draw import Frame
+from odf.draw import Image as ODTImage
 
 
 # Importation de classes
@@ -152,7 +154,7 @@ class ExportManager(QWidget):
 
     def get_images(self):
         stock_images = []
-        stock_frames = [btn_data["frame1"] + 10 for btn_data in self.seg.stock_button]
+        stock_frames = [btn_data["frame1"] + 10 for btn_data in self.seg.display.stock_button]
 
         cap = cv2.VideoCapture(self.vlc.path_of_media)
         if not cap.isOpened():
@@ -197,7 +199,7 @@ class ExportManager(QWidget):
             elements = []
             elements.append(Paragraph("Étude cinématographique", self.title_style))
 
-            for idx, btn_data in enumerate(self.seg.stock_button):
+            for idx, btn_data in enumerate(self.seg.display.stock_button):
                 if not callback():
                     print("Exportation annulée par l'utilisateur.")
                     return
@@ -205,13 +207,13 @@ class ExportManager(QWidget):
                 time_str = self.time_manager.m_to_mst(btn_data["time"])
                 end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
                 elements.append(Paragraph(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", self.subtitle_style))
-                for note_widget in self.seg.button_notes.get(button, []):
+                for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
                     self.put_multiline_text(elements, note_text)
                 if idx < len(stock_images):
                     img = stock_images[idx]
                     img_stream,new_width,new_height=self.size_of_img(img)
-                    img_obj = Image(img_stream, width=new_width, height=new_height)
+                    img_obj = PDFImage(img_stream, width=new_width, height=new_height)
                     elements.append(img_obj)
             doc.build(elements)
             print(f"Fichier PDF enregistré : {self.file_path}")
@@ -233,7 +235,7 @@ class ExportManager(QWidget):
             stock_images = self.get_images()
         
             # Boucle sur chaque bouton et note associée
-            for idx, btn_data in enumerate(self.seg.stock_button):
+            for idx, btn_data in enumerate(self.seg.display.stock_button):
                 if not callback():
                     print("Exportation annulée par l'utilisateur.")
                     return
@@ -242,7 +244,7 @@ class ExportManager(QWidget):
                 end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
                 doc.add_heading(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", level=2)
                 
-                for note_widget in self.seg.button_notes.get(button, []):
+                for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
                     doc.add_paragraph(note_text)
                     
@@ -281,7 +283,7 @@ class ExportManager(QWidget):
             doc.styles.addElement(first_button_style)
 
             # Parcours des boutons et ajout du contenu
-            for idx, btn_data in enumerate(self.seg.stock_button):
+            for idx, btn_data in enumerate(self.seg.display.stock_button):
                 if not callback():
                     print("Exportation annulée par l'utilisateur.")
                     return
@@ -289,7 +291,7 @@ class ExportManager(QWidget):
                 time_str = self.time_manager.m_to_mst(btn_data["time"])
                 end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
                 doc.text.addElement(P(stylename=first_button_style,text=f"- {button.text()} -> Début : {time_str} / Durée : {end_str}"))
-                for note_widget in self.seg.button_notes.get(button, []):
+                for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
                     doc.text.addElement(P(text=note_text))
                 doc.text.addElement(P())
@@ -336,7 +338,7 @@ class ExportManager(QWidget):
                     break
 
                 active_texts = [
-                    btn_data for btn_data in self.seg.stock_button
+                    btn_data for btn_data in self.seg.display.stock_button
                     if btn_data["frame1"] <= cpt < btn_data["frame2"]
                 ]
                 for btn_data in active_texts:
@@ -345,7 +347,7 @@ class ExportManager(QWidget):
                     end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
                     txt = button.text()
                     txt2 = f"Debut : {time_str} / Durée : {end_str}"
-                    txt3 = [note_widget.toPlainText() for note_widget in self.seg.button_notes.get(button, [])]
+                    txt3 = [note_widget.toPlainText() for note_widget in self.seg.display.button_notes.get(button, [])]
                     height, width, _ = frame.shape
                     self.write_text_horizontal_on_video(frame, txt, txt2, txt3, width)
                 out.write(frame)
