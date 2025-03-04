@@ -82,10 +82,10 @@ Traitement des métadonnées vidéo : Gestion et extraction d'informations inté
 Inclure un aperçu des techniques pour optimiser les performances dans les applications de traitement vidéo en temps réel, comme l’utilisation de l’accélération GPU (CUDA, OpenCL) ou des optimisations de parallélisme.
 
 
+!!!!!!!!!!!!!!!!!!!!!!!Réunion!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-
-Prise de note Réunion 1 :
+::::::::::::Prise de note Réunion 1 :::::::::::::
 
 livre blanc -> différent logiciel
 
@@ -103,7 +103,7 @@ moyen d'estimer les faux positifs et faux negatifs.
 
 
 
-Réunion 10/02
+::::::::::::Réunion 10/02::::::::::::
 
 séquence affichage de début fin
 
@@ -118,7 +118,7 @@ readme -> fait
 21/02 réunion à partir de 10h30 -> organiser
 
 
-Réunion 21/02
+::::::::::::Réunion 21/02::::::::::::
 
 nom de fichier_timecode_date
 png jpeg
@@ -136,6 +136,21 @@ exportation vidéo -> affichage horizontal avec par exemple blanc contour noir
 prise en charge des sous titres avec options enlever/mettre
 plein écran pour lecture sync
 capture vidéo lecture sync
+
+::::::::::::Réunion 4/03::::::::::::
+Réunion -> 28/03 14h
+gestion de la frame
+
+slider pour gérer alpha avec un résultat temps réel
+
+augmenter la taille du texte pour l'exportation vidéo
+
+commencé à lire des papiers sur le choix d'une image réprésentative
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!Réunion!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 
 ----to----do------
@@ -180,13 +195,15 @@ thread capture vidéo combiné -> comme exportation
 thread export texte -> comme capture vidéo
 gestion sous titres avec liaison fichier .str et option sélection piste -> fait
 exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> manque que les img pour odt
-
+sous titres dans lecture sync ->
 
 changer vitesse lecture par un menu comme youtube et rajouter plus de possibilité
 
-actualisation couleur qui est mauvaise
+
 
 taille bouton proportionnel et zoom
+
+actualisation couleur qui est mauvaise
 
 
 !!!!!!!Problèmes!!!!!!
@@ -211,17 +228,17 @@ donner le droit admin à l'appli à travers innosetup -> écrire en appdata ne f
 
 problème de son
 
+--------vérif exe -------
+
+fichier de config
+exportation pdf temps de calcul
 
 
 ----to----do------
 
 
 
---------vérif exe -------
 
-
-fichier de config
-exportation pdf temps de calcul
 
 
 baguette valentin

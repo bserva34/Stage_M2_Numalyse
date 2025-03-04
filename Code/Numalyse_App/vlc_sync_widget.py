@@ -199,12 +199,13 @@ class SyncWidget(QWidget):
 
     def load_video(self):
         fp=self.player_widgets[0].load_file(False)
-        for i in self.player_widgets:
-            i.begin=True
-            i.load_video(fp)
-        self.play_pause_button.setText("⏯️ Pause")
-        self.play=True
-        self.enable_segmentation.emit(True)
+        if fp:
+            for i in self.player_widgets:
+                i.begin=True
+                i.load_video(fp)
+            self.play_pause_button.setText("⏯️ Pause")
+            self.play=True
+            self.enable_segmentation.emit(True)
 
 
     def play_all(self):
@@ -407,6 +408,18 @@ class SyncWidget(QWidget):
 
         print(f"Vidéo fusionnée enregistrée : {output_path}")
 
+    def set_subtitles(self,id=-1):
+        for i in self.player_widgets:
+            i.set_subtitles(id)
+
+    def get_subtitles(self):
+        acc=0
+        for i in self.player_widgets:
+            acc+=len(i.get_subtitles())
+        if acc>0:
+            return True
+
+        return False
 
         
 

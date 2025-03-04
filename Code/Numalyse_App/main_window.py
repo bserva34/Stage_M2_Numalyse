@@ -36,10 +36,7 @@ class VLCMainWindow(QMainWindow):
 
         # Ajout du menu
         self.create_menu_bar()
-
-        # Ajout de la barre d'outils
         self.create_toolbar()
-
         self.create_keyboard()
 
         self.sync_mode = False  # État du mode de synchronisation
@@ -67,6 +64,8 @@ class VLCMainWindow(QMainWindow):
         self.format_export_text=[False,False,True]
 
         self.pref_manager = PreferenceManager(self)
+
+        self.quit_button=None
 
     #création interface
     def create_menu_bar(self):
@@ -329,6 +328,7 @@ class VLCMainWindow(QMainWindow):
 
                 self.recreate_window()
             else:
+                self.remove_quit_button()
                 self.capture_video_button.setEnabled(False)
                 self.sync_mode = True
 
@@ -343,7 +343,9 @@ class VLCMainWindow(QMainWindow):
 
     def create_sync_window(self):
         self.sync_widget.enable_segmentation.connect(self.capture_button.setEnabled)
+        self.sync_widget.enable_segmentation.connect(self.subtitle_button.setEnabled)
         self.sync_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
+        self.sync_widget.enable_segmentation.connect(self.subtitles_load)
         self.sync_widget.enable_recording.connect(self.update_capture_video_button)
 
     def add_quit_button(self,sync=True):
@@ -366,7 +368,6 @@ class VLCMainWindow(QMainWindow):
 
     def remove_quit_button(self):
         if self.quit_button:
-            # Récupérer l'action associée au QToolButton
             action = self.quit_button.defaultAction()
             if action:
                 # Retirer l'action de la barre d'outils
@@ -384,20 +385,22 @@ class VLCMainWindow(QMainWindow):
             #self.vlc_widget.pause_video()
             self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
             self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
+            self.side_menu.display.setVisible(True)
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)
             #self.export_button.setEnabled(True)
             self.side_menu.segmentation_done.connect(self.export_button.setEnabled)
             self.side_menu.segmentation_done.connect(self.aug_mode_action.setEnabled)
+            self.add_quit_button(sync=False)
         else:
             val=not self.side_menu.isVisible()
             self.side_menu.setVisible(val)
             self.side_menu.display.setVisible(val)
             if val:
-                self.add_quit_button_seg_mode()
+                self.add_quit_button(sync=False)
             else:
-                self.remove_quit_button_seg_mode()
+                self.remove_quit_button()
 
 
 
@@ -599,37 +602,61 @@ class VLCMainWindow(QMainWindow):
 
     def update_subtitle_menu(self):
         if not self.subtitle_create:
-            self.subtitle_menu.clear()
+            if self.sync_mode :
+                self.subtitle_menu.clear()
+                action_group = QActionGroup(self)
+                action_group.setExclusive(True)
 
-            # Crée un QActionGroup exclusif pour gérer les coches
-            action_group = QActionGroup(self)
-            action_group.setExclusive(True)
+                if self.sync_widget.get_subtitles():
+                    action1 = QAction("Désactivé", self)
+                    action1.setCheckable(True)
+                    action_group.addAction(action1)
+                    action1.triggered.connect(lambda *args, id=-1: self.sync_widget.set_subtitles(id))
+                    self.subtitle_menu.addAction(action1)
 
-            liste = self.vlc_widget.get_subtitles()
-            if len(liste)==0:
-                action=QAction("Aucun Sous-Titres",self)
-                action.setEnabled(False)
-                action_group.addAction(action)
-                self.subtitle_menu.addAction(action)
-            else :
-                track=self.vlc_widget.get_track()
-
-                # Ajoute les actions pour chaque sous-titre disponible
-                for subtitle in liste:
-                    nom = subtitle["nom"]
-                    if isinstance(nom, bytes):
-                        nom = nom.decode('utf-8', errors='ignore')
-                    action = QAction(nom, self)
-                    action.setCheckable(True)
-                    if(subtitle["id"]==track):
-                        action.setChecked(True)
+                    action2 = QAction("Activé", self)
+                    action2.setCheckable(True)
+                    action_group.addAction(action2)
+                    action2.triggered.connect(lambda *args, id=3: self.sync_widget.set_subtitles(id))
+                    self.subtitle_menu.addAction(action2)
+                    action2.setChecked(True)
+                else:
+                    action=QAction("Aucun Sous-Titres",self)
+                    action.setEnabled(False)
                     action_group.addAction(action)
-                    action.triggered.connect(lambda *args, id=subtitle["id"]: self.vlc_widget.set_subtitles(id))
+                    self.subtitle_menu.addAction(action)   
+                    
+
+            else:
+                self.subtitle_menu.clear()
+
+                action_group = QActionGroup(self)
+                action_group.setExclusive(True)
+
+                liste = self.vlc_widget.get_subtitles()
+                if len(liste)==0:
+                    action=QAction("Aucun Sous-Titres",self)
+                    action.setEnabled(False)
+                    action_group.addAction(action)
                     self.subtitle_menu.addAction(action)
+                else :
+                    track=self.vlc_widget.get_track()
+                    for subtitle in liste:
+                        nom = subtitle["nom"]
+                        if isinstance(nom, bytes):
+                            nom = nom.decode('utf-8', errors='ignore')
+                        action = QAction(nom, self)
+                        action.setCheckable(True)
+                        if(subtitle["id"]==track):
+                            action.setChecked(True)
+                        action_group.addAction(action)
+                        action.triggered.connect(lambda *args, id=subtitle["id"]: self.vlc_widget.set_subtitles(id))
+                        self.subtitle_menu.addAction(action)
             self.subtitle_create=True
 
 
-
+    def subtitles_load(self,state:bool):
+        self.subtitle_create=False
 
 
     # grille mais ne fonctionne pas pour l'instant

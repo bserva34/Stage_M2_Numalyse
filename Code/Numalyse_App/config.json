@@ -2,8 +2,8 @@
     "format_capture": false,
     "post_traitement": false,
     "format_export_text": [
+        true,
         false,
-        false,
-        true
+        false
     ]
 }
