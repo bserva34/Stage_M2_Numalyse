@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton
-from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup
+from PySide6.QtWidgets import QDockWidget, QMainWindow, QToolBar, QWidget, QPushButton, QFileDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit,QMenu, QHBoxLayout, QButtonGroup, QRadioButton, QToolButton, QSlider
+from PySide6.QtGui import QAction, QKeySequence, QShortcut, QActionGroup, QImage, QPixmap
 from PySide6.QtCore import Qt, QTimer
 
 from vlc_player_widget import VLCPlayerWidget
@@ -15,6 +15,7 @@ from preference_manager import PreferenceManager
 
 import os
 import json
+import cv2
 
 class VLCMainWindow(QMainWindow):
     """ Fenêtre principale contenant le lecteur et les menus. """
@@ -61,11 +62,21 @@ class VLCMainWindow(QMainWindow):
         #option capture
         self.format_capture=False
         self.post_traitement=False
+        self.gamma=1.4
         self.format_export_text=[False,False,True]
 
         self.pref_manager = PreferenceManager(self)
 
         self.quit_button=None
+
+        self.image_display_label = QLabel("image post traité", self)
+        self.image_display_label.setAlignment(Qt.AlignCenter)
+
+        self.image_dock = QDockWidget("Aperçu de l'image corrigée", self)
+        self.image_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        self.image_dock.setWidget(self.image_display_label)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.image_dock)
+        self.image_dock.setVisible(False)
 
     #création interface
     def create_menu_bar(self):
@@ -269,7 +280,77 @@ class VLCMainWindow(QMainWindow):
         if self.sync_mode:
             self.sync_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
         else:
-            self.vlc_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
+            if self.post_traitement:               
+                self.slider = QSlider(Qt.Horizontal, self)
+                self.slider.setRange(49,201)
+                self.slider.sliderMoved.connect(self.display_capture)
+                self.slider.setValue(self.gamma*100)
+                self.toolbar.addWidget(self.slider)
+
+
+                self.affichage_slider = QLabel(str(self.gamma),self)
+                self.toolbar.addWidget(self.affichage_slider)
+
+                self.validate_pt = QPushButton("Valider",self)
+                self.validate_pt.clicked.connect(self.capture_action_with_post_traitement)
+                self.validate_pt.setStyleSheet("background-color: green;")
+                self.toolbar.addWidget(self.validate_pt)
+
+                self.annule_pt = QPushButton("Annuler",self)
+                self.annule_pt.clicked.connect(self.annule_capture)
+                self.annule_pt.setStyleSheet("background-color: red;")
+                self.toolbar.addWidget(self.annule_pt)
+
+                self.capture_button.setEnabled(False)
+                self.vlc_widget.pause_video()
+                self.path_post=self.vlc_widget.capture_screenshot()
+                self.image_post=cv2.imread(self.path_post)
+                self.image_corrige=self.vlc_widget.adjust_gamma(self.image_post,gamma=self.gamma)
+                self.display_corrected_image()
+                self.image_dock.setVisible(True)
+            else:
+                self.vlc_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
+
+    def display_capture(self):
+        self.gamma=self.slider.value()/100
+        self.affichage_slider.setText(str(self.gamma))   
+
+        self.image_corrige=self.vlc_widget.adjust_gamma(self.image_post,gamma=self.gamma)
+        self.display_corrected_image()
+
+    def display_corrected_image(self):
+        image_rgb = cv2.cvtColor(self.image_corrige, cv2.COLOR_BGR2RGB)
+        height, width, channels = image_rgb.shape
+        bytesPerLine = channels * width
+
+        qImg = QImage(image_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        
+        self.image_display_label.setPixmap(QPixmap.fromImage(qImg))
+    
+    def suppr_pt(self):
+        self.slider.deleteLater()
+        self.affichage_slider.deleteLater()
+        self.validate_pt.deleteLater()
+        self.annule_pt.deleteLater()
+
+        self.slider=None
+        self.affichage_slider=None
+        self.validate_pt=None
+        self.annule_pt=None
+
+        self.capture_button.setEnabled(True)
+    def capture_action_with_post_traitement(self):
+        self.suppr_pt()
+
+        cv2.imwrite(self.path_post,self.image_corrige)
+        if self.format_capture:
+            self.vlc_widget.png_to_jpeg(self.path_post)
+        self.image_dock.setVisible(False)
+
+    def annule_capture(self):
+        self.suppr_pt()
+        os.remove(self.path_post)
+        self.image_dock.setVisible(False)
 
     def capture_video_action(self):
         if self.sync_mode:
@@ -454,6 +535,7 @@ class VLCMainWindow(QMainWindow):
         if(self.auto_save()):
             if(self.side_menu):
                 self.side_menu.stop_segmentation()
+            self.pref_manager.save_preferences()
             event.accept()
         else:
             event.ignore()
@@ -534,7 +616,6 @@ class VLCMainWindow(QMainWindow):
                 self.post_traitement=False
             elif yes.isChecked():
                 self.post_traitement=True
-            self.pref_manager.save_preferences()
             dialog.accept()
 
         def on_cancel():
@@ -588,7 +669,6 @@ class VLCMainWindow(QMainWindow):
                 self.format_export_text[1]=True
             elif option3.isChecked():
                 self.format_export_text[2]=True
-            self.pref_manager.save_preferences()
             dialog.accept()
 
         def on_cancel():

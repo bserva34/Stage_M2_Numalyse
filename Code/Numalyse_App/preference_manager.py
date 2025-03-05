@@ -8,6 +8,7 @@ class PreferenceManager:
         self.default_preferences = {
             "format_capture": False,
             "post_traitement": False,
+            "gamma":1.4,
             "format_export_text": [False, False, True]
         }
         self.load_preferences()
@@ -32,6 +33,7 @@ class PreferenceManager:
         preferences = {
             "format_capture": getattr(self.parent, "format_capture", False),
             "post_traitement": getattr(self.parent, "post_traitement", False),
+            "gamma": getattr(self.parent, "gamma", 1.4),
             "format_export_text": getattr(self.parent, "format_export_text", [False, False, True])
         }
 

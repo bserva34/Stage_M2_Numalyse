@@ -15,7 +15,7 @@ from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject
 from PySide6.QtGui import QKeySequence, QShortcut
 
 from custom_slider import CustomSlider
-from qfour_state_button import QFourStateButton
+from playback_speed_button import PlaybackSpeedButton
 from time_manager import TimeManager
 
 class VLCPlayerWidget(QWidget):
@@ -122,10 +122,7 @@ class VLCPlayerWidget(QWidget):
         self.line_edit.textChanged.connect(self.on_value_changed)
         self.time_label.setFixedHeight(15)
 
-        self.speed_button = QFourStateButton()
-        self.speed_button.setCheckable(True)
-        self.speed_button.setFixedSize(40, 30)
-        self.speed_button.clicked.connect(self.toggle_speed)  
+        self.speed_button = PlaybackSpeedButton(parent=self)
 
         self.mute_button = QPushButton("🔇" if self.mute else "🔊", self)
         self.mute_button.setCheckable(True)
@@ -170,7 +167,9 @@ class VLCPlayerWidget(QWidget):
         #print(f"Mute toggled: {new_mute_state}")
 
     def toggle_speed(self):
-        self.player.set_rate(self.speed_button.get_speed())
+        self.pause_video()
+        self.player.set_rate(self.speed_button.getSpeed())
+        self.play_video()
 
 
     def load_file(self,auto=True):
@@ -235,7 +234,7 @@ class VLCPlayerWidget(QWidget):
         self.load_video(self.path_of_media,False)
 
 
-    def capture_screenshot(self, name="",post_traitement=False,format_capture=False):
+    def capture_screenshot(self, name="",post_traitement=False,format_capture=False,gamma=1.4):
         """ Capture un screenshot de la vidéo. """
         if not os.path.exists(self.capture_dir):
             os.makedirs(self.capture_dir, exist_ok=True)
@@ -259,23 +258,15 @@ class VLCPlayerWidget(QWidget):
 
             if post_traitement:
                 image = cv2.imread(capture_path)
-                image_corrige=self.adjust_gamma(image)
+                image_corrige=self.adjust_gamma(image,gamma=gamma)
 
                 cv2.imwrite(capture_path,image_corrige)
 
             # Si le format demandé est JPEG, convertir l'image
             if format_capture:  # Vérifie si format_capture existe et est True
                 print("Conversion en JPEG...")
-                jpeg_path = capture_path.replace(".png", ".jpg")
-                try:
-                    img = Image.open(capture_path)
-                    img = img.convert("RGB")  # Supprime la transparence pour JPEG
-                    img.save(jpeg_path, "JPEG", quality=60)
-                    os.remove(capture_path)  # Supprimer l'ancien fichier PNG
-                    capture_path = jpeg_path
-                    print(f" Converti en JPEG : {jpeg_path}")
-                except Exception as e:
-                    print(f" Erreur lors de la conversion en JPEG : {e}")
+                capture_path=self.png_to_jpeg(capture_path)
+
         else:
             print("Erreur : La capture n'a pas été enregistrée !")
 
@@ -285,6 +276,18 @@ class VLCPlayerWidget(QWidget):
         inv_gamma = 1.0 / gamma
         table = np.array([(i / 255.0) ** inv_gamma * 255 for i in np.arange(0, 256)]).astype("uint8")
         return cv2.LUT(image, table)
+
+    def png_to_jpeg(self,capture_path):
+        jpeg_path = capture_path.replace(".png", ".jpg")
+        try:
+            img = Image.open(capture_path)
+            img = img.convert("RGB")  # Supprime la transparence pour JPEG
+            img.save(jpeg_path, "JPEG", quality=60)
+            os.remove(capture_path)  # Supprimer l'ancien fichier PNG
+            print(f" Converti en JPEG : {jpeg_path}")
+            return jpeg_path
+        except Exception as e:
+            print(f" Erreur lors de la conversion en JPEG : {e}")
 
     def name_of_video(self):
         return os.path.splitext(os.path.basename(self.path_of_media))[0]

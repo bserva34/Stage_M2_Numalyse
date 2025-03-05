@@ -196,9 +196,7 @@ thread export texte -> comme capture vidéo
 gestion sous titres avec liaison fichier .str et option sélection piste -> fait
 exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> manque que les img pour odt
 sous titres dans lecture sync ->
-
-changer vitesse lecture par un menu comme youtube et rajouter plus de possibilité
-
+changer vitesse lecture par un menu comme youtube et rajouter plus de possibilité -> pas mal juste un délai
 
 
 taille bouton proportionnel et zoom
@@ -212,7 +210,6 @@ capture d'écran combiné problème de résultat quand deux sources de qualité 
 gérer le problème de fin de vidéo avec impossible de revenir en arrière -> on restart la vidéo
 thread segmentation stop -> ok
 chargement nouveau projet, nouvelle vidéo ou lecture sync pas de sauvegarde -> à verifier mais normalement c'est bon
-
 problème capture d'écran sync quand on charge décharge -> pas de problème finalement
 enregistrement vidéo pas de son -> pas sur à verifier si ca ce reproduit
 extract qui apparait avant la fin du calcul de segmentation -> c'est bon
@@ -220,13 +217,16 @@ export pdf pas de tab et entré -> gére comme dans la vidéo
 problème son quand ca reload la vidéo quand ca arrive à la fin -> réglé mais potentiellement encore un problème
 exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux -> extraction et combinaison avec moviepy
 stop seg quand fermeture fenetre -> stop seg close event
+delai changement vitesse lecture à voir si on peut le contrer -> pause change play
 
 
-upgrade python sur linux pour utiliser moviepy
+upgrade python sur linux pour utiliser moviepy -> complexe plutot faire une environnement virtuel
 option -w qui casse la segmentation
 donner le droit admin à l'appli à travers innosetup -> écrire en appdata ne fonctionne pas 
 
 problème de son
+
+
 
 --------vérif exe -------
 
