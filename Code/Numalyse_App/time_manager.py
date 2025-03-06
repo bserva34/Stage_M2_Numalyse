@@ -23,3 +23,13 @@ class TimeManager():  # Hérite maintenant de QWidget
         minutes = int((total_seconds % 3600) // 60)
         seconds = int(total_seconds % 60)
         return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+    def m_to_hmsf(self, milliseconds):
+        """ Formate un temps donné en millisecondes en hh:mm:ss:ff """
+        total_seconds = milliseconds / 1000
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        seconds = int(total_seconds % 60)
+        # Calcul des frames : le reste des millisecondes divisé par 40 (pour 25 fps)
+        frame = int((milliseconds % 1000) // 40)
+        return f"{hours:02}:{minutes:02}:{seconds:02}[{frame:02}]"

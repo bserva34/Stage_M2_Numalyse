@@ -197,11 +197,20 @@ gestion sous titres avec liaison fichier .str et option sélection piste -> fait
 exportation docx odt améliorer la mise en page et rajouter l'image représentative du plan -> manque que les img pour odt
 sous titres dans lecture sync ->
 changer vitesse lecture par un menu comme youtube et rajouter plus de possibilité -> pas mal juste un délai
+slider pour gérer alpha avec un résultat temps réel->pas mal 
+augmenter la taille du texte pour l'exportation vidéo->ok
+gestion de la frame-avec le principe de time selector
+changer affichage label de plan->h:m:s[f]
 
 
 taille bouton proportionnel et zoom
+écrire le temps de le temps max du film dans json
 
-actualisation couleur qui est mauvaise
+trouver le problème de taille/ratio
+ajuster taille bouton pour modification time et suppression
+
+
+commencé à lire des papiers sur le choix d'une image réprésentative
 
 
 !!!!!!!Problèmes!!!!!!
@@ -218,13 +227,16 @@ problème son quand ca reload la vidéo quand ca arrive à la fin -> réglé mai
 exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffmpeg pour fusionner les deux -> extraction et combinaison avec moviepy
 stop seg quand fermeture fenetre -> stop seg close event
 delai changement vitesse lecture à voir si on peut le contrer -> pause change play
-
+appliquer le changement de frame ->ok
 
 upgrade python sur linux pour utiliser moviepy -> complexe plutot faire une environnement virtuel
+
+
 option -w qui casse la segmentation
 donner le droit admin à l'appli à travers innosetup -> écrire en appdata ne fonctionne pas 
 
 problème de son
+actualisation couleur qui est mauvaise
 
 
 
@@ -242,4 +254,7 @@ exportation pdf temps de calcul
 
 
 baguette valentin
+0.95 * 1
+
+baguette norman 
 0.95 * 1

@@ -31,7 +31,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         self.parent=parent
         # Définir la largeur du dock
-        self.setFixedWidth(300)
+        self.setFixedWidth(340)
 
         # Créer un widget de conteneur pour le contenu
         self.container = QWidget(self)
@@ -117,11 +117,11 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         # Création du label pour afficher le timecode
         if end == 0:
-            time_label = QLabel("Début : " + self.time_manager.m_to_mst(time), self)
+            time_label = QLabel("Début : " + self.time_manager.m_to_hmsf(time), self)
         else:
-            time_label = QLabel(f"Début : {self.time_manager.m_to_mst(time)} / Fin : {self.time_manager.m_to_mst(end)}", self)
+            time_label = QLabel(f"Début : {self.time_manager.m_to_hmsf(time)} / Fin : {self.time_manager.m_to_hmsf(end)}", self)
 
-        time_label.setFixedHeight(25)
+        time_label.setFixedHeight(30)
 
         frame_layout.addWidget(button)
         frame_layout.addWidget(time_label)
@@ -193,7 +193,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         note_widget.setPlainText(text)
         note_widget.setReadOnly(False)
         note_widget.setStyleSheet("color: gray; font-style: italic;")
-        #note_widget.setFixedSize(180, 50)
+        note_widget.setFixedSize(285, 200)
         note_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         note_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         note_widget.customContextMenuRequested.connect(lambda pos: self.show_note_context_menu(note_widget, pos))
@@ -304,15 +304,16 @@ class SideMenuWidgetDisplay(QDockWidget):
         def on_ok():
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
+            print(end_time)
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
                     btn_data["time"] = new_time
                     btn_data["end"] = end_time
                     self.change_label_time(btn_data["label"],new_time,end_time)
             self.adjust_neighbors(new_time,end_time)
-            dialog.accept()
             self.reorganize_buttons()
             self.parent.emit_change()
+            dialog.accept()
 
 
         ok_button.clicked.connect(on_ok)
@@ -322,40 +323,25 @@ class SideMenuWidgetDisplay(QDockWidget):
 
 
     def change_label_time(self,label,new_time,end_time):
-        new_label ="Début : "+self.time_manager.m_to_mst(new_time)+" / Fin : "+self.time_manager.m_to_mst(end_time)
+        new_label ="Début : "+self.time_manager.m_to_hmsf(new_time)+" / Fin : "+self.time_manager.m_to_hmsf(end_time)
         label.setText(new_label)
 
-    # def change_time_neighbors(self,old_time,old_end_time,new_time,end_time):
-    #     tab_suppr=[]
-    #     for btn_data in self.stock_button:
-    #         if btn_data["time"]==old_end_time or (btn_data["time"]<=end_time and btn_data["time"]>old_end_time) :
-    #             if end_time<btn_data["end"]:
-    #                 btn_data["time"]=end_time
-    #                 self.change_label_time(btn_data["label"],end_time,btn_data["end"])
-    #             else:
-    #                 tab_suppr.append(btn_data["btn"])
-    #         if btn_data["end"]==old_time or (btn_data["end"]>=new_time and btn_data["end"]<old_time):
-    #             if new_time>btn_data["time"]:
-    #                 btn_data["end"]=new_time
-    #                 self.change_label_time(btn_data["label"],btn_data["time"],new_time)
-    #             else:
-    #                 tab_suppr.append(btn_data["btn"])   
-    #     for btn in tab_suppr:
-    #         print("suppr")
-    #         self.parent.delate_button(btn)     
-
     def adjust_neighbors(self, new_time, new_end_time):
+        frame1=self.parent.get_frame(new_time)
+        frame2=self.parent.get_frame(new_end_time)
         tab_suppr = []
         for btn_data in self.stock_button:
             if btn_data["time"] == new_end_time or (btn_data["time"] <= new_end_time and btn_data["time"] > new_time):
                 if new_end_time < btn_data["end"]:
                     btn_data["time"] = new_end_time
+                    btn_data["frame1"]=frame2
                     self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
                 else:
                     tab_suppr.append(btn_data["btn"])
             if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
                 if new_time > btn_data["time"]:
                     btn_data["end"] = new_time
+                    btn_data["frame2"]=frame1
                     self.change_label_time(btn_data["label"], btn_data["time"], new_time)
                 else:
                     tab_suppr.append(btn_data["btn"])

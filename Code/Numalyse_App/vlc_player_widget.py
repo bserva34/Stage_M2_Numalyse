@@ -112,14 +112,14 @@ class VLCPlayerWidget(QWidget):
         self.time_layout = QHBoxLayout()
 
         self.line_edit=QLineEdit()
-        self.line_edit.setText("00:00")
+        self.line_edit.setText("00:00:00")
         self.line_edit.setAlignment(Qt.AlignCenter)
-        self.line_edit.setFixedWidth(50)
+        self.line_edit.setFixedWidth(80)
+        self.line_edit.textChanged.connect(self.on_value_changed)
 
         # Affichage du temps
-        self.time_label = QLabel("00:00 / 00:00", self)
+        self.time_label = QLabel("00:00:00 / 00:00:00", self)
         self.time_label.setAlignment(Qt.AlignCenter)
-        self.line_edit.textChanged.connect(self.on_value_changed)
         self.time_label.setFixedHeight(15)
 
         self.speed_button = PlaybackSpeedButton(parent=self)
@@ -215,7 +215,7 @@ class VLCPlayerWidget(QWidget):
         self.timer.stop()
         self.progress_slider.setValue(0)
         self.progress_slider.setEnabled(False)
-        self.time_label.setText("00:00 / 00:00")
+        self.time_label.setText("00:00:00 / 00:00:00")
         self.time_label.setStyleSheet("color: white;")
 
         self.disable_segmentation()
@@ -229,7 +229,7 @@ class VLCPlayerWidget(QWidget):
         self.timer.stop()
         self.progress_slider.setValue(0)
         self.progress_slider.setEnabled(False)
-        self.time_label.setText("00:00 / 00:00")
+        self.time_label.setText("00:00:00 / 00:00:00")
         self.time_label.setStyleSheet("color: white;")
         self.load_video(self.path_of_media,False)
 
@@ -302,14 +302,14 @@ class VLCPlayerWidget(QWidget):
             return
 
         # Position actuelle et durée totale
-        current_time = self.player.get_time() // 1000  # en secondes
-        total_time = self.player.get_length() // 1000  # en secondes
+        current_time = self.player.get_time()
+        total_time = self.player.get_length()
 
         if current_time >= 0 and total_time > 0:
             self.progress_slider.setValue(int((current_time / total_time) * 1000))
-            current_time_str = self.time_manager.s_to_ms(current_time)
+            current_time_str = self.time_manager.m_to_hms(current_time)
             #self.line_edit.setText(current_time_str)
-            total_time_str = self.time_manager.s_to_ms(total_time)
+            total_time_str = self.time_manager.m_to_hms(total_time)
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
         if self.player.get_state()==6 :
@@ -329,8 +329,8 @@ class VLCPlayerWidget(QWidget):
         
         # Vérifier si le format est valide (mm:ss)
         try:
-            minutes, seconds = map(int, time_str.split(":"))
-            new_time = (minutes * 60 + seconds) * 1000  # Convertir en millisecondes
+            hours, minutes, seconds = map(int, time_str.split(":"))
+            new_time = (hours*3600 + minutes * 60 + seconds) * 1000  # Convertir en millisecondes
         except ValueError:
             return  # Si la conversion échoue, on ignore l'entrée
 

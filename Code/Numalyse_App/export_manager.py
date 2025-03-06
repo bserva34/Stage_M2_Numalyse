@@ -204,8 +204,8 @@ class ExportManager(QWidget):
                     print("Exportation annulée par l'utilisateur.")
                     return
                 button = btn_data["button"]
-                time_str = self.time_manager.m_to_mst(btn_data["time"])
-                end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+                time_str = self.time_manager.m_to_hmsf(btn_data["time"])
+                end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
                 elements.append(Paragraph(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", self.subtitle_style))
                 for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
@@ -240,8 +240,8 @@ class ExportManager(QWidget):
                     print("Exportation annulée par l'utilisateur.")
                     return
                 button = btn_data["button"]
-                time_str = self.time_manager.m_to_mst(btn_data["time"])
-                end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+                time_str = self.time_manager.m_to_hmsf(btn_data["time"])
+                end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
                 doc.add_heading(f"- {button.text()} -> Début : {time_str} / Durée : {end_str}", level=2)
                 
                 for note_widget in self.seg.display.button_notes.get(button, []):
@@ -288,8 +288,8 @@ class ExportManager(QWidget):
                     print("Exportation annulée par l'utilisateur.")
                     return
                 button = btn_data["button"]
-                time_str = self.time_manager.m_to_mst(btn_data["time"])
-                end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+                time_str = self.time_manager.m_to_hmsf(btn_data["time"])
+                end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
                 doc.text.addElement(P(stylename=first_button_style,text=f"- {button.text()} -> Début : {time_str} / Durée : {end_str}"))
                 for note_widget in self.seg.display.button_notes.get(button, []):
                     note_text = note_widget.toPlainText()
@@ -343,10 +343,10 @@ class ExportManager(QWidget):
                 ]
                 for btn_data in active_texts:
                     button = btn_data["button"]
-                    time_str = self.time_manager.m_to_mst(btn_data["time"])
-                    end_str = self.time_manager.m_to_mst(btn_data["end"] - btn_data["time"])
+                    time_str = self.time_manager.m_to_hmsf(btn_data["time"])
+                    end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
                     txt = button.text()
-                    txt2 = f"Debut : {time_str} / Durée : {end_str}"
+                    txt2 = f"Debut : {time_str} / Duree : {end_str}"
                     txt3 = [note_widget.toPlainText() for note_widget in self.seg.display.button_notes.get(button, [])]
                     height, width, _ = frame.shape
                     self.write_text_horizontal_on_video(frame, txt, txt2, txt3, width)
@@ -374,13 +374,13 @@ class ExportManager(QWidget):
         except Exception as e:
             print(f"Erreur pendant l'export vidéo : {e}")
 
-    def write_text_horizontal_on_video(self, frame, txt, txt2, txt3, max_width, line_spacing=16):
+    def write_text_horizontal_on_video(self, frame, txt, txt2, txt3, max_width, line_spacing=24):
         final_txt = txt + " - " + txt2
         for text in txt3:
             lines = text.split("\n")
             final_txt += " - " + " / ".join(line.replace("\t", "   ") for line in lines)
 
-        font_scale = 0.4
+        font_scale = 0.7
         thickness_outline = 4
         thickness_text = 1
         font = cv2.FONT_HERSHEY_SIMPLEX

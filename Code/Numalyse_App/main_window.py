@@ -33,6 +33,8 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_load.connect(self.media_load_action)
         self.setCentralWidget(self.vlc_widget)
 
+
+
         self.sync_widget = SyncWidget(self)
 
         # Ajout du menu
@@ -77,6 +79,18 @@ class VLCMainWindow(QMainWindow):
         self.image_dock.setWidget(self.image_display_label)
         self.addDockWidget(Qt.RightDockWidgetArea, self.image_dock)
         self.image_dock.setVisible(False)
+
+
+    def display_size(self):
+        # Obtenir la taille actuelle du vlc_widget
+        taille = self.vlc_widget.size()
+        largeur = taille.width()
+        hauteur = taille.height()
+        print(f"Largeur : {largeur}, Hauteur : {hauteur}")
+
+        return largeur,hauteur
+
+
 
     #création interface
     def create_menu_bar(self):
@@ -280,13 +294,14 @@ class VLCMainWindow(QMainWindow):
         if self.sync_mode:
             self.sync_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
         else:
-            if self.post_traitement:               
+            if self.post_traitement:    
+                self.toolbar.addWidget(QLabel("         ",self))
+
                 self.slider = QSlider(Qt.Horizontal, self)
                 self.slider.setRange(49,201)
                 self.slider.sliderMoved.connect(self.display_capture)
                 self.slider.setValue(self.gamma*100)
                 self.toolbar.addWidget(self.slider)
-
 
                 self.affichage_slider = QLabel(str(self.gamma),self)
                 self.toolbar.addWidget(self.affichage_slider)
@@ -319,13 +334,22 @@ class VLCMainWindow(QMainWindow):
         self.display_corrected_image()
 
     def display_corrected_image(self):
-        image_rgb = cv2.cvtColor(self.image_corrige, cv2.COLOR_BGR2RGB)
-        height, width, channels = image_rgb.shape
-        bytesPerLine = channels * width
+        fixed_width = 1000  # Définir une largeur fixe (ajustez selon vos besoins)
+    
+        original_height, original_width, channels = self.image_corrige.shape
+        aspect_ratio = original_height / original_width  # Calcul du ratio
 
-        qImg = QImage(image_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        new_height = int(fixed_width * aspect_ratio)
+
+        resized_image = cv2.resize(self.image_corrige, (fixed_width, new_height), interpolation=cv2.INTER_AREA)
+
+        image_rgb = cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB)
+        
+        bytesPerLine = channels * fixed_width
+        qImg = QImage(image_rgb.data, fixed_width, new_height, bytesPerLine, QImage.Format_RGB888)
         
         self.image_display_label.setPixmap(QPixmap.fromImage(qImg))
+
     
     def suppr_pt(self):
         self.slider.deleteLater()
@@ -467,6 +491,7 @@ class VLCMainWindow(QMainWindow):
             self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
             self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
             self.side_menu.display.setVisible(True)
+            self.side_menu.length,_=self.display_size()
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)

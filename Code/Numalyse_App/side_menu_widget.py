@@ -45,6 +45,7 @@ class SideMenuWidget(QDockWidget):
 
         # Layout vertical pour stocker les boutons
         self.layout = QHBoxLayout(self.container)
+        self.layout.setSpacing(0)  # Supprimer l'espacement entre les widgets
         self.container.setLayout(self.layout)
 
         self.seg_ok=False
@@ -80,6 +81,11 @@ class SideMenuWidget(QDockWidget):
         self.display=SideMenuWidgetDisplay(self.vlc_widget,self)
         self.parent.addDockWidget(Qt.RightDockWidgetArea, self.display)
         self.display.setVisible(False)
+
+        self.length=None
+        self.total_length=0
+
+        
         
     def emit_change(self):
         self.change.emit(True)
@@ -115,14 +121,14 @@ class SideMenuWidget(QDockWidget):
                 else: 
                     self.layout.removeItem(item)
 
+        # Réinsère les frames triés
+        for btn_data in self.display.stock_button:
+            self.layout.addWidget(btn_data["btn"])
+
         # Réajoute les boutons fixes
         if(not self.seg_ok):
             self.layout.addWidget(self.seg_button)
         self.layout.addWidget(self.add_button)
-
-        # Réinsère les frames triés
-        for btn_data in self.display.stock_button:
-            self.layout.addWidget(btn_data["btn"])
 
         # Réajoute un stretch à la fin
         self.layout.addStretch()
@@ -142,7 +148,15 @@ class SideMenuWidget(QDockWidget):
         button.setContextMenuPolicy(Qt.CustomContextMenu)
         button.customContextMenuRequested.connect(lambda pos, btn=button,t=time,e=end: self.show_context_menu(pos, btn,t,e))
         button.clicked.connect(lambda *_: self.set_position(button))
-        button.setFixedSize(80, 130)
+
+        duree=end-time
+        ratio=duree/self.max_time
+        size=int(ratio*self.length)
+        button.setFixedSize(size, 130)
+        self.total_length+=size
+        print(duree)
+        print(self.max_time)
+        print(self.total_length)
 
         btn=self.display.add_new_button(btn=button,name=button.text(),time=time,end=end,verif=False,frame1=frame1,frame2=frame2) 
 
@@ -179,10 +193,15 @@ class SideMenuWidget(QDockWidget):
         """Supprime un bouton et son cadre associé."""
         time=0
         end=0
+        frame1=-1
+        frame2=-1
         for btn_data in self.display.stock_button:
             if btn_data["btn"] == button:
                 time = btn_data["time"]
                 end = btn_data["end"]
+                frame1 = btn_data["frame1"]
+                frame2 = btn_data["frame2"]
+
                 # Supprimer le frame entier
                 self.layout.removeWidget(button)
 
@@ -196,22 +215,24 @@ class SideMenuWidget(QDockWidget):
                 break
 
         self.change.emit(True)
-        return time,end
+        return time,end,frame1,frame2
 
     def delate_button_prec(self,button):
-        time,end=self.delate_button(button)
+        time,end,frame1,frame2=self.delate_button(button)
         for btn_data in self.display.stock_button:
             if btn_data["end"]==time:
                 btn_data["end"]=end
+                btn_data["frame2"]=frame2
                 self.display.change_label_time(btn_data["label"],btn_data["time"],btn_data["end"])
         self.display.reorganize_buttons()
 
 
     def delate_button_suiv(self,button):
-        time,end=self.delate_button(button)
+        time,end,frame1,frame2=self.delate_button(button)
         for btn_data in self.display.stock_button:
             if btn_data["time"]==end:
                 btn_data["time"]=time
+                btn_data["frame1"]=frame1
                 self.display.change_label_time(btn_data["label"],btn_data["time"],btn_data["end"])
         self.display.reorganize_buttons()
 
@@ -272,14 +293,11 @@ class SideMenuWidget(QDockWidget):
 
         # Action du bouton OK
         def on_ok():
-            if(self.fps==None):
-                video=VideoFileClip(self.vlc_widget.path_of_media)
-                self.fps = video.fps
             name = name_input.text().strip()
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
-            frame1 = int((new_time/1000)*self.fps)
-            frame2 = int((end_time/1000)*self.fps)
+            frame1 = self.get_frame(new_time)
+            frame2 = self.get_frame(end_time)
             if name and 0<new_time<=self.max_time:
                 self.add_new_button(name=name, time=new_time, end=end_time,frame1=frame1,frame2=frame2)
                 self.display.adjust_neighbors(new_time,end_time)
@@ -289,6 +307,12 @@ class SideMenuWidget(QDockWidget):
         cancel_button.clicked.connect(dialog.reject)
 
         dialog.exec()
+
+    def get_frame(self,time):
+        if(self.fps==None):
+            video=VideoFileClip(self.vlc_widget.path_of_media)
+            self.fps = video.fps
+        return int((time/1000)*self.fps)
 
     #fonction appeler quand on clique sur un bouton
     def set_position(self, button):
@@ -300,7 +324,6 @@ class SideMenuWidget(QDockWidget):
         
         # Passer le temps au VLCWidget
         self.vlc_widget.set_position_timecode(int(time))
-        self.display.setVisible(True)
 
     def seg_action(self):
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
