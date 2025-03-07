@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QPushButton, QHBoxLayout, QSpinBox, QTextEdit, QFrame
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QPushButton, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QSizePolicy
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QTimer, Signal
 
@@ -35,13 +35,7 @@ class SideMenuWidget(QDockWidget):
         # Créer un widget de conteneur pour le contenu
         self.container = QWidget(self)
 
-        # Créer une zone défilante pour les boutons
-        self.scroll_area = QScrollArea(self)
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setWidget(self.container)
-
-        # Définir le widget pour le dock
-        self.setWidget(self.scroll_area)
+        self.setWidget(self.container)
 
         # Layout vertical pour stocker les boutons
         self.layout = QHBoxLayout(self.container)
@@ -80,11 +74,9 @@ class SideMenuWidget(QDockWidget):
 
         self.display=SideMenuWidgetDisplay(self.vlc_widget,self)
         self.parent.addDockWidget(Qt.RightDockWidgetArea, self.display)
-        self.display.setVisible(False)
+        #self.display.setVisible(False)
 
         self.length=None
-        self.total_length=0
-
         
         
     def emit_change(self):
@@ -151,12 +143,8 @@ class SideMenuWidget(QDockWidget):
 
         duree=end-time
         ratio=duree/self.max_time
-        size=int(ratio*self.length)
+        size=ratio*self.length
         button.setFixedSize(size, 130)
-        self.total_length+=size
-        print(duree)
-        print(self.max_time)
-        print(self.total_length)
 
         btn=self.display.add_new_button(btn=button,name=button.text(),time=time,end=end,verif=False,frame1=frame1,frame2=frame2) 
 
@@ -342,6 +330,8 @@ class SideMenuWidget(QDockWidget):
         
         self.segmentation_thread.start()  # Démarrer le thread
 
+        #self.test()
+
     def on_segmentation_complete(self, timecodes):
         self.seg_ok=True
         self.layout.removeWidget(self.seg_button)
@@ -351,6 +341,14 @@ class SideMenuWidget(QDockWidget):
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
 
+    def test(self):
+        self.seg_ok=True
+        self.layout.removeWidget(self.seg_button)
+        self.seg_button.deleteLater()
+        self.max_time=10000
+        for i in range(10):
+            self.add_new_button(time=i*1000,end=(i+1)*1000)
+        self.segmentation_done.emit(True)
 
     def stop_segmentation(self):
         """Arrête la segmentation si elle est en cours."""

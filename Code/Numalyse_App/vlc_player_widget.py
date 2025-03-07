@@ -411,3 +411,10 @@ class VLCPlayerWidget(QWidget):
     def set_subtitles(self,id=-1):
         self.player.video_set_spu(id)
 
+    def get_size_of_slider(self):
+        print("Taille :",self.progress_slider.width())
+        return self.progress_slider.width()
+
+    def resizeEvent(self, event):
+        #print("Largeur du slider :", self.progress_slider.width())
+        super().resizeEvent(event)

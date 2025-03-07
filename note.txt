@@ -203,12 +203,15 @@ gestion de la frame-avec le principe de time selector
 changer affichage label de plan->h:m:s[f]
 
 
-taille bouton proportionnel et zoom
-écrire le temps de le temps max du film dans json
+taille bouton proportionnel et zoom :
 
-trouver le problème de taille/ratio
-ajuster taille bouton pour modification time et suppression
+	écrire le temps de le temps max du film dans json
+	trouver le problème de taille/ratio
+	ajuster taille bouton pour modification time et suppression
+	resizeevent signal pour remodifier tous les boutons
 
+
+custom slider varier la range en fonction longueur vidéo
 
 commencé à lire des papiers sur le choix d'une image réprésentative
 

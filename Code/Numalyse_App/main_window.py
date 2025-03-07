@@ -33,8 +33,6 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_load.connect(self.media_load_action)
         self.setCentralWidget(self.vlc_widget)
 
-
-
         self.sync_widget = SyncWidget(self)
 
         # Ajout du menu
@@ -370,6 +368,7 @@ class VLCMainWindow(QMainWindow):
         if self.format_capture:
             self.vlc_widget.png_to_jpeg(self.path_post)
         self.image_dock.setVisible(False)
+        self.pref_manager.save_preferences()
 
     def annule_capture(self):
         self.suppr_pt()
@@ -491,7 +490,7 @@ class VLCMainWindow(QMainWindow):
             self.side_menu = SideMenuWidget(self.vlc_widget, self,start=True)
             self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
             self.side_menu.display.setVisible(True)
-            self.side_menu.length,_=self.display_size()
+            self.side_menu.length=self.vlc_widget.get_size_of_slider()
             if self.project : 
                 self.project.seg=self.side_menu
             self.side_menu.change.connect(self.change)
@@ -560,7 +559,6 @@ class VLCMainWindow(QMainWindow):
         if(self.auto_save()):
             if(self.side_menu):
                 self.side_menu.stop_segmentation()
-            self.pref_manager.save_preferences()
             event.accept()
         else:
             event.ignore()
