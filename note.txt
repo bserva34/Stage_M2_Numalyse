@@ -188,7 +188,6 @@ tester de créer un exécutable windows, linux, mac (faudra trouver une solution
 
 systeme de grille -> pas réussit on verra plus tard si nécessaire ou pas
 système d'annotation-> avec systeme d'exportation/partage et aussi système de chargement des notes et de lecture -> intégrer à la seg à voir si c'est suffisant
-
 faire le fichier de sauvegarde des choix préférentielles de l'appli -> json à la racine de l'appli
 thread exportation vidéo avec possibilité d'annuler -> comme la segmentation
 thread capture vidéo combiné -> comme exportation
@@ -204,9 +203,12 @@ changer affichage label de plan->h:m:s[f]
 
 
 taille bouton proportionnel et zoom :
+	
+	modif time
+	couleur plan en fonction image
 
-	écrire le temps de le temps max du film dans json
-	trouver le problème de taille/ratio
+	écrire le temps max du film dans json
+
 	ajuster taille bouton pour modification time et suppression
 	resizeevent signal pour remodifier tous les boutons
 
@@ -257,7 +259,7 @@ exportation pdf temps de calcul
 
 
 baguette valentin
-0.95 * 1
+0.95 * 2
 
 baguette norman 
 0.95 * 1

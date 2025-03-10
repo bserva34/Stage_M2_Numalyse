@@ -25,8 +25,6 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.setFeatures(QDockWidget.NoDockWidgetFeatures)
         #self.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable) 
 
-
-
         self.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)  # Zones autorisées
 
         self.parent=parent
@@ -93,7 +91,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, btn,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
+    def add_new_button(self, btn,rect,color,name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
         if verif and time >= self.max_time:
             return
 
@@ -128,7 +126,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
 
         # Ajouter le frame à la liste des boutons stockés
-        self.stock_button.append({"btn":btn,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
+        self.stock_button.append({"id":btn,"rect":rect,"color":color,"frame": frame, "button": button, "time": time, "end": end, "label": time_label, "frame1": frame1, "frame2":frame2})
 
         # Trier les boutons
         self.stock_button.sort(key=lambda btn_data: btn_data["time"])
@@ -335,16 +333,33 @@ class SideMenuWidgetDisplay(QDockWidget):
                 if new_end_time < btn_data["end"]:
                     btn_data["time"] = new_end_time
                     btn_data["frame1"]=frame2
+
+                    rect_item = btn_data["rect"]
+                    rect_item.prepareGeometryChange()
+                    newRect = rect_item.rect()
+                    newRect.setWidth(self.parent.get_ratio(new_end_time - btn_data["time"]))
+                    rect_item.setRect(newRect)
+                    rect_item.update()
+
                     self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
                 else:
-                    tab_suppr.append(btn_data["btn"])
+                    tab_suppr.append(btn_data["id"])
             if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
                 if new_time > btn_data["time"]:
                     btn_data["end"] = new_time
                     btn_data["frame2"]=frame1
+
+                    rect_item = btn_data["rect"]
+                    rect_item.prepareGeometryChange()
+                    newRect = rect_item.rect()
+                    newRect.setX(self.parent.get_ratio(new_time))
+                    newRect.setWidth(self.parent.get_ratio(btn_data["end"]-new_time))
+                    rect_item.setRect(newRect)
+                    rect_item.update()
+
                     self.change_label_time(btn_data["label"], btn_data["time"], new_time)
                 else:
-                    tab_suppr.append(btn_data["btn"])
+                    tab_suppr.append(btn_data["id"])
         for btn in tab_suppr:
             self.parent.delate_button(btn)
 
