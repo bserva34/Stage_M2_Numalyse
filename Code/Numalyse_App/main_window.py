@@ -16,6 +16,7 @@ from preference_manager import PreferenceManager
 import os
 import json
 import cv2
+import time
 
 class VLCMainWindow(QMainWindow):
     """ Fenêtre principale contenant le lecteur et les menus. """
@@ -183,12 +184,6 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.toolbar.addWidget(self.capture_video_button)
 
-        # self.timecode_button = QPushButton("Affichage timecode", self)
-        # self.timecode_button.setEnabled(False)
-        # self.timecode_button.clicked.connect(self.timecode_action)
-        # self.vlc_widget.enable_segmentation.connect(self.timecode_button.setEnabled)
-        # self.toolbar.addWidget(self.timecode_button)
-
         self.export_button = QPushButton("Exporter",self)
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_action)
@@ -199,6 +194,11 @@ class VLCMainWindow(QMainWindow):
         self.extraction_button.clicked.connect(self.extraction_action)
         self.vlc_widget.enable_segmentation.connect(self.extraction_button.setEnabled)
         self.toolbar.addWidget(self.extraction_button)
+
+
+        self.timecode_button = QPushButton("Longueur", self)
+        self.timecode_button.clicked.connect(self.timecode_action)
+        self.toolbar.addWidget(self.timecode_button)
 
     def create_keyboard(self):
         # Raccourci Ctrl + S pour Sauvegarde
@@ -250,15 +250,16 @@ class VLCMainWindow(QMainWindow):
                 default_dir = "/"
             project_path = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier du projet à ouvrir",default_dir)
             if project_path :
-                self.recreate_window()
+                #self.recreate_window()
 
                 self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
                 self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
-                self.side_menu.setVisible(False)
+                self.side_menu.display.setVisible(True)
+                self.side_menu.length=self.vlc_widget.get_size_of_slider()
                 self.side_menu.change.connect(self.change)
                 self.export_button.setEnabled(True) 
                 self.aug_mode_action.setEnabled(True)     
-
+                
                 self.project=ProjectManager(self.side_menu,self.vlc_widget)
                 val=self.project.open_project(project_path)
                 if not val :
@@ -277,6 +278,7 @@ class VLCMainWindow(QMainWindow):
 
     def media_load_action(self):
         self.project=None
+        self.remove_quit_button()
         if(self.side_menu):
             self.side_menu.stop_segmentation()
             self.side_menu.remove_display()
@@ -398,8 +400,7 @@ class VLCMainWindow(QMainWindow):
 
     #fonction qui sera à supprimer et qui permet d'afficher le timecode
     def timecode_action(self):
-        if self.sync_mode==False:
-            print("Timecode vidéo : ",self.vlc_widget.player.get_time())
+        self.vlc_widget.get_size_of_slider()
 
 
     #quand on revient en mode classique

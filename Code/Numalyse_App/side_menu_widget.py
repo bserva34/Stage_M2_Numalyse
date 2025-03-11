@@ -63,7 +63,6 @@ class SideMenuWidget(QDockWidget):
 
         self.display=SideMenuWidgetDisplay(self.vlc_widget,self)
         self.parent.addDockWidget(Qt.RightDockWidgetArea, self.display)
-        #self.display.setVisible(False)
 
         self.length=self.vlc_widget.get_size_of_slider()
 
@@ -167,7 +166,7 @@ class SideMenuWidget(QDockWidget):
 
 
     #fonction d'ajout d'une nouveaux bouton
-    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1):
+    def add_new_button(self, name="", time=0, end=0, verif=True, frame1=-1, frame2=-1,color=None):
         if verif and time >= self.max_time:
             return
 
@@ -175,15 +174,27 @@ class SideMenuWidget(QDockWidget):
             cpt = len(self.display.stock_button)
             name = "Plan " + f"{cpt+1}"
 
-        size=self.get_ratio(end-time)
+        duree=end-time
+        size=self.get_ratio(duree)
 
-        if size < 50:
-            couleur = QColor("blue")
-        elif size < 150:
-            couleur = QColor("green")
+        if color==None :
+            cap = cv2.VideoCapture(self.vlc_widget.path_of_media)
+            if not cap.isOpened():
+                print("Impossible d'ouvrir la vidéo.")
+                return
+
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame1+10)
+            ret, frame = cap.read()
+            if ret:
+                mean_color = cv2.mean(frame)
+                r, g, b = int(mean_color[2]), int(mean_color[1]), int(mean_color[0])
+                couleur = QColor(r, g, b)
+            else:
+                couleur = QColor("gray")
+                
+            cap.release()
         else:
-            couleur = QColor("yellow")
-
+            couleur=color
 
         rect = ClickableRectItem(
             QRectF(self.get_ratio(time), 0, size, 150),
@@ -194,8 +205,6 @@ class SideMenuWidget(QDockWidget):
         self.timeline_scene.addItem(rect)
 
         btn=self.display.add_new_button(btn=self.id_creation,rect=rect,color=couleur,name=name,time=time,end=end,verif=False,frame1=frame1,frame2=frame2) 
-
-        #self.reorganize_buttons()
 
         if verif:
             self.change.emit(True)
@@ -263,12 +272,7 @@ class SideMenuWidget(QDockWidget):
         for btn_data in self.display.stock_button:
             if btn_data["end"] == time:
                 btn_data["end"] = end
-                rect_item = btn_data["rect"]  # C'est le QGraphicsRectItem
-                rect_item.prepareGeometryChange()  # Prépare la mise à jour
-                newRect = rect_item.rect()         # Récupère le QRectF actuel
-                newRect.setWidth(self.get_ratio(end - btn_data["time"]))  # Modifie la largeur
-                rect_item.setRect(newRect)         # Applique le nouveau QRectF
-                rect_item.update()                 # Demande un rafraîchissement
+                self.change_rect(btn_data["rect"],btn_data["time"],end)
                 btn_data["frame2"] = frame2
                 self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
 
@@ -279,16 +283,17 @@ class SideMenuWidget(QDockWidget):
         for btn_data in self.display.stock_button:
             if btn_data["time"] == end:
                 btn_data["time"] = time
-                rect_item = btn_data["rect"]
-                rect_item.prepareGeometryChange()
-                newRect = rect_item.rect()
-                newRect.setX(self.get_ratio(time))
-                newRect.setWidth(self.get_ratio(btn_data["end"] - time))
-                rect_item.setRect(newRect)
-                rect_item.update()
+                self.change_rect(btn_data["rect"],time,btn_data["end"])
                 btn_data["frame1"] = frame1
                 self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
 
+    def change_rect(self,rect_item,time,end):
+        rect_item.prepareGeometryChange()
+        newRect = rect_item.rect()
+        newRect.setX(self.get_ratio(time))
+        newRect.setWidth(self.get_ratio(end - time))
+        rect_item.setRect(newRect)
+        rect_item.update()
 
 
     #fonction 4 extraction
@@ -423,8 +428,10 @@ class SideMenuWidget(QDockWidget):
             print("Arrêt de la segmentation en cours...")
             self.segmentation_thread.stop()
 
-
     def remove_display(self):
         self.parent.removeDockWidget(self.display)
         self.display.deleteLater()
         self.display=None
+
+    def resizeEvent(self, event):
+        pass

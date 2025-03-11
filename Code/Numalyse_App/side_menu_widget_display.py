@@ -302,12 +302,12 @@ class SideMenuWidgetDisplay(QDockWidget):
         def on_ok():
             new_time = self.time.get_time_in_milliseconds()
             end_time = self.time2.get_time_in_milliseconds()
-            print(end_time)
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
                     btn_data["time"] = new_time
                     btn_data["end"] = end_time
                     self.change_label_time(btn_data["label"],new_time,end_time)
+                    self.parent.change_rect(btn_data["rect"],new_time,end_time)
             self.adjust_neighbors(new_time,end_time)
             self.reorganize_buttons()
             self.parent.emit_change()
@@ -334,12 +334,7 @@ class SideMenuWidgetDisplay(QDockWidget):
                     btn_data["time"] = new_end_time
                     btn_data["frame1"]=frame2
 
-                    rect_item = btn_data["rect"]
-                    rect_item.prepareGeometryChange()
-                    newRect = rect_item.rect()
-                    newRect.setWidth(self.parent.get_ratio(new_end_time - btn_data["time"]))
-                    rect_item.setRect(newRect)
-                    rect_item.update()
+                    self.parent.change_rect(btn_data["rect"],new_end_time,btn_data["end"])
 
                     self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
                 else:
@@ -349,13 +344,7 @@ class SideMenuWidgetDisplay(QDockWidget):
                     btn_data["end"] = new_time
                     btn_data["frame2"]=frame1
 
-                    rect_item = btn_data["rect"]
-                    rect_item.prepareGeometryChange()
-                    newRect = rect_item.rect()
-                    newRect.setX(self.parent.get_ratio(new_time))
-                    newRect.setWidth(self.parent.get_ratio(btn_data["end"]-new_time))
-                    rect_item.setRect(newRect)
-                    rect_item.update()
+                    self.parent.change_rect(btn_data["rect"],btn_data["time"],new_time)
 
                     self.change_label_time(btn_data["label"], btn_data["time"], new_time)
                 else:

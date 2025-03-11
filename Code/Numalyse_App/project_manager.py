@@ -1,3 +1,9 @@
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog,
+    QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout,
+    QSpinBox, QTextEdit, QFrame, QSizePolicy, QGraphicsView, QGraphicsScene, QGraphicsRectItem,QGraphicsItem)
+from PySide6.QtGui import QAction, QBrush, QColor
+from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF
+
 import os
 import json
 import shutil
@@ -61,6 +67,9 @@ class ProjectManager:
                 button = btn_data["button"]
                 button_info = {
                     "name": button.text(),
+                    "color1": btn_data["color"].red(),
+                    "color2": btn_data["color"].green(),
+                    "color3": btn_data["color"].blue(),
                     "time": btn_data["time"],
                     "end": btn_data["end"],
                     "frame": btn_data["frame1"],
@@ -73,6 +82,7 @@ class ProjectManager:
                 "nom": self.project_name,
                 "chemin_du_projet": self.project_path,
                 "video": self.destination_path,
+                "duration": self.seg.max_time,
                 "super": self.path_of_super,
                 "segmentation": button_data  # Liste des boutons avec notes
             }
@@ -108,6 +118,7 @@ class ProjectManager:
                 project_data = json.load(f)
             self.path_of_super=project_data.get("super")
             video_path = project_data.get("video")
+            self.seg.max_time = project_data.get("duration")
             if video_path and os.path.isfile(video_path):
                 # Charger la vidéo dans VLC
                 self.vlc.load_video(video_path, False)
@@ -125,8 +136,13 @@ class ProjectManager:
 
     #création des séquences et des annotations
     def load_buttons(self, buttons_data):
+        self.seg.length=self.vlc.get_size_of_slider()
         for button_info in buttons_data:
             name = button_info.get("name", "")
+            c1 = button_info.get("color1", 100)
+            c2 = button_info.get("color2", 100)
+            c3 = button_info.get("color3", 100)
+            couleur=QColor(c1,c2,c3)
             time = button_info.get("time", 0)
             end = button_info.get("end",0)
             frame1 = button_info.get("frame",0)
@@ -134,7 +150,7 @@ class ProjectManager:
             notes = button_info.get("notes", [])  # Récupérer les notes
 
             # Créer le bouton
-            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False, frame1=frame1, frame2=frame2)
+            button = self.seg.add_new_button(name=name, time=time,end=end, verif=False, frame1=frame1, frame2=frame2,color=couleur)
 
             # Ajouter les notes associées
             for note_text in notes:

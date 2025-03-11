@@ -204,12 +204,13 @@ changer affichage label de plan->h:m:s[f]
 
 taille bouton proportionnel et zoom :
 	
-	modif time
-	couleur plan en fonction image
+	modif time-> yes
+	ajuster taille bouton pour modification time et suppression->yes
+	ouverture de projet-> ok
+	écrire le temps max du film dans json->ok
 
-	écrire le temps max du film dans json
+	couleur plan en fonction image		
 
-	ajuster taille bouton pour modification time et suppression
 	resizeevent signal pour remodifier tous les boutons
 
 
