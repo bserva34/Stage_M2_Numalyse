@@ -195,11 +195,6 @@ class VLCMainWindow(QMainWindow):
         self.vlc_widget.enable_segmentation.connect(self.extraction_button.setEnabled)
         self.toolbar.addWidget(self.extraction_button)
 
-
-        self.timecode_button = QPushButton("Longueur", self)
-        self.timecode_button.clicked.connect(self.timecode_action)
-        self.toolbar.addWidget(self.timecode_button)
-
     def create_keyboard(self):
         # Raccourci Ctrl + S pour Sauvegarde
         self.save_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
@@ -395,13 +390,6 @@ class VLCMainWindow(QMainWindow):
     #extraction de séquence vidéo
     def extraction_action(self):
         self.extract_manager=ExtractManager(self.vlc_widget)
-
-
-
-    #fonction qui sera à supprimer et qui permet d'afficher le timecode
-    def timecode_action(self):
-        self.vlc_widget.get_size_of_slider()
-
 
     #quand on revient en mode classique
     def recreate_window(self):

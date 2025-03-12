@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog,
     QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout,
     QSpinBox, QTextEdit, QFrame, QSizePolicy, QGraphicsView, QGraphicsScene, QGraphicsRectItem,QGraphicsItem)
-from PySide6.QtGui import QAction, QBrush, QColor
+from PySide6.QtGui import QAction, QBrush, QColor, QPen
 from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF
 
 import cv2 
@@ -25,14 +25,26 @@ class ClickableRectItem(QGraphicsRectItem):
         self.context_callback = context_callback
         self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        # On ne définit pas de pen ici pour le définir dynamiquement dans paint()
+
+    def paint(self, painter, option, widget=None):
+        # Récupère le niveau de détail (facteur de zoom)
+        lod = option.levelOfDetailFromTransform(painter.worldTransform())
+        # Calcule une épaisseur de contour proportionnelle
+        pen_width = max(0.5, 1.0 / lod)
+        # Utilise le QPen actuel de l'item et modifie son épaisseur
+        current_pen = QPen(Qt.white)
+        current_pen.setWidthF(pen_width)
+        painter.setPen(current_pen)
+        # Utilise le brush courant de l'item (celui défini par setBrush)
+        painter.setBrush(self.brush())
+        painter.drawRect(self.rect())
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            # Appel du callback pour le clic gauche
             if self.click_callback:
                 self.click_callback()
         elif event.button() == Qt.RightButton:
-            # Appel du callback pour le clic droit, si défini
             if self.context_callback:
                 self.context_callback(event)
             else:
@@ -40,11 +52,11 @@ class ClickableRectItem(QGraphicsRectItem):
         super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
-        # Intercepte le clic droit et appelle la fonction callback passée
         if self.context_callback:
             self.context_callback(event)
         else:
             super().contextMenuEvent(event)
+
 
 
 class SideMenuWidget(QDockWidget):
@@ -78,12 +90,12 @@ class SideMenuWidget(QDockWidget):
         # --- Zone supérieure : boutons ---
         self.timeline_view = QGraphicsView(self)
         self.timeline_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.timeline_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.timeline_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.timeline_view.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.timeline_view.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.timeline_scene = QGraphicsScene(self.timeline_view)
         self.timeline_view.setScene(self.timeline_scene)
-        # Définir la scène (2000 pixels de large sur 200 pixels de haut)
-        self.timeline_scene.setSceneRect(0, 0, self.length, 150)
+        self.timeline_scene.setSceneRect(0, 0,5000,150)
         self.timeline_view.setFixedHeight(150)
         self.main_layout.addWidget(self.timeline_view)
 
@@ -104,11 +116,11 @@ class SideMenuWidget(QDockWidget):
         else:
             self.seg_ok = True
 
-        self.add_button = QPushButton("Ajouter", self)
-        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
-        self.add_button.clicked.connect(self.add_action)
-        self.add_button.setFixedHeight(40)
-        self.buttons_layout.addWidget(self.add_button)
+        # self.add_button = QPushButton("Calcul Couleur", self)
+        # self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+        # self.add_button.clicked.connect(self.calcul_color)
+        # self.add_button.setFixedHeight(40)
+        # self.buttons_layout.addWidget(self.add_button)
 
         self.buttons_layout.addStretch()
         self.main_layout.addLayout(self.buttons_layout)
@@ -161,6 +173,7 @@ class SideMenuWidget(QDockWidget):
         for seg in self.display.stock_button:
             if seg["time"] <= current_time < seg["end"]:
                 seg["rect"].setBrush(QBrush(QColor("red")))
+                self.set_position(seg["id"],go=False)
             else:
                 seg["rect"].setBrush(QBrush(seg["color"]))
 
@@ -175,24 +188,10 @@ class SideMenuWidget(QDockWidget):
             name = "Plan " + f"{cpt+1}"
 
         duree=end-time
-        size=self.get_ratio(duree)
+        size=self.get_ratio_2(duree)
 
         if color==None :
-            cap = cv2.VideoCapture(self.vlc_widget.path_of_media)
-            if not cap.isOpened():
-                print("Impossible d'ouvrir la vidéo.")
-                return
-
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame1+10)
-            ret, frame = cap.read()
-            if ret:
-                mean_color = cv2.mean(frame)
-                r, g, b = int(mean_color[2]), int(mean_color[1]), int(mean_color[0])
-                couleur = QColor(r, g, b)
-            else:
-                couleur = QColor("gray")
-                
-            cap.release()
+            couleur=QColor("skyblue")
         else:
             couleur=color
 
@@ -201,6 +200,7 @@ class SideMenuWidget(QDockWidget):
             click_callback=lambda iden=self.id_creation: self.set_position(iden),
             context_callback=lambda event,iden=self.id_creation, t=time, e=end: self.show_context_menu(event,iden, t, e)
         )
+        #rect.setPen(Qt.NoPen)
         rect.setBrush(QBrush(couleur))
         self.timeline_scene.addItem(rect)
 
@@ -211,10 +211,76 @@ class SideMenuWidget(QDockWidget):
 
         self.id_creation+=1
 
+        self.update_scene_size()
+
         return btn
 
-    def get_ratio(self,time):
-        return (time/self.max_time)*self.length
+    def update_scene_size(self):
+        """Met à jour la taille de la scène en fonction des éléments ajoutés."""
+        max_x = 0
+        for item in self.timeline_scene.items():
+            if isinstance(item, ClickableRectItem):
+                max_x = max(max_x, item.rect().right())
+        # Utiliser uniquement la largeur nécessaire (+ marge)
+        new_width = max_x + 50  
+        self.timeline_scene.setSceneRect(0, 0, new_width, 150)
+
+
+
+    def get_ratio(self, time):
+        base_position = (time / self.max_time) * self.length
+        offset = 0
+        # Pour chaque segment déjà placé (dont le début est avant 'time')
+        for seg in self.display.stock_button:
+            if seg["time"] < time:
+                # Calcul de la largeur théorique du segment
+                theoretical_width = ((seg["end"] - seg["time"]) / self.max_time) * self.length
+                # Calcul de la largeur forcée (en utilisant la même logique que get_ratio_2)
+                forced_width = max(theoretical_width, 1)
+                # L’écart entre largeur forcée et largeur théorique
+                offset += forced_width - theoretical_width
+        return base_position + offset
+
+
+    def get_ratio_2(self,time):
+        return max((time/self.max_time)*self.length,1)
+
+    def calcul_color(self):
+        stock_color = []
+        stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
+
+        cap = cv2.VideoCapture(self.vlc_widget.path_of_media)
+        if not cap.isOpened():
+            print("Impossible d'ouvrir la vidéo.")
+            return
+
+        frame_idx = 0
+        stock_frames_set = set(stock_frames)
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                couleur = QColor("gray")
+                stock_color.append(couleur)
+                break
+            if frame_idx in stock_frames_set:
+                mean_color = cv2.mean(frame)
+                r, g, b = int(mean_color[2]), int(mean_color[1]), int(mean_color[0])
+                couleur = QColor(r, g, b)
+                stock_color.append(couleur)
+            frame_idx += 1
+        cap.release()
+
+        for i,btn_data in enumerate(self.display.stock_button):
+            rect_item=btn_data["rect"]
+            rect_item.setBrush(QBrush(stock_color[i]))
+
+            btn_data["color"]=stock_color[i]
+
+        self.buttons_layout.removeWidget(self.add_button)
+        self.add_button.deleteLater()
+
+        
 
     #menu clique droit du bouton/séquence
     def show_context_menu(self,event, button,time,end):
@@ -376,14 +442,15 @@ class SideMenuWidget(QDockWidget):
         return int((time/1000)*self.fps)
 
     #fonction appeler quand on clique sur un bouton
-    def set_position(self, button):
+    def set_position(self, button,go=True):
         time=-1
         for i,btn_data in enumerate(self.display.stock_button):
             if btn_data["id"] == button:
                 time = btn_data["time"]
                 self.display.select_plan(i)
                 break
-        self.vlc_widget.set_position_timecode(int(time))
+        if go:
+            self.vlc_widget.set_position_timecode(int(time))
 
     def seg_action(self):
         self.seg_button.setText("Calcul Segmentation en cours ⌛")
