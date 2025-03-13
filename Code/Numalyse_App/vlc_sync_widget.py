@@ -223,7 +223,7 @@ class SyncWidget(QWidget):
     #capture d'écran combiné
     def capture_screenshot(self,post_traitement=False,format_capture=False):
         images = []
-        capture_dir = os.path.join(str(Path.home()), "Images", "Capture_SLV")
+        capture_dir = os.path.join(str(Path.home()),"Capture_SLV", "Images")
 
         # Capture des screenshots et ajout des chemins d'accès
         for i in range(self.num_windows):

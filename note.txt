@@ -235,24 +235,22 @@ stop seg quand fermeture fenetre -> stop seg close event
 delai changement vitesse lecture à voir si on peut le contrer -> pause change play
 appliquer le changement de frame ->ok
 actualisation couleur qui est mauvaise->normalement c bon
+
 upgrade python sur linux pour utiliser moviepy -> fait par la force du destin merci la maj de ubuntu
+option -w qui casse la segmentation -> enlever l'affichage terminal
+donner le droit admin à l'appli à travers innosetup : écrire en appdata ne fonctionne pas -> installation dans un repertoire permettant l'écriture
 
 
 problème de son
 
-
-option -w qui casse la segmentation
-donner le droit admin à l'appli à travers innosetup -> écrire en appdata ne fonctionne pas 
-
-
-
-
+extraction vidéo : dégradation extrait
 
 
 --------vérif exe -------
 
 fichier de config
 exportation pdf temps de calcul
+exportation vidéo
 
 
 ----to----do------

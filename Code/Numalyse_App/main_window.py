@@ -291,10 +291,11 @@ class VLCMainWindow(QMainWindow):
             self.sync_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
         else:
             if self.post_traitement:
-                if self.side_menu.isVisible():
-                    self.display_side_menu=True
-                    self.side_menu.setVisible(False)
-                    self.side_menu.display.setVisible(False)
+                if self.side_menu:
+                    if self.side_menu.isVisible():
+                        self.display_side_menu=True
+                        self.side_menu.setVisible(False)
+                        self.side_menu.display.setVisible(False)
                 else:
                     self.display_side_menu=False
 
@@ -446,8 +447,8 @@ class VLCMainWindow(QMainWindow):
                 self.create_sync_window()
                 self.sync_widget.configure()
                 if(self.sync_widget.dialog_result):
-                    self.add_quit_button()
                     self.vlc_widget.stop_video()
+                    self.add_quit_button()                    
                 else:
                     self.sync_mode=False
 

@@ -29,7 +29,7 @@ class SegmentationThread(QThread):
         scene_manager.add_detector(HistogramDetector())
 
         try:
-            scene_manager.detect_scenes(video, show_progress=True, callback=self.check_stop)
+            scene_manager.detect_scenes(video, show_progress=False, callback=self.check_stop)
             scene_list = scene_manager.get_scene_list()
             timecodes = [(scene[0].get_seconds() * 1000,scene[1].get_seconds() * 1000,scene[0].get_frames(),scene[1].get_frames()) for scene in scene_list]
             #save_images(scene_list,video,num_images=1,output_dir=output_dir)

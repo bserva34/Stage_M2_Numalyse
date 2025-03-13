@@ -378,7 +378,7 @@ class SideMenuWidget(QDockWidget):
                 name=btn_data["button"].text()
                 break;
 
-        capture_dir = os.path.join(str(Path.home()), "Vidéos", "Capture_SLV")
+        self.capture_dir = os.path.join(str(Path.home()), "Capture_SLV","Vidéos")
         if not os.path.exists(capture_dir):
             os.makedirs(capture_dir,exist_ok=True)
 

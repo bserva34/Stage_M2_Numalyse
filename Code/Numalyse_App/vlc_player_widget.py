@@ -37,8 +37,8 @@ class VLCPlayerWidget(QWidget):
         else : 
             self.player.audio_set_mute(False)
         
-        self.capture_dir = os.path.join(str(Path.home()), "Images", "Capture_SLV")
-        self.capture_video_dir = os.path.join(str(Path.home()), "Vidéos", "Capture_SLV")
+        self.capture_dir = os.path.join(str(Path.home()),"Capture_SLV", "Images")
+        self.capture_video_dir = os.path.join(str(Path.home()), "Capture_SLV","Vidéos")
         self.path_of_media=""
 
         # Layout principal
@@ -307,9 +307,9 @@ class VLCPlayerWidget(QWidget):
 
         if current_time >= 0 and total_time > 0:
             self.progress_slider.setValue(int((current_time / total_time) * 1000))
-            current_time_str = self.time_manager.m_to_hms(current_time)
+            current_time_str = self.time_manager.m_to_hms(current_time).replace(",",":")
             #self.line_edit.setText(current_time_str)
-            total_time_str = self.time_manager.m_to_hms(total_time)
+            total_time_str = self.time_manager.m_to_hms(total_time).replace(",",":")
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
         if self.player.get_state()==6 :
