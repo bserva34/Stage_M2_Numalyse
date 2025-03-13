@@ -2,12 +2,12 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QMenu, QInputD
     QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout,
     QSpinBox, QTextEdit, QFrame, QSizePolicy, QGraphicsView, QGraphicsScene, QGraphicsRectItem,QGraphicsItem)
 from PySide6.QtGui import QAction, QBrush, QColor, QPen
-from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF
+from PySide6.QtCore import Qt, QTimer, Signal, QEvent, QRectF, QCoreApplication
 
 import cv2 
 import os
 from datetime import datetime
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 from pathlib import Path
 
 from segmentation import SegmentationThread
@@ -95,7 +95,7 @@ class SideMenuWidget(QDockWidget):
         self.timeline_view.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.timeline_scene = QGraphicsScene(self.timeline_view)
         self.timeline_view.setScene(self.timeline_scene)
-        self.timeline_scene.setSceneRect(0, 0,5000,150)
+        self.timeline_scene.setSceneRect(0, 0,self.length,150)
         self.timeline_view.setFixedHeight(150)
         self.main_layout.addWidget(self.timeline_view)
 
@@ -116,11 +116,12 @@ class SideMenuWidget(QDockWidget):
         else:
             self.seg_ok = True
 
-        # self.add_button = QPushButton("Calcul Couleur", self)
-        # self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
-        # self.add_button.clicked.connect(self.calcul_color)
-        # self.add_button.setFixedHeight(40)
-        # self.buttons_layout.addWidget(self.add_button)
+        self.add_button = QPushButton("Calcul Couleur", self)
+        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.clicked.connect(self.calcul_color)
+        self.add_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.add_button)
+        self.add_button.setVisible(self.seg_ok)
 
         self.buttons_layout.addStretch()
         self.main_layout.addLayout(self.buttons_layout)
@@ -246,7 +247,10 @@ class SideMenuWidget(QDockWidget):
         return max((time/self.max_time)*self.length,1)
 
     def calcul_color(self):
-        stock_color = []
+        self.add_button.setText("Calcul Couleur en cours ⌛")
+        self.add_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
+        self.add_button.setEnabled(False)
+
         stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
 
         cap = cv2.VideoCapture(self.vlc_widget.path_of_media)
@@ -256,29 +260,31 @@ class SideMenuWidget(QDockWidget):
 
         frame_idx = 0
         stock_frames_set = set(stock_frames)
-
+        indice=0
         while True:
             ret, frame = cap.read()
             if not ret:
                 couleur = QColor("gray")
-                stock_color.append(couleur)
                 break
             if frame_idx in stock_frames_set:
                 mean_color = cv2.mean(frame)
                 r, g, b = int(mean_color[2]), int(mean_color[1]), int(mean_color[0])
                 couleur = QColor(r, g, b)
-                stock_color.append(couleur)
+
+                btn_data=self.display.stock_button[indice]
+                rect_item=btn_data["rect"]
+                rect_item.setBrush(QBrush(couleur))
+                btn_data["color"]=couleur
+                QCoreApplication.processEvents()
+                indice+=1
+
             frame_idx += 1
         cap.release()
 
-        for i,btn_data in enumerate(self.display.stock_button):
-            rect_item=btn_data["rect"]
-            rect_item.setBrush(QBrush(stock_color[i]))
-
-            btn_data["color"]=stock_color[i]
-
         self.buttons_layout.removeWidget(self.add_button)
         self.add_button.deleteLater()
+
+        self.buttons_layout.deleteLater()
 
         
 
@@ -475,6 +481,8 @@ class SideMenuWidget(QDockWidget):
         self.seg_ok=True
         self.buttons_layout.removeWidget(self.seg_button)
         self.seg_button.deleteLater()
+        self.add_button.setVisible(True)
+        
         for time in timecodes:
             self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3]) 
         print("Segmentation terminée en arrière-plan.")

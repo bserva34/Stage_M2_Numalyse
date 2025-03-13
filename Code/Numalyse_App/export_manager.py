@@ -8,7 +8,7 @@ import numpy as np
 import tempfile
 import textwrap
 
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
@@ -364,7 +364,7 @@ class ExportManager(QWidget):
 
             video_clip = VideoFileClip(temp_video_path)
             audio_clip = VideoFileClip(self.vlc.path_of_media).audio
-            final_clip = video_clip.set_audio(audio_clip) #remplacez set_audio par with_audio
+            final_clip = video_clip.with_audio(audio_clip) #remplacez set_audio par with_audio
             final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac")
             video_clip.close()
             audio_clip.close()

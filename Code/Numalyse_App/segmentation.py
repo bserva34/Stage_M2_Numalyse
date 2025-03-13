@@ -25,7 +25,7 @@ class SegmentationThread(QThread):
 
         video = open_video(self.video_path)
         scene_manager = SceneManager()
-        #scene_manager.auto_downscale = True #pour réduire la qualité et gagner en temps de calcul
+        scene_manager.auto_downscale = True #pour réduire la qualité et gagner en temps de calcul
         scene_manager.add_detector(HistogramDetector())
 
         try:

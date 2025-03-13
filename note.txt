@@ -200,19 +200,19 @@ slider pour gérer alpha avec un résultat temps réel->pas mal
 augmenter la taille du texte pour l'exportation vidéo->ok
 gestion de la frame-avec le principe de time selector
 changer affichage label de plan->h:m:s[f]
-
-
-taille bouton proportionnel et zoom :
-	
+taille bouton proportionnel et zoom :	
 	modif time-> yes
 	ajuster taille bouton pour modification time et suppression->yes
 	ouverture de projet-> ok
 	écrire le temps max du film dans json->ok
+	couleur plan en fonction image-> fait mais rajoute du temps de calcul	
+		faire un bouton calcul couleur ->
+		faire dans un second temps ->
 
-	couleur plan en fonction image		
 
-	resizeevent signal pour remodifier tous les boutons
+effectuer des tests complet pour etre sur que tous fonctionne bien
 
+resizeevent signal pour remodifier tous les boutons
 
 custom slider varier la range en fonction longueur vidéo
 
@@ -234,15 +234,18 @@ exportation super vidéo sans son car cv2 ne le prend pas en charge utilisé ffm
 stop seg quand fermeture fenetre -> stop seg close event
 delai changement vitesse lecture à voir si on peut le contrer -> pause change play
 appliquer le changement de frame ->ok
+actualisation couleur qui est mauvaise->normalement c bon
+upgrade python sur linux pour utiliser moviepy -> fait par la force du destin merci la maj de ubuntu
 
-upgrade python sur linux pour utiliser moviepy -> complexe plutot faire une environnement virtuel
+
+problème de son
 
 
 option -w qui casse la segmentation
 donner le droit admin à l'appli à travers innosetup -> écrire en appdata ne fonctionne pas 
 
-problème de son
-actualisation couleur qui est mauvaise
+
+
 
 
 
@@ -260,7 +263,7 @@ exportation pdf temps de calcul
 
 
 baguette valentin
-0.95 * 2
+0.95 * 4
 
 baguette norman 
 0.95 * 1

@@ -250,6 +250,7 @@ class VLCMainWindow(QMainWindow):
                 self.side_menu=SideMenuWidget(self.vlc_widget, self,start=False)
                 self.addDockWidget(Qt.BottomDockWidgetArea, self.side_menu)
                 self.side_menu.display.setVisible(True)
+                self.add_quit_button(sync=False)
                 self.side_menu.length=self.vlc_widget.get_size_of_slider()
                 self.side_menu.change.connect(self.change)
                 self.export_button.setEnabled(True) 
@@ -289,7 +290,14 @@ class VLCMainWindow(QMainWindow):
         if self.sync_mode:
             self.sync_widget.capture_screenshot(post_traitement=self.post_traitement,format_capture=self.format_capture)
         else:
-            if self.post_traitement:    
+            if self.post_traitement:
+                if self.side_menu.isVisible():
+                    self.display_side_menu=True
+                    self.side_menu.setVisible(False)
+                    self.side_menu.display.setVisible(False)
+                else:
+                    self.display_side_menu=False
+
                 self.toolbar.addWidget(QLabel("         ",self))
 
                 self.slider = QSlider(Qt.Horizontal, self)
@@ -358,6 +366,7 @@ class VLCMainWindow(QMainWindow):
         self.annule_pt=None
 
         self.capture_button.setEnabled(True)
+
     def capture_action_with_post_traitement(self):
         self.suppr_pt()
 
@@ -365,12 +374,20 @@ class VLCMainWindow(QMainWindow):
         if self.format_capture:
             self.vlc_widget.png_to_jpeg(self.path_post)
         self.image_dock.setVisible(False)
+
+        if self.display_side_menu:
+            self.side_menu.setVisible(True)
+            self.side_menu.display.setVisible(True)
+
         self.pref_manager.save_preferences()
 
     def annule_capture(self):
         self.suppr_pt()
         os.remove(self.path_post)
         self.image_dock.setVisible(False)
+        if self.display_side_menu:
+            self.side_menu.setVisible(True)
+            self.side_menu.display.setVisible(True)
 
     def capture_video_action(self):
         if self.sync_mode:
@@ -548,6 +565,7 @@ class VLCMainWindow(QMainWindow):
         if(self.auto_save()):
             if(self.side_menu):
                 self.side_menu.stop_segmentation()
+            self.pref_manager.save_preferences()
             event.accept()
         else:
             event.ignore()

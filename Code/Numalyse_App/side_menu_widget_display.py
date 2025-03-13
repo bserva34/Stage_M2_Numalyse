@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, QTimer, Signal
 import cv2 
 import os
 from datetime import datetime
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 from pathlib import Path
 
 from segmentation import SegmentationThread
