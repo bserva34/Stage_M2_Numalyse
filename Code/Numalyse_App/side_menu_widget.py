@@ -16,6 +16,7 @@ from time_editor import TimeEditor
 from time_manager import TimeManager
 from message_popup import MessagePopUp
 from side_menu_widget_display import SideMenuWidgetDisplay
+from no_focus_push_button import NoFocusPushButton
 
 
 class ClickableRectItem(QGraphicsRectItem):
@@ -108,20 +109,22 @@ class SideMenuWidget(QDockWidget):
         self.seg_ok = False
 
         if start:
-            self.seg_button = QPushButton("Segmentation Auto", self)
+            self.seg_button = NoFocusPushButton("Segmentation Auto", self)
             self.seg_button.setStyleSheet("background-color: green; color: white; padding: 5px; border-radius: 5px;")
             self.seg_button.clicked.connect(self.seg_action)
             self.seg_button.setFixedHeight(40)
+            self.seg_button.setFocusPolicy(Qt.NoFocus)
             self.buttons_layout.addWidget(self.seg_button)
         else:
             self.seg_ok = True
 
-        self.add_button = QPushButton("Calcul Couleur", self)
+        self.add_button = NoFocusPushButton("Calcul Couleur", self)
         self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
         self.add_button.clicked.connect(self.calcul_color)
         self.add_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.add_button)
         self.add_button.setVisible(self.seg_ok)
+        self.add_button.setFocusPolicy(Qt.NoFocus)
 
         self.buttons_layout.addStretch()
         self.main_layout.addLayout(self.buttons_layout)
@@ -417,8 +420,8 @@ class SideMenuWidget(QDockWidget):
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("OK", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)

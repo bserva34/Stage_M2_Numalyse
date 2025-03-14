@@ -36,6 +36,7 @@ from message_popup import MessagePopUp
 from time_manager import TimeManager
 from exportvideo_thread import ExportVideoThread
 from exporttext_thread import ExportTextThread
+from no_focus_push_button import NoFocusPushButton
 
 
 class ExportManager(QWidget):
@@ -104,8 +105,8 @@ class ExportManager(QWidget):
 
         # Boutons OK/Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("OK", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
         dialog_layout.addLayout(button_layout)
@@ -365,7 +366,7 @@ class ExportManager(QWidget):
             video_clip = VideoFileClip(temp_video_path)
             audio_clip = VideoFileClip(self.vlc.path_of_media).audio
             final_clip = video_clip.with_audio(audio_clip) #remplacez set_audio par with_audio
-            final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac")
+            final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac",logger=None)
             video_clip.close()
             audio_clip.close()
             final_clip.close()

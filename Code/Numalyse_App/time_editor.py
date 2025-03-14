@@ -2,6 +2,8 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QLabel, QGridLayo
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIntValidator
 
+from no_focus_push_button import NoFocusPushButton
+
 class TimeEditor(QWidget):
     def __init__(self, parent=None, max_time=3600000, time=-1):
         super().__init__(parent)
@@ -44,14 +46,14 @@ class TimeEditor(QWidget):
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(3)
 
-        self.plus_frames_button = QPushButton("+", self)
+        self.plus_frames_button = NoFocusPushButton("+", self)
         self.plus_frames_button.setFixedSize(30, 30)
 
         self.frames_label = QLabel("00", self)
         self.frames_label.setAlignment(Qt.AlignCenter)
         self.frames_label.setStyleSheet("font-size: 16px;")
 
-        self.minus_frames_button = QPushButton("-", self)
+        self.minus_frames_button = NoFocusPushButton("-", self)
         self.minus_frames_button.setFixedSize(30, 30)
 
         self.grid_layout.addWidget(self.plus_frames_button)

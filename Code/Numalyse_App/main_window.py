@@ -12,6 +12,7 @@ from extract_manager import ExtractManager
 from message_popup import MessagePopUp
 from aug_mode import AugMode
 from preference_manager import PreferenceManager
+from no_focus_push_button import NoFocusPushButton
 
 import os
 import json
@@ -172,25 +173,29 @@ class VLCMainWindow(QMainWindow):
         self.toolbar = QToolBar("Barre d'outils")
         self.addToolBar(Qt.TopToolBarArea, self.toolbar)
 
-        self.capture_button = QPushButton("📸 Capture d'écran", self)
+        self.capture_button = NoFocusPushButton("📸 Capture d'écran", self)
         self.capture_button.setEnabled(False)
+        self.capture_button.setFocusPolicy(Qt.NoFocus)
         self.capture_button.clicked.connect(self.capture_action)
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
         self.toolbar.addWidget(self.capture_button)
 
-        self.capture_video_button = QPushButton("📽️ Démarrer la capture vidéo", self)
+        self.capture_video_button = NoFocusPushButton("📽️ Démarrer la capture vidéo", self)
         self.capture_video_button.setEnabled(False)
+        self.capture_video_button.setFocusPolicy(Qt.NoFocus)
         self.capture_video_button.clicked.connect(self.capture_video_action)
         self.vlc_widget.enable_segmentation.connect(self.capture_video_button.setEnabled)
         self.toolbar.addWidget(self.capture_video_button)
 
-        self.export_button = QPushButton("Exporter",self)
+        self.export_button = NoFocusPushButton("Exporter",self)
         self.export_button.setEnabled(False)
+        self.export_button.setFocusPolicy(Qt.NoFocus)
         self.export_button.clicked.connect(self.export_action)
         self.toolbar.addWidget(self.export_button)
 
-        self.extraction_button = QPushButton("Extraire une séquence",self)
+        self.extraction_button = NoFocusPushButton("Extraire une séquence",self)
         self.extraction_button.setEnabled(False)
+        self.extraction_button.setFocusPolicy(Qt.NoFocus)
         self.extraction_button.clicked.connect(self.extraction_action)
         self.vlc_widget.enable_segmentation.connect(self.extraction_button.setEnabled)
         self.toolbar.addWidget(self.extraction_button)
@@ -310,12 +315,12 @@ class VLCMainWindow(QMainWindow):
                 self.affichage_slider = QLabel(str(self.gamma),self)
                 self.toolbar.addWidget(self.affichage_slider)
 
-                self.validate_pt = QPushButton("Valider",self)
+                self.validate_pt = NoFocusPushButton("Valider",self)
                 self.validate_pt.clicked.connect(self.capture_action_with_post_traitement)
                 self.validate_pt.setStyleSheet("background-color: green;")
                 self.toolbar.addWidget(self.validate_pt)
 
-                self.annule_pt = QPushButton("Annuler",self)
+                self.annule_pt = NoFocusPushButton("Annuler",self)
                 self.annule_pt.clicked.connect(self.annule_capture)
                 self.annule_pt.setStyleSheet("background-color: red;")
                 self.toolbar.addWidget(self.annule_pt)
@@ -630,8 +635,8 @@ class VLCMainWindow(QMainWindow):
 
         # Boutons OK/Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("OK", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
@@ -685,8 +690,8 @@ class VLCMainWindow(QMainWindow):
 
         # Boutons OK/Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("OK", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)

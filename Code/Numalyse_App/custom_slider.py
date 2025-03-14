@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt
 
 class CustomSlider(QSlider):
     def mousePressEvent(self, event):
+        self.setFocusPolicy(Qt.NoFocus)
         """ Permet de cliquer n'importe où sur la barre pour déplacer le curseur immédiatement """
         if self.orientation() == Qt.Horizontal:
             value = QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), event.pos().x(), self.width())

@@ -18,6 +18,7 @@ from PySide6.QtGui import QImage, QPainter, QKeySequence, QShortcut
 from vlc_player_widget import VLCPlayerWidget
 from message_popup import MessagePopUp
 from mergevideo_thread import MergeVideoThread
+from no_focus_push_button import NoFocusPushButton
 
 class SyncWidget(QWidget):
     """ Widget permettant la lecture synchronisée de vidéos. """
@@ -64,8 +65,8 @@ class SyncWidget(QWidget):
 
         # Boutons OK/Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("OK", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)
@@ -143,18 +144,18 @@ class SyncWidget(QWidget):
         """ Crée et ajoute automatiquement les boutons de contrôle au layout donné. """
         button_layout = QHBoxLayout()
 
-        self.play_pause_button = QPushButton("⏯️ Lire", self)
+        self.play_pause_button = NoFocusPushButton("⏯️ Lire", self)
         self.play_pause_button.clicked.connect(self.toggle_play_pause)
         button_layout.addWidget(self.play_pause_button)
 
         self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
         self.play_pause_shortcut.activated.connect(self.toggle_play_pause)
 
-        self.stop_button = QPushButton("⏹ Arrêter", self)
+        self.stop_button = NoFocusPushButton("⏹ Arrêter", self)
         self.stop_button.clicked.connect(self.exit_video_players)
         button_layout.addWidget(self.stop_button)
 
-        self.full_screen_button = QPushButton("◻",self)
+        self.full_screen_button = NoFocusPushButton("◻",self)
         self.full_screen_button.setFixedSize(30, 30)
         self.full_screen_button.clicked.connect(self.full_screen_action)
         button_layout.addWidget(self.full_screen_button)

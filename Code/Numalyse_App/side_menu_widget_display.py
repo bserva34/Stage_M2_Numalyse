@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QPushButton, QHBoxLayout, QSpinBox, QTextEdit, QFrame
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QMenu, QInputDialog, QScrollArea, QDockWidget, QLabel, QDialog, QLineEdit, QSlider, QHBoxLayout, QSpinBox, QTextEdit, QFrame, QApplication
 from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, QTimer, Signal, QEvent
 
 import cv2 
 import os
@@ -13,6 +13,21 @@ from time_selector import TimeSelector
 from time_editor import TimeEditor
 from time_manager import TimeManager
 from message_popup import MessagePopUp
+from no_focus_push_button import NoFocusPushButton
+
+class MyTextEdit(QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.FocusOut and source is self:
+            new_focus = QApplication.focusWidget()
+            # Ne pas redonner le focus si le nouveau widget est une note
+            if not isinstance(new_focus, MyTextEdit):
+                QTimer.singleShot(0, self.setFocus)
+        return super().eventFilter(source, event)
+
 
 class SideMenuWidgetDisplay(QDockWidget):
     change = Signal(bool)
@@ -105,10 +120,11 @@ class SideMenuWidgetDisplay(QDockWidget):
         frame_layout = QVBoxLayout(frame)
 
         # Création du bouton
-        button = QPushButton(name, self)
+        button = NoFocusPushButton(name, self)
         button.setStyleSheet("background-color: #666; color: white; padding: 5px; border-radius: 5px;")
         button.setContextMenuPolicy(Qt.CustomContextMenu)
         button.customContextMenuRequested.connect(lambda pos, btn=button: self.show_context_menu(pos, btn))
+        button.setFocusPolicy(Qt.NoFocus)
         #button.setFixedSize(180, 25)
 
         frame.setVisible(False)
@@ -187,7 +203,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         self.parent.emit_change()
 
     def add_note(self, button, text=""):
-        note_widget = QTextEdit(self)
+        note_widget = MyTextEdit(self)
         note_widget.setPlainText(text)
         note_widget.setReadOnly(False)
         note_widget.setStyleSheet("color: gray; font-style: italic;")
@@ -200,6 +216,8 @@ class SideMenuWidgetDisplay(QDockWidget):
             self.button_notes[button] = []
 
         self.button_notes[button].append(note_widget)
+
+        note_widget.setFocus()
 
         # Trouver le `frame` associé au bouton et ajouter la note dedans
         for btn_data in self.stock_button:
@@ -293,8 +311,8 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("OK", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("OK", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)

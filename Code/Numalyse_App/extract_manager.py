@@ -5,6 +5,7 @@ import os
 from time_selector import TimeSelector
 from time_editor import TimeEditor
 from message_popup import MessagePopUp
+from no_focus_push_button import NoFocusPushButton
 
 class ExtractManager(QWidget):
     def __init__(self, parent=None):
@@ -24,7 +25,7 @@ class ExtractManager(QWidget):
         name_label = QLabel("Nom de l'extrait :", dialog)
         layout.addWidget(name_label)
         
-        self.folder_button = QPushButton("Sélectionner l'emplacement du fichier", dialog)
+        self.folder_button = NoFocusPushButton("Sélectionner l'emplacement du fichier", dialog)
         self.folder_button.setStyleSheet("background-color: red;")
         self.folder_button.clicked.connect(self.save_export)
         layout.addWidget(self.folder_button)
@@ -51,8 +52,8 @@ class ExtractManager(QWidget):
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
-        ok_button = QPushButton("Extraire", dialog)
-        cancel_button = QPushButton("Annuler", dialog)
+        ok_button = NoFocusPushButton("Extraire", dialog)
+        cancel_button = NoFocusPushButton("Annuler", dialog)
 
         button_layout.addWidget(ok_button)
         button_layout.addWidget(cancel_button)

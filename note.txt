@@ -210,11 +210,10 @@ taille bouton proportionnel et zoom :
 		faire dans un second temps ->
 
 
-effectuer des tests complet pour etre sur que tous fonctionne bien
+effectuer des tests complet pour etre sur que tous fonctionne bien -> ok
 
 resizeevent signal pour remodifier tous les boutons
 
-custom slider varier la range en fonction longueur vidéo
 
 commencé à lire des papiers sur le choix d'une image réprésentative
 
@@ -243,14 +242,13 @@ donner le droit admin à l'appli à travers innosetup : écrire en appdata ne fo
 
 problème de son
 
-extraction vidéo : dégradation extrait
+extraction vidéo : dégradation extrait -> enlever l'option copy pour reencoder
+impossible d'écrire sur la zone de texte -> problème de focus qui est normalement gérer
+exportation vidéo : potentiellement comme pour la seg
 
 
 --------vérif exe -------
 
-fichier de config
-exportation pdf temps de calcul
-exportation vidéo
 
 
 ----to----do------

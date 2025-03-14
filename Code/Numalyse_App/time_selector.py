@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QSpacerItem, QSizePolicy
 from PySide6.QtCore import Qt
 
+from no_focus_push_button import NoFocusPushButton
+
 class TimeSelector(QWidget):
     def __init__(self, parent=None, max_time=3600, time=-1):
         super().__init__(parent)
@@ -21,8 +23,8 @@ class TimeSelector(QWidget):
         self.grid_layout.setSpacing(5)
 
         # Boutons +
-        self.plus_minutes_button = QPushButton("+", self)
-        self.plus_seconds_button = QPushButton("+", self)
+        self.plus_minutes_button = NoFocusPushButton("+", self)
+        self.plus_seconds_button = NoFocusPushButton("+", self)
         self.plus_minutes_button.setFixedSize(30, 30)
         self.plus_seconds_button.setFixedSize(30, 30)
 
@@ -40,8 +42,8 @@ class TimeSelector(QWidget):
         self.seconds_label.setStyleSheet("font-size: 16px;")
 
         # Boutons -
-        self.minus_minutes_button = QPushButton("-", self)
-        self.minus_seconds_button = QPushButton("-", self)
+        self.minus_minutes_button = NoFocusPushButton("-", self)
+        self.minus_seconds_button = NoFocusPushButton("-", self)
         self.minus_minutes_button.setFixedSize(30, 30)
         self.minus_seconds_button.setFixedSize(30, 30)
 

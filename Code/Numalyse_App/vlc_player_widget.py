@@ -17,6 +17,7 @@ from PySide6.QtGui import QKeySequence, QShortcut
 from custom_slider import CustomSlider
 from playback_speed_button import PlaybackSpeedButton
 from time_manager import TimeManager
+from no_focus_push_button import NoFocusPushButton
 
 class VLCPlayerWidget(QWidget):
     enable_segmentation = Signal(bool)
@@ -92,11 +93,11 @@ class VLCPlayerWidget(QWidget):
         """ Crée et ajoute automatiquement les boutons de contrôle au layout donné. """
         self.button_layout = QHBoxLayout()
 
-        self.play_pause_button = QPushButton("⏯️ Lire", self)
+        self.play_pause_button = NoFocusPushButton("⏯️ Lire", self)
         self.play_pause_button.clicked.connect(self.toggle_play_pause)
         self.button_layout.addWidget(self.play_pause_button)
 
-        self.stop_button = QPushButton("⏹ Arrêter", self)
+        self.stop_button = NoFocusPushButton("⏹ Arrêter", self)
         self.stop_button.clicked.connect(self.stop_video)
         self.button_layout.addWidget(self.stop_button)
 
@@ -115,6 +116,7 @@ class VLCPlayerWidget(QWidget):
         self.line_edit.setText("00:00:00")
         self.line_edit.setAlignment(Qt.AlignCenter)
         self.line_edit.setFixedWidth(80)
+        self.line_edit.setFocusPolicy(Qt.NoFocus)
         self.line_edit.textChanged.connect(self.on_value_changed)
 
         # Affichage du temps
@@ -124,7 +126,7 @@ class VLCPlayerWidget(QWidget):
 
         self.speed_button = PlaybackSpeedButton(parent=self)
 
-        self.mute_button = QPushButton("🔇" if self.mute else "🔊", self)
+        self.mute_button = NoFocusPushButton("🔇" if self.mute else "🔊", self)
         self.mute_button.setCheckable(True)
         self.mute_button.setChecked(self.mute)  # Définit l'état initial du bouton
 
@@ -362,7 +364,7 @@ class VLCPlayerWidget(QWidget):
             (
                 ffmpeg
                 .input(input_file, ss=start_time)  # Spécifie le fichier d'entrée et le temps de début
-                .output(output_file, t=duration, c="copy")  # Définit la durée et copie les flux sans réencodage
+                .output(output_file, t=duration)  # Définit la durée 
                 .run(overwrite_output=True, quiet=True)  # Exécute la commande sans afficher la sortie
             )
             print(f"Extrait enregistré dans {output_file}")
