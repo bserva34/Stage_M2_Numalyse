@@ -208,8 +208,6 @@ taille bouton proportionnel et zoom :
 	couleur plan en fonction image-> fait mais rajoute du temps de calcul	
 		faire un bouton calcul couleur ->
 		faire dans un second temps ->
-
-
 effectuer des tests complet pour etre sur que tous fonctionne bien -> ok
 
 resizeevent signal pour remodifier tous les boutons
@@ -239,12 +237,13 @@ upgrade python sur linux pour utiliser moviepy -> fait par la force du destin me
 option -w qui casse la segmentation -> enlever l'affichage terminal
 donner le droit admin à l'appli à travers innosetup : écrire en appdata ne fonctionne pas -> installation dans un repertoire permettant l'écriture
 
-
-problème de son
-
 extraction vidéo : dégradation extrait -> enlever l'option copy pour reencoder
 impossible d'écrire sur la zone de texte -> problème de focus qui est normalement gérer
 exportation vidéo : potentiellement comme pour la seg
+
+suppression bouton extremité 
+	
+problème de son
 
 
 --------vérif exe -------
