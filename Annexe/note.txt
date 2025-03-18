@@ -210,8 +210,6 @@ taille bouton proportionnel et zoom :
 		faire dans un second temps ->
 effectuer des tests complet pour etre sur que tous fonctionne bien -> ok
 
-resizeevent signal pour remodifier tous les boutons
-
 
 commencé à lire des papiers sur le choix d'une image réprésentative -> i3e
 	"video frame selection"
@@ -220,7 +218,6 @@ commencé à lire des papiers sur le choix d'une image réprésentative -> i3e
 	"video summarization"
 	"video abstraction"
 
-https://chatgpt.com/c/67d82615-53c0-800f-9482-c311b050316c
 
 
 !!!!!!!Problèmes!!!!!!
@@ -265,7 +262,7 @@ problème de son
 
 
 baguette valentin
-0.95 * 4
+0.95 * 5
 
 baguette norman 
 0.95 * 1
