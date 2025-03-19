@@ -118,13 +118,21 @@ class SideMenuWidget(QDockWidget):
         else:
             self.seg_ok = True
 
-        self.add_button = NoFocusPushButton("Calcul Couleur", self)
-        self.add_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
-        self.add_button.clicked.connect(self.calcul_color)
+        self.color_button = NoFocusPushButton("Calcul Couleur", self)
+        self.color_button.setStyleSheet("background-color: blue; color: white; padding: 5px; border-radius: 5px;")
+        self.color_button.clicked.connect(self.calcul_color)
+        self.color_button.setFixedHeight(40)
+        self.buttons_layout.addWidget(self.color_button)
+        self.color_button.setVisible(self.seg_ok)
+
+        self.add_button = NoFocusPushButton("Ajouter Un Plan", self)
+        self.add_button.setStyleSheet("background-color: orange; color: white; padding: 5px; border-radius: 5px;")
+        self.add_button.clicked.connect(self.add_action)
         self.add_button.setFixedHeight(40)
         self.buttons_layout.addWidget(self.add_button)
         self.add_button.setVisible(self.seg_ok)
-        self.add_button.setFocusPolicy(Qt.NoFocus)
+
+
 
         self.buttons_layout.addStretch()
         self.main_layout.addLayout(self.buttons_layout)
@@ -202,7 +210,7 @@ class SideMenuWidget(QDockWidget):
         rect = ClickableRectItem(
             QRectF(self.get_ratio(time), 0, size, 150),
             click_callback=lambda iden=self.id_creation: self.set_position(iden),
-            context_callback=lambda event,iden=self.id_creation, t=time, e=end: self.show_context_menu(event,iden, t, e)
+            context_callback=lambda event,iden=self.id_creation: self.show_context_menu(event,iden)
         )
         #rect.setPen(Qt.NoPen)
         rect.setBrush(QBrush(couleur))
@@ -250,9 +258,9 @@ class SideMenuWidget(QDockWidget):
         return max((time/self.max_time)*self.length,1)
 
     def calcul_color(self):
-        self.add_button.setText("Calcul Couleur en cours ⌛")
-        self.add_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
-        self.add_button.setEnabled(False)
+        self.color_button.setText("Calcul Couleur en cours ⌛")
+        self.color_button.setStyleSheet("background-color: red; color: white; padding: 5px; border-radius: 5px;") 
+        self.color_button.setEnabled(False)
 
         stock_frames = [btn_data["frame1"] + 10 for btn_data in self.display.stock_button]
 
@@ -284,16 +292,19 @@ class SideMenuWidget(QDockWidget):
             frame_idx += 1
         cap.release()
 
-        self.buttons_layout.removeWidget(self.add_button)
-        self.add_button.deleteLater()
-
-        self.buttons_layout.deleteLater()
-
+        self.buttons_layout.removeWidget(self.color_button)
+        self.color_button.deleteLater()
         
+    def get_button_data(self, button):
+        for btn_data in self.display.stock_button:
+            if btn_data["id"] == button:
+                return btn_data["time"], btn_data["end"]
+        return None, None
 
     #menu clique droit du bouton/séquence
-    def show_context_menu(self,event, button,time,end):
+    def show_context_menu(self,event, button):
         """Affiche un menu contextuel avec options de renommer et modifier valeurs."""
+        time, end = self.get_button_data(button)
         menu = QMenu(self)
 
         if(time>0):
@@ -484,8 +495,8 @@ class SideMenuWidget(QDockWidget):
         self.seg_ok=True
         self.buttons_layout.removeWidget(self.seg_button)
         self.seg_button.deleteLater()
+        self.color_button.setVisible(True)
         self.add_button.setVisible(True)
-        
         for time in timecodes:
             self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3]) 
         print("Segmentation terminée en arrière-plan.")

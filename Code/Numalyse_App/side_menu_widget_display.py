@@ -345,30 +345,50 @@ class SideMenuWidgetDisplay(QDockWidget):
         label.setText(new_label)
 
     def adjust_neighbors(self, new_time, new_end_time):
-        frame1=self.parent.get_frame(new_time)
-        frame2=self.parent.get_frame(new_end_time)
+        frame1 = self.parent.get_frame(new_time)
+        frame2 = self.parent.get_frame(new_end_time)
         tab_suppr = []
+        
         for btn_data in self.stock_button:
-            if btn_data["time"] == new_end_time or (btn_data["time"] <= new_end_time and btn_data["time"] > new_time):
-                if new_end_time < btn_data["end"]:
-                    btn_data["time"] = new_end_time
-                    btn_data["frame1"]=frame2
-
-                    self.parent.change_rect(btn_data["rect"],new_end_time,btn_data["end"])
-
-                    self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
-                else:
-                    tab_suppr.append(btn_data["id"])
-            if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
-                if new_time > btn_data["time"]:
-                    btn_data["end"] = new_time
-                    btn_data["frame2"]=frame1
-
-                    self.parent.change_rect(btn_data["rect"],btn_data["time"],new_time)
-
-                    self.change_label_time(btn_data["label"], btn_data["time"], new_time)
-                else:
-                    tab_suppr.append(btn_data["id"])
+            # Cas de chevauchement complet : le nouveau bouton est au milieu d'un bouton existant
+            if btn_data["time"] < new_time and btn_data["end"] > new_end_time:
+                # On conserve la partie avant en modifiant la fin du bouton existant
+                old_end = btn_data["end"]
+                btn_data["end"] = new_time
+                btn_data["frame2"] = frame1
+                self.parent.change_rect(btn_data["rect"], btn_data["time"], new_time)
+                self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                
+                # Et on crée un nouveau bouton pour la partie après
+                # On suppose ici que btn_data possède une clé "name" à réutiliser, sinon vous pouvez passer un nom souhaité.
+                self.parent.add_new_button(
+                    name=btn_data.get("name", "Nouveau Plan"), 
+                    time=new_end_time, 
+                    end=old_end, 
+                    frame1=frame2, 
+                    frame2=self.parent.get_frame(old_end)
+                )
+            else:
+                # Cas où le bouton existant commence dans l'intervalle du nouveau bouton
+                if btn_data["time"] == new_end_time or (btn_data["time"] <= new_end_time and btn_data["time"] > new_time):
+                    if new_end_time < btn_data["end"]:
+                        btn_data["time"] = new_end_time
+                        btn_data["frame1"] = frame2
+                        self.parent.change_rect(btn_data["rect"], new_end_time, btn_data["end"])
+                        self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
+                    else:
+                        tab_suppr.append(btn_data["id"])
+                # Cas où le bouton existant se termine dans l'intervalle du nouveau bouton
+                if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
+                    if new_time > btn_data["time"]:
+                        btn_data["end"] = new_time
+                        btn_data["frame2"] = frame1
+                        self.parent.change_rect(btn_data["rect"], btn_data["time"], new_time)
+                        self.change_label_time(btn_data["label"], btn_data["time"], new_time)
+                    else:
+                        tab_suppr.append(btn_data["id"])
+                        
         for btn in tab_suppr:
             self.parent.delate_button(btn)
+
 

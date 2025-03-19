@@ -70,9 +70,9 @@ class TimeEditor(QWidget):
         self.main_layout.addLayout(self.grid_layout)
 
         # Connexion des signaux pour mettre à jour le temps lors de l'édition
-        self.hours_edit.editingFinished.connect(self.on_time_edited)
-        self.minutes_edit.editingFinished.connect(self.on_time_edited)
-        self.seconds_edit.editingFinished.connect(self.on_time_edited)
+        self.hours_edit.textChanged.connect(self.on_time_edited)
+        self.minutes_edit.textChanged.connect(self.on_time_edited)
+        self.seconds_edit.textChanged.connect(self.on_time_edited)
 
         # Connexion des boutons pour gérer les frames
         self.plus_frames_button.clicked.connect(self.on_plus_frame)
@@ -109,10 +109,6 @@ class TimeEditor(QWidget):
         self.frame = frames
 
     def on_time_edited(self):
-        """
-        Récupère les valeurs saisies par l'utilisateur et met à jour le temps interne.
-        En cas de modification manuelle, on réinitialise les frames à 0.
-        """
         try:
             hours = int(self.hours_edit.text())
         except ValueError:
