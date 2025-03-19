@@ -130,6 +130,7 @@ class VLCMainWindow(QMainWindow):
         self.aug_mode_action = QAction("Lecture Augmentée", self)
         self.aug_mode_action.triggered.connect(self.aug_button_use)
         self.aug_mode_action.setEnabled(False)
+        self.aug_mode_action.setVisible(False)
         mode_menu.addAction(self.aug_mode_action)
 
         # Menu Outils

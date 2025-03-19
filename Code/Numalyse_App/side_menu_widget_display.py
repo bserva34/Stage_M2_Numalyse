@@ -157,11 +157,17 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         return button
 
-
+    def get_button_data(self, button):
+        for btn_data in self.stock_button:
+            if btn_data["button"] == button:
+                return btn_data["time"], btn_data["end"]
+        return None, None
 
     #menu clique droit du bouton/séquence
     def show_context_menu(self, pos, button):
         """Affiche un menu contextuel avec options de renommer et modifier valeurs."""
+        time, end = self.get_button_data(button)
+
         menu = QMenu(self)
 
         rename_action = QAction("Renommer", self)
@@ -179,6 +185,16 @@ class SideMenuWidgetDisplay(QDockWidget):
         extract_action = QAction("Extraire la séquence")
         extract_action.triggered.connect(lambda: self.extract_action(button))
         menu.addAction(extract_action)
+
+        if(time>0):
+            delete_action = QAction("Supprimer et concaténer avec le précedent", self)
+            delete_action.triggered.connect(lambda: self.parent.delate_button_prec(button))
+            menu.addAction(delete_action)
+
+        if (end<self.max_time):
+            delete_action2 = QAction("Supprimer et concaténer avec le suivant", self)
+            delete_action2.triggered.connect(lambda: self.parent.delate_button_suiv(button))
+            menu.addAction(delete_action2)
 
         menu.exec_(button.mapToGlobal(pos))
 

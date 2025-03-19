@@ -20,10 +20,9 @@ from no_focus_push_button import NoFocusPushButton
 
 
 class ClickableRectItem(QGraphicsRectItem):
-    def __init__(self, rect, click_callback=None, context_callback=None, parent=None):
+    def __init__(self, rect, click_callback=None, parent=None):
         super().__init__(rect, parent)
         self.click_callback = click_callback
-        self.context_callback = context_callback
         self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         # On ne définit pas de pen ici pour le définir dynamiquement dans paint()
@@ -45,18 +44,7 @@ class ClickableRectItem(QGraphicsRectItem):
         if event.button() == Qt.LeftButton:
             if self.click_callback:
                 self.click_callback()
-        elif event.button() == Qt.RightButton:
-            if self.context_callback:
-                self.context_callback(event)
-            else:
-                super().contextMenuEvent(event)
         super().mousePressEvent(event)
-
-    def contextMenuEvent(self, event):
-        if self.context_callback:
-            self.context_callback(event)
-        else:
-            super().contextMenuEvent(event)
 
 
 
@@ -209,8 +197,7 @@ class SideMenuWidget(QDockWidget):
 
         rect = ClickableRectItem(
             QRectF(self.get_ratio(time), 0, size, 150),
-            click_callback=lambda iden=self.id_creation: self.set_position(iden),
-            context_callback=lambda event,iden=self.id_creation: self.show_context_menu(event,iden)
+            click_callback=lambda iden=self.id_creation: self.set_position(iden)
         )
         #rect.setPen(Qt.NoPen)
         rect.setBrush(QBrush(couleur))
@@ -295,35 +282,6 @@ class SideMenuWidget(QDockWidget):
         self.buttons_layout.removeWidget(self.color_button)
         self.color_button.deleteLater()
         
-    def get_button_data(self, button):
-        for btn_data in self.display.stock_button:
-            if btn_data["id"] == button:
-                return btn_data["time"], btn_data["end"]
-        return None, None
-
-    #menu clique droit du bouton/séquence
-    def show_context_menu(self,event, button):
-        """Affiche un menu contextuel avec options de renommer et modifier valeurs."""
-        time, end = self.get_button_data(button)
-        menu = QMenu(self)
-
-        if(time>0):
-            delete_action = QAction("Supprimer et concaténer avec le précedent", self)
-            delete_action.triggered.connect(lambda: self.delate_button_prec(button))
-            menu.addAction(delete_action)
-
-        if (end<self.max_time):
-            delete_action2 = QAction("Supprimer et concaténer avec le suivant", self)
-            delete_action2.triggered.connect(lambda: self.delate_button_suiv(button))
-            menu.addAction(delete_action2)
-
-        extract_action = QAction("Extraire la séquence")
-        extract_action.triggered.connect(lambda: self.extract_action(button))
-        menu.addAction(extract_action)
-
-        menu.exec(event.screenPos())
-
-
     #fonction 2
     def delate_button(self, button):
         """Supprime un bouton et son cadre associé."""
@@ -332,7 +290,7 @@ class SideMenuWidget(QDockWidget):
         frame1 = -1
         frame2 = -1
         for btn_data in self.display.stock_button:
-            if btn_data["id"] == button:
+            if btn_data["button"] == button:
                 time = btn_data["time"]
                 end = btn_data["end"]
                 frame1 = btn_data["frame1"]
@@ -344,7 +302,7 @@ class SideMenuWidget(QDockWidget):
 
                 # Supprimer les notes associées
                 if button in self.display.button_notes:
-                    del self.button_notes[button]
+                    del self.display.button_notes[button]
 
                 # Supprimer le bouton de la liste
                 self.display.stock_button.remove(btn_data)
@@ -361,8 +319,7 @@ class SideMenuWidget(QDockWidget):
                 self.change_rect(btn_data["rect"],btn_data["time"],end)
                 btn_data["frame2"] = frame2
                 self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
-
-
+        self.recalc_all_buttons()
 
     def delate_button_suiv(self, button):
         time, end, frame1, frame2 = self.delate_button(button)
@@ -372,6 +329,29 @@ class SideMenuWidget(QDockWidget):
                 self.change_rect(btn_data["rect"],time,btn_data["end"])
                 btn_data["frame1"] = frame1
                 self.display.change_label_time(btn_data["label"], btn_data["time"], btn_data["end"])
+        self.recalc_all_buttons()
+
+    def recalc_all_buttons(self):
+        # Trie les segments par temps de début
+        sorted_segments = sorted(self.display.stock_button, key=lambda seg: seg["time"])
+        cumulative_offset = 0
+        for seg in sorted_segments:
+            base_position = (seg["time"] / self.max_time) * self.length
+            new_x = base_position + cumulative_offset
+            
+            # Calcul de la largeur théorique et de la largeur forcée
+            theoretical_width = ((seg["end"] - seg["time"]) / self.max_time) * self.length
+            forced_width = max(theoretical_width, 1)
+            
+            # Applique les nouveaux paramètres sur le rectangle
+            seg["rect"].prepareGeometryChange()
+            newRect = QRectF(new_x, seg["rect"].rect().y(), forced_width, seg["rect"].rect().height())
+            seg["rect"].setRect(newRect)
+            seg["rect"].update()
+            
+            # Mise à jour du cumulatif pour les segments suivants
+            cumulative_offset += forced_width - theoretical_width
+
 
     def change_rect(self,rect_item,time,end):
         rect_item.prepareGeometryChange()

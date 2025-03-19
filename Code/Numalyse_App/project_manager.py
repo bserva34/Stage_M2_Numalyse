@@ -80,8 +80,7 @@ class ProjectManager:
 
             project_data = {
                 "nom": self.project_name,
-                "chemin_du_projet": self.project_path,
-                "video": self.destination_path,
+                "video": self.video_name,
                 "duration": self.seg.max_time,
                 "super": self.path_of_super,
                 "segmentation": button_data  # Liste des boutons avec notes
@@ -89,8 +88,7 @@ class ProjectManager:
         else:
             project_data = {
                 "nom": self.project_name,
-                "chemin_du_projet": self.project_path,
-                "video": self.destination_path
+                "video": self.video_name
             }
 
         try: 
@@ -117,8 +115,9 @@ class ProjectManager:
             with open(self.save_file_path, "r", encoding="utf-8") as f:
                 project_data = json.load(f)
             self.path_of_super=project_data.get("super")
-            video_path = project_data.get("video")
+            video_path = os.path.join(project_path,project_data.get("video"))
             self.seg.max_time = project_data.get("duration")
+            self.seg.display.max_time = project_data.get("duration")
             if video_path and os.path.isfile(video_path):
                 # Charger la vidéo dans VLC
                 self.vlc.load_video(video_path, False)
