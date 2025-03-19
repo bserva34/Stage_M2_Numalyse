@@ -219,6 +219,9 @@ commencé à lire des papiers sur le choix d'une image réprésentative -> i3e
 	"video abstraction"
 
 
+mail hugo raffitin avec projet Adele, lien appli, refaire l'exe et l'installateur avec les modifs
+
+
 
 !!!!!!!Problèmes!!!!!!
 problème son quand on décharge individuellement puis qu'on charge collectivement -> résolu (l'état du bouton n'était pas bien modifié)
