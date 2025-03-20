@@ -268,7 +268,7 @@ baguette valentin
 0.95 * 5
 
 baguette norman 
-0.95 * 1
+0.95 * 2
 
 baguette louis 
 0.95 * 1
