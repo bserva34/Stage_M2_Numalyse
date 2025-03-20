@@ -393,7 +393,7 @@ class SideMenuWidgetDisplay(QDockWidget):
                         self.parent.change_rect(btn_data["rect"], new_end_time, btn_data["end"])
                         self.change_label_time(btn_data["label"], new_end_time, btn_data["end"])
                     else:
-                        tab_suppr.append(btn_data["id"])
+                        tab_suppr.append(btn_data["button"])
                 # Cas où le bouton existant se termine dans l'intervalle du nouveau bouton
                 if btn_data["end"] == new_time or (btn_data["end"] >= new_time and btn_data["end"] < new_end_time):
                     if new_time > btn_data["time"]:
@@ -402,7 +402,7 @@ class SideMenuWidgetDisplay(QDockWidget):
                         self.parent.change_rect(btn_data["rect"], btn_data["time"], new_time)
                         self.change_label_time(btn_data["label"], btn_data["time"], new_time)
                     else:
-                        tab_suppr.append(btn_data["id"])
+                        tab_suppr.append(btn_data["button"])
                         
         for btn in tab_suppr:
             self.parent.delate_button(btn)
