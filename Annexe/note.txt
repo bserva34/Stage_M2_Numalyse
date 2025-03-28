@@ -209,7 +209,7 @@ taille bouton proportionnel et zoom :
 		faire un bouton calcul couleur ->
 		faire dans un second temps ->
 effectuer des tests complet pour etre sur que tous fonctionne bien -> ok
-
+mail hugo raffitin avec projet Adele, lien appli, refaire l'exe et l'installateur avec les modifs -> pas possible pour eux pour l'instant
 
 commencé à lire des papiers sur le choix d'une image réprésentative -> i3e
 	"video frame selection"
@@ -217,11 +217,6 @@ commencé à lire des papiers sur le choix d'une image réprésentative -> i3e
 	"video thumbnail generation"
 	"video summarization"
 	"video abstraction"
-
-
-mail hugo raffitin avec projet Adele, lien appli, refaire l'exe et l'installateur avec les modifs
-
-
 
 !!!!!!!Problèmes!!!!!!
 problème son quand on décharge individuellement puis qu'on charge collectivement -> résolu (l'état du bouton n'était pas bien modifié)
@@ -247,10 +242,11 @@ donner le droit admin à l'appli à travers innosetup : écrire en appdata ne fo
 extraction vidéo : dégradation extrait -> enlever l'option copy pour reencoder
 impossible d'écrire sur la zone de texte -> problème de focus qui est normalement gérer
 exportation vidéo : potentiellement comme pour la seg
-
-suppression bouton extremité 
+suppression bouton extremité -> pointeur 
 	
 problème de son
+
+capture vidéo simple pas de msg de réussite
 
 
 --------vérif exe -------
@@ -260,12 +256,8 @@ problème de son
 ----to----do------
 
 
-
-
-
-
 baguette valentin
-0.95 * 5
+0.95 * 6
 
 baguette norman 
 0.95 * 2
