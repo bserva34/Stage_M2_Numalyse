@@ -328,7 +328,7 @@ class VLCMainWindow(QMainWindow):
 
                 self.capture_button.setEnabled(False)
                 self.vlc_widget.pause_video()
-                self.path_post=self.vlc_widget.capture_screenshot()
+                self.path_post,_=self.vlc_widget.capture_screenshot(post_traitement=True)
                 self.image_post=cv2.imread(self.path_post)
                 self.image_corrige=self.vlc_widget.adjust_gamma(self.image_post,gamma=self.gamma)
                 self.display_corrected_image()

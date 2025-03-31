@@ -246,9 +246,6 @@ suppression bouton extremité -> pointeur
 	
 problème de son
 
-capture vidéo simple pas de msg de réussite
-
-
 --------vérif exe -------
 
 

@@ -292,8 +292,7 @@ class SideMenuWidgetDisplay(QDockWidget):
         if not os.path.exists(capture_dir):
             os.makedirs(capture_dir,exist_ok=True)
 
-        timestamp = datetime.now().strftime("%d-%m-%Y")
-        capture_path = os.path.join(capture_dir, f"{button.text()}_{self.time_manager.m_to_hms(time)}_{self.time_manager.m_to_hms(end)}_{timestamp}.mp4")
+        capture_path = os.path.join(capture_dir, f"{button.text()}_{self.time_manager.m_to_hmsf(time)}_{self.time_manager.m_to_hmsf(end)}.mp4")
 
         self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time//1000,duration//1000,capture_path)
         affichage=MessagePopUp(self)

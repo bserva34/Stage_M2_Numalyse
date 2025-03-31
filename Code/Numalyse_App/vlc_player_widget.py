@@ -18,6 +18,7 @@ from custom_slider import CustomSlider
 from playback_speed_button import PlaybackSpeedButton
 from time_manager import TimeManager
 from no_focus_push_button import NoFocusPushButton
+from message_popup import MessagePopUp
 
 class VLCPlayerWidget(QWidget):
     enable_segmentation = Signal(bool)
@@ -29,6 +30,8 @@ class VLCPlayerWidget(QWidget):
         super().__init__()
 
         self.instance = vlc.Instance("--quiet")
+
+        #print(self.instance)
         self.player = self.instance.media_player_new()
         self.media = None  # Pour suivre le fichier chargé
         self.ac = add_controls
@@ -107,6 +110,12 @@ class VLCPlayerWidget(QWidget):
         self.play_pause_shortcut = QShortcut(QKeySequence("Space"), self)
         self.play_pause_shortcut.activated.connect(self.toggle_play_pause)
 
+        self.move_back_shortcut = QShortcut(QKeySequence("Left"), self)
+        self.move_back_shortcut.activated.connect(self.move_back)
+
+        self.move_front_shortcut = QShortcut(QKeySequence("Right"), self)
+        self.move_front_shortcut.activated.connect(self.move_front)
+
 
     def create_window_time(self, parent_layout):
         # Layout pour le temps + bouton mute
@@ -172,6 +181,12 @@ class VLCPlayerWidget(QWidget):
         self.pause_video()
         self.player.set_rate(self.speed_button.getSpeed())
         self.play_video()
+
+    def move_back(self):
+        self.player.set_time(self.player.get_time()-5000)
+
+    def move_front(self):
+        self.player.set_time(self.player.get_time()+5000)
 
 
     def load_file(self,auto=True):
@@ -243,13 +258,16 @@ class VLCPlayerWidget(QWidget):
 
         file_name = self.name_of_video()
         timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        timecode = self.time_manager.m_to_hms(self.player.get_time())
+        timecode = self.time_manager.m_to_hmsf(self.player.get_time())
 
         # Définir le chemin du fichier en fonction du format
-        if name:
-            capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{timestamp}_{name}.png")
+        if name :
+            capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{name}.png")
         else:
-            capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_{timestamp}.png")
+            if post_traitement:
+                capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}_adjust.png")
+            else:
+                capture_path = os.path.join(self.capture_dir, f"{file_name}_{timecode}.png")
 
         # Capturer l'image (mais ne pas se fier au retour de la fonction)
         self.player.video_take_snapshot(0, capture_path, 0, 0)
@@ -257,11 +275,9 @@ class VLCPlayerWidget(QWidget):
         # Vérifier si l'image a bien été enregistrée
         if os.path.exists(capture_path):
             print(f" Capture enregistrée : {capture_path}")
-
             if post_traitement:
                 image = cv2.imread(capture_path)
                 image_corrige=self.adjust_gamma(image,gamma=gamma)
-
                 cv2.imwrite(capture_path,image_corrige)
 
             # Si le format demandé est JPEG, convertir l'image
@@ -272,7 +288,7 @@ class VLCPlayerWidget(QWidget):
         else:
             print("Erreur : La capture n'a pas été enregistrée !")
 
-        return capture_path
+        return capture_path, timecode
 
     def adjust_gamma(self,image, gamma=1.4):
         inv_gamma = 1.0 / gamma
@@ -309,9 +325,9 @@ class VLCPlayerWidget(QWidget):
 
         if current_time >= 0 and total_time > 0:
             self.progress_slider.setValue(int((current_time / total_time) * 1000))
-            current_time_str = self.time_manager.m_to_hms(current_time).replace(",",":")
+            current_time_str = self.time_manager.m_to_hmsf(current_time).replace(",",":")
             #self.line_edit.setText(current_time_str)
-            total_time_str = self.time_manager.m_to_hms(total_time).replace(",",":")
+            total_time_str = self.time_manager.m_to_hmsf(total_time).replace(",",":")
             self.time_label.setText(f"{current_time_str} / {total_time_str}")
 
         if self.player.get_state()==6 :
@@ -387,10 +403,9 @@ class VLCPlayerWidget(QWidget):
         if not os.path.exists(self.capture_video_dir):
             os.makedirs(self.capture_video_dir)
         file_name = os.path.splitext(os.path.basename(self.path_of_media))[0]
-        timestamp = datetime.now().strftime("%d-%m-%Y")
-        capture_path = os.path.join(self.capture_video_dir, f"{file_name}_{self.time_manager.m_to_hms(self.start)}_{self.time_manager.m_to_hms(end_acc)}_{timestamp}.mp4")
+        capture_path = os.path.join(self.capture_video_dir, f"{file_name}_{self.time_manager.m_to_hmsf(self.start)}_{self.time_manager.m_to_hmsf(end_acc)}.mp4")
         self.extract_segment_with_ffmpeg(self.path_of_media, self.start//1000, duration, capture_path)
-
+        msg=MessagePopUp(self,txt="Capture vidéo enregistré dans Capture_SLV/Vidéo")
         return capture_path
 
 

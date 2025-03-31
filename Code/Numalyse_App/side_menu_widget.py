@@ -362,26 +362,6 @@ class SideMenuWidget(QDockWidget):
         rect_item.update()
 
 
-    #fonction 4 extraction
-    def extract_action(self, button): 
-        for btn_data in self.display.stock_button:
-            if btn_data["id"] == button:
-                time = btn_data["time"]
-                end = btn_data["end"]
-                duration = end - time
-                name=btn_data["button"].text()
-                break;
-
-        self.capture_dir = os.path.join(str(Path.home()), "Capture_SLV","Vidéos")
-        if not os.path.exists(capture_dir):
-            os.makedirs(capture_dir,exist_ok=True)
-
-        timestamp = datetime.now().strftime("%d-%m-%Y")
-        capture_path = os.path.join(capture_dir, f"{name}_{self.time_manager.m_to_hms(time)}_{self.time_manager.m_to_hms(end)}_{timestamp}.mp4")
-
-        self.vlc_widget.extract_segment_with_ffmpeg(self.vlc_widget.path_of_media,time//1000,duration//1000,capture_path)
-        affichage=MessagePopUp(self)
-
     #ajout d'une séquence
     def add_action(self):
         """ Ouvre une boîte de dialogue pour entrer un nom et un temps avec un slider. """

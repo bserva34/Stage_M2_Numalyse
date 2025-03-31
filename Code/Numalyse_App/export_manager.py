@@ -348,9 +348,9 @@ class ExportManager(QWidget):
                     end_str = self.time_manager.m_to_hmsf(btn_data["end"] - btn_data["time"])
                     txt = button.text()
                     txt2 = f"Debut : {time_str} / Duree : {end_str}"
-                    txt3 = [note_widget.toPlainText() for note_widget in self.seg.display.button_notes.get(button, [])]
+                    #txt3 = [note_widget.toPlainText() for note_widget in self.seg.display.button_notes.get(button, [])]
                     height, width, _ = frame.shape
-                    self.write_text_horizontal_on_video(frame, txt, txt2, txt3, width)
+                    self.write_text_horizontal_on_video(frame, txt, txt2,"", width)
                 out.write(frame)
                 cpt += 1
 

@@ -224,13 +224,16 @@ class SyncWidget(QWidget):
     #capture d'écran combiné
     def capture_screenshot(self,post_traitement=False,format_capture=False):
         images = []
+        timestamps = []
         capture_dir = os.path.join(str(Path.home()),"Capture_SLV", "Images")
 
         # Capture des screenshots et ajout des chemins d'accès
         for i in range(self.num_windows):
-            img_path = self.player_widgets[i].capture_screenshot(i,post_traitement,format_capture)
+            img_path,ts = self.player_widgets[i].capture_screenshot(i,post_traitement,format_capture)
             if img_path:
                 images.append(img_path)
+            if ts:
+                timestamps.append(ts)
 
         if not images:
             print("Aucune image n'a été capturée.")
@@ -250,15 +253,14 @@ class SyncWidget(QWidget):
         for img_path in images:
             os.remove(img_path)
 
-        # Sauvegarder l'image combinée
-        timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        name = "_".join(i.name_of_video()[:5] for i in self.player_widgets)
+        name = "_".join(f"{i.name_of_video()[:5]}_{ts}" for i, ts in zip(self.player_widgets, timestamps))
+
 
         if format_capture:
-            combined_path = os.path.join(capture_dir, f"{name}_{timestamp}.jpg")
+            combined_path = os.path.join(capture_dir, f"{name}.jpg")
             combined_image.save(combined_path,format="JPEG")
         else:
-            combined_path = os.path.join(capture_dir, f"{name}_{timestamp}.png")
+            combined_path = os.path.join(capture_dir, f"{name}.png")
             combined_image.save(combined_path)
 
 
@@ -347,7 +349,7 @@ class SyncWidget(QWidget):
 
     def merge_video_end(self):
         self.affichage_temp.hide_message()
-        msg=MessagePopUp(self,txt="Capture vidéo combiné enregistré dans Vidéo/Capture_SLV")
+        msg=MessagePopUp(self,txt="Capture vidéo combiné enregistré dans Capture_SLV/Vidéo")
 
 
     def merge_video(self, video_paths):
@@ -366,7 +368,7 @@ class SyncWidget(QWidget):
         out_writer = None
         timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         name = "_".join(i.name_of_video()[:5] for i in self.player_widgets)
-        output_path = os.path.join(os.path.dirname(video_paths[0]), f"{name}_{timestamp}_merged_video.mp4")
+        output_path = os.path.join(os.path.dirname(video_paths[0]), f"{name}.mp4")
 
         while True:
             frames_pil = []
