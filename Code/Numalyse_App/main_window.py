@@ -13,6 +13,7 @@ from message_popup import MessagePopUp
 from aug_mode import AugMode
 from preference_manager import PreferenceManager
 from no_focus_push_button import NoFocusPushButton
+from color_img import ColorImage
 
 import os
 import json
@@ -149,9 +150,14 @@ class VLCMainWindow(QMainWindow):
         self.subtitle_menu = QMenu(self)
         self.subtitle_button.setMenu(self.subtitle_menu)
         self.subtitle_menu.aboutToShow.connect(self.update_subtitle_menu)
-
         outil_menu.addAction(self.subtitle_button)
+        outil_menu.addSeparator()
 
+        self.colormap_button = QAction("ColorMap", self)
+        self.colormap_button.setEnabled(False)
+        self.vlc_widget.enable_segmentation.connect(self.colormap_button.setEnabled)
+        self.colormap_button.triggered.connect(self.colormap_action)
+        outil_menu.addAction(self.colormap_button)
 
         self.grille_button = QAction("Affichage Grille", self)
         self.grille_button.setCheckable(True)
@@ -774,6 +780,10 @@ class VLCMainWindow(QMainWindow):
 
     def subtitles_load(self,state:bool):
         self.subtitle_create=False
+
+    def colormap_action(self):
+        self.cm=ColorImage(self,self.vlc_widget)
+
 
 
     # grille mais ne fonctionne pas pour l'instant

@@ -39,6 +39,7 @@ from exporttext_thread import ExportTextThread
 from no_focus_push_button import NoFocusPushButton
 
 
+
 class ExportManager(QWidget):
     # Définition des styles
     styles = getSampleStyleSheet()

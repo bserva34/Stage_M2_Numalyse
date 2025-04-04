@@ -254,7 +254,7 @@ problème de son
 
 
 baguette valentin
-0.95 * 6
+0.95 * 8
 
 baguette norman 
 0.95 * 2
