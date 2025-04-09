@@ -10,6 +10,8 @@ from datetime import datetime
 from moviepy import VideoFileClip
 from pathlib import Path
 
+import numpy as np
+
 from segmentation import SegmentationThread
 from time_selector import TimeSelector
 from time_editor import TimeEditor

@@ -4,6 +4,7 @@ from pathlib import Path
 from PIL import Image
 import cv2
 import numpy as np
+from moviepy import VideoFileClip
 
 import vlc
 
@@ -13,6 +14,8 @@ from datetime import datetime
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QFileDialog, QSlider, QLabel, QLineEdit
 from PySide6.QtCore import Qt, QTimer, Signal, QMetaObject
 from PySide6.QtGui import QKeySequence, QShortcut
+
+
 
 from custom_slider import CustomSlider
 from playback_speed_button import PlaybackSpeedButton
@@ -125,7 +128,7 @@ class VLCPlayerWidget(QWidget):
         self.line_edit.setText("00:00:00")
         self.line_edit.setAlignment(Qt.AlignCenter)
         self.line_edit.setFixedWidth(80)
-        self.line_edit.setFocusPolicy(Qt.NoFocus)
+        self.line_edit.setFocusPolicy(Qt.ClickFocus)
         self.line_edit.textChanged.connect(self.on_value_changed)
 
         # Affichage du temps
@@ -195,6 +198,9 @@ class VLCPlayerWidget(QWidget):
             return 
         if auto : self.load_video(file_path)
         self.path_of_media=file_path
+        video=VideoFileClip(self.path_of_media)
+        self.fps = video.fps
+        print(self.fps)
         return file_path
 
 

@@ -154,6 +154,7 @@ class VLCMainWindow(QMainWindow):
         outil_menu.addSeparator()
 
         self.colormap_button = QAction("ColorMap", self)
+        self.colormap_button.setVisible(False)
         self.colormap_button.setEnabled(False)
         self.vlc_widget.enable_segmentation.connect(self.colormap_button.setEnabled)
         self.colormap_button.triggered.connect(self.colormap_action)
@@ -180,14 +181,14 @@ class VLCMainWindow(QMainWindow):
         self.toolbar = QToolBar("Barre d'outils")
         self.addToolBar(Qt.TopToolBarArea, self.toolbar)
 
-        self.capture_button = NoFocusPushButton("📸 Capture d'écran", self)
+        self.capture_button = NoFocusPushButton("Capture d'écran", self)
         self.capture_button.setEnabled(False)
         self.capture_button.setFocusPolicy(Qt.NoFocus)
         self.capture_button.clicked.connect(self.capture_action)
         self.vlc_widget.enable_segmentation.connect(self.capture_button.setEnabled)
         self.toolbar.addWidget(self.capture_button)
 
-        self.capture_video_button = NoFocusPushButton("📽️ Démarrer la capture vidéo", self)
+        self.capture_video_button = NoFocusPushButton("Démarrer la capture vidéo", self)
         self.capture_video_button.setEnabled(False)
         self.capture_video_button.setFocusPolicy(Qt.NoFocus)
         self.capture_video_button.clicked.connect(self.capture_video_action)
@@ -680,7 +681,7 @@ class VLCMainWindow(QMainWindow):
         dialog_layout.addWidget(num_label)
 
         format_option = QButtonGroup(dialog)
-        option1 = QRadioButton(".doxc", dialog)
+        option1 = QRadioButton(".docx", dialog)
         option2 = QRadioButton(".odt", dialog)
         option3=  QRadioButton(".pdf",dialog)
         format_option.addButton(option1)

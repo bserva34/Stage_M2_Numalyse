@@ -4,4 +4,4 @@ from PySide6.QtCore import Qt
 class NoFocusPushButton(QPushButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setFocusPolicy(Qt.NoFocus)
+        self.setFocusPolicy(Qt.ClickFocus)

@@ -208,7 +208,6 @@ class SideMenuWidgetDisplay(QDockWidget):
             for btn_data in self.stock_button:
                 if btn_data["button"] == button:
                     btn_data["button"].setText(new_name)
-                    btn_data["btn"].setText(new_name)
         self.parent.emit_change()
 
 

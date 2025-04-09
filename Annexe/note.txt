@@ -210,13 +210,13 @@ taille bouton proportionnel et zoom :
 		faire dans un second temps ->
 effectuer des tests complet pour etre sur que tous fonctionne bien -> ok
 mail hugo raffitin avec projet Adele, lien appli, refaire l'exe et l'installateur avec les modifs -> pas possible pour eux pour l'instant
-
 commencé à lire des papiers sur le choix d'une image réprésentative -> i3e
 	"video frame selection"
 	"video key frame extraction"
 	"video thumbnail generation"
 	"video summarization"
 	"video abstraction"
+
 
 !!!!!!!Problèmes!!!!!!
 problème son quand on décharge individuellement puis qu'on charge collectivement -> résolu (l'état du bouton n'était pas bien modifié)
@@ -234,16 +234,20 @@ stop seg quand fermeture fenetre -> stop seg close event
 delai changement vitesse lecture à voir si on peut le contrer -> pause change play
 appliquer le changement de frame ->ok
 actualisation couleur qui est mauvaise->normalement c bon
-
 upgrade python sur linux pour utiliser moviepy -> fait par la force du destin merci la maj de ubuntu
 option -w qui casse la segmentation -> enlever l'affichage terminal
 donner le droit admin à l'appli à travers innosetup : écrire en appdata ne fonctionne pas -> installation dans un repertoire permettant l'écriture
-
 extraction vidéo : dégradation extrait -> enlever l'option copy pour reencoder
 impossible d'écrire sur la zone de texte -> problème de focus qui est normalement gérer
 exportation vidéo : potentiellement comme pour la seg
 suppression bouton extremité -> pointeur 
-	
+navigation directe -< click focus	
+rename_button -> btn en trop
+
+
+framerate + affichage apercu frame
+
+
 problème de son
 
 --------vérif exe -------
@@ -260,4 +264,7 @@ baguette norman
 0.95 * 2
 
 baguette louis 
+0.95 * 2
+
+baguette axel
 0.95 * 1
