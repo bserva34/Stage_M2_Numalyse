@@ -19,6 +19,7 @@ from time_manager import TimeManager
 from message_popup import MessagePopUp
 from side_menu_widget_display import SideMenuWidgetDisplay
 from no_focus_push_button import NoFocusPushButton
+from frame_previewer import FramePreviewer
 
 
 class ClickableRectItem(QGraphicsRectItem):
@@ -214,6 +215,8 @@ class SideMenuWidget(QDockWidget):
 
         self.update_scene_size()
 
+        #print(f"{frame1} {frame2}")
+
         return btn
 
     def update_scene_size(self):
@@ -382,14 +385,29 @@ class SideMenuWidget(QDockWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time())
-        layout.addWidget(self.time)        
+        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), self.vlc_widget.player.get_time(),fps=self.vlc_widget.fps)
+        self.time.timechanged.connect(lambda: self.previewer1.preview_frame(self.time.get_time_in_milliseconds()))
+        layout.addWidget(self.time)   
+
+        # Label pour afficher l'image d'aperçu
+        self.img1 = QLabel("", dialog)
+        self.img1.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.img1)
+        self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)  
+        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())   
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000)
-        layout.addWidget(self.time2)        
+        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length() , self.vlc_widget.player.get_time() + 5000,fps=self.vlc_widget.fps)
+        self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
+        layout.addWidget(self.time2)    
+
+        self.img2 = QLabel("", dialog)
+        self.img2.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.img2)
+        self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)   
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()) 
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()
@@ -451,26 +469,20 @@ class SideMenuWidget(QDockWidget):
         
         self.segmentation_thread.start()  # Démarrer le thread
 
-        #self.test()
-
     def on_segmentation_complete(self, timecodes):
         self.seg_ok=True
         self.buttons_layout.removeWidget(self.seg_button)
         self.seg_button.deleteLater()
         self.color_button.setVisible(True)
         self.add_button.setVisible(True)
+        #fichier = open("data.txt","w")
         for time in timecodes:
-            self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3]) 
-        print("Segmentation terminée en arrière-plan.")
-        self.segmentation_done.emit(True)
+            self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])
+            print(f"{time[0]}   {time[1]}")
+            #fichier.write(f"{time[2]}   {time[3]}\n")
+        #fichier.close()
 
-    def test(self):
-        self.seg_ok=True
-        self.layout.removeWidget(self.seg_button)
-        self.seg_button.deleteLater()
-        self.max_time=10000
-        for i in range(10):
-            self.add_new_button(time=i*1000,end=(i+1)*1000)
+        print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
 
     def stop_segmentation(self):

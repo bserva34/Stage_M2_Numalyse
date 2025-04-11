@@ -14,6 +14,7 @@ from time_editor import TimeEditor
 from time_manager import TimeManager
 from message_popup import MessagePopUp
 from no_focus_push_button import NoFocusPushButton
+from frame_previewer import FramePreviewer
 
 class MyTextEdit(QTextEdit):
     def __init__(self, parent=None):
@@ -71,7 +72,7 @@ class SideMenuWidgetDisplay(QDockWidget):
 
         self.max_time=self.vlc_widget.player.get_length()
 
-        self.time_manager=TimeManager()
+        self.time_manager=TimeManager(fps=self.vlc_widget.fps)
 
 
     def select_plan(self,i):
@@ -314,14 +315,28 @@ class SideMenuWidgetDisplay(QDockWidget):
         time_label = QLabel("Début :", dialog)
         layout.addWidget(time_label)
 
-        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), start)
-        layout.addWidget(self.time)        
+        self.time = TimeEditor(dialog, self.vlc_widget.player.get_length(), start,fps=self.vlc_widget.fps)
+        self.time.timechanged.connect(lambda: self.previewer1.preview_frame(self.time.get_time_in_milliseconds()))
+        layout.addWidget(self.time)   
+
+        self.img1 = QLabel("", dialog)
+        self.img1.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.img1)
+        self.previewer1 = FramePreviewer(self.img1, self.vlc_widget.fps, self.vlc_widget.path_of_media)
+        self.previewer1.preview_frame(self.time.get_time_in_milliseconds())     
 
         time_label2 = QLabel("Fin :", dialog)
         layout.addWidget(time_label2)
 
-        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length(), end )
-        layout.addWidget(self.time2)        
+        self.time2 = TimeEditor(dialog, self.vlc_widget.player.get_length(), end ,fps=self.vlc_widget.fps)
+        self.time2.timechanged.connect(lambda: self.previewer2.preview_frame(self.time2.get_time_in_milliseconds()))
+        layout.addWidget(self.time2) 
+
+        self.img2 = QLabel("", dialog)
+        self.img2.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.img2)
+        self.previewer2 = FramePreviewer(self.img2, self.vlc_widget.fps, self.vlc_widget.path_of_media)
+        self.previewer2.preview_frame(self.time2.get_time_in_milliseconds())       
 
         # Boutons OK et Annuler
         button_layout = QHBoxLayout()

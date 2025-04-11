@@ -1,6 +1,10 @@
-class TimeManager():  # Hérite maintenant de QWidget
-    def __init__(self):
+class TimeManager(): 
+    def __init__(self,fps=25):
         super().__init__()
+        self.fps=fps
+
+    def set_fps(self,new_fps):
+        self.fps=new_fps
 
     def m_to_mst(self,milliseconds):
         """ Formate un temps donné en millisecondes en mm:ss.d """
@@ -30,6 +34,7 @@ class TimeManager():  # Hérite maintenant de QWidget
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds % 3600) // 60)
         seconds = int(total_seconds % 60)
-        # Calcul des frames : le reste des millisecondes divisé par 40 (pour 25 fps)
-        frame = int((milliseconds % 1000) // 40)
+
+        tf=1000/self.fps
+        frame = int((milliseconds % 1000) // tf)
         return f"{hours:02}:{minutes:02}:{seconds:02}[{frame:02}]"

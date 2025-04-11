@@ -1,12 +1,15 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QLabel, QGridLayout, QPushButton
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIntValidator
 
 from no_focus_push_button import NoFocusPushButton
 
 class TimeEditor(QWidget):
-    def __init__(self, parent=None, max_time=3600000, time=-1):
+    timechanged = Signal()
+    def __init__(self, parent=None, max_time=3600000, time=-1,fps=25):
         super().__init__(parent)
+        self.fps=fps
+        self.tf=1000/self.fps
         self.max_time = max_time
         self.time = 0  # Temps en millisecondes
         self.frame = 0  # Compteur de frames
@@ -84,10 +87,17 @@ class TimeEditor(QWidget):
         else:
             self.set_time(self.time)
 
+    def set_fps(self,new_fps):
+        self.fps=new_fps
+        self.tf=1000/self.fps
+
     def get_time_in_milliseconds(self):
         return self.time
 
     def set_time(self, milliseconds):
+        self.hours_edit.blockSignals(True)
+        self.minutes_edit.blockSignals(True)
+        self.seconds_edit.blockSignals(True)
         """
         Met à jour le temps interne et l'affichage des zones de texte.
         """
@@ -97,8 +107,7 @@ class TimeEditor(QWidget):
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds % 3600) // 60)
         seconds = int(total_seconds % 60)
-        # Calcul des frames (chaque frame = 40 ms, 25 frames par seconde)
-        frames = int((self.time % 1000) // 40)
+        frames = int((self.time % 1000) // self.tf)
 
         # Mise à jour des zones de texte avec un format à deux chiffres
         self.hours_edit.setText(f"{hours:02}")
@@ -107,6 +116,10 @@ class TimeEditor(QWidget):
         self.frames_label.setText(f"{frames:02}")
 
         self.frame = frames
+
+        self.hours_edit.blockSignals(False)
+        self.minutes_edit.blockSignals(False)
+        self.seconds_edit.blockSignals(False)
 
     def on_time_edited(self):
         try:
@@ -123,24 +136,30 @@ class TimeEditor(QWidget):
             seconds = 0
 
 
-        new_time = (hours * 3600 + minutes * 60 + seconds) * 1000 + self.frame * 40
+        new_time = (hours * 3600 + minutes * 60 + seconds) * 1000 + self.frame * self.tf
         new_time = min(new_time, self.max_time)
         self.set_time(new_time)
+
+        self.timechanged.emit()
 
     def on_plus_frame(self):
         """
         Incrémente le nombre de frames de 1. Si l'incrémentation dépasse 24 frames, la seconde est augmentée.
         """
-        new_time = self.time + 40  # Ajouter 40 ms = 1 frame
+        new_time = self.time + self.tf 
         if new_time > self.max_time:
             new_time = self.max_time
         self.set_time(new_time)
+
+        self.timechanged.emit()
 
     def on_minus_frame(self):
         """
         Décrémente le nombre de frames de 1. Si aucune frame n'est présente, la seconde est diminuée.
         """
-        new_time = self.time - 40  # Retirer 40 ms = 1 frame
+        new_time = self.time - self.tf 
         if new_time < 0:
             new_time = 0
         self.set_time(new_time)
+
+        self.timechanged.emit()

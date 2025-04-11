@@ -84,6 +84,8 @@ class VLCPlayerWidget(QWidget):
 
         self.time_manager=TimeManager()
 
+        self.fps=25
+
     def display(self,visible):
         self.toggle_layout_visibility(self.button_layout,visible)
         self.toggle_layout_visibility(self.time_layout,visible)
@@ -198,14 +200,15 @@ class VLCPlayerWidget(QWidget):
             return 
         if auto : self.load_video(file_path)
         self.path_of_media=file_path
-        video=VideoFileClip(self.path_of_media)
-        self.fps = video.fps
-        print(self.fps)
         return file_path
 
 
     def load_video(self,file_path,suppr_seg=True):
         if file_path:
+            video=VideoFileClip(file_path)
+            self.fps = video.fps
+            self.time_manager.set_fps(self.fps)
+
             self.path_of_media=file_path
             self.media = self.instance.media_new(file_path)
             self.player.set_media(self.media)

@@ -243,9 +243,10 @@ exportation vidéo : potentiellement comme pour la seg
 suppression bouton extremité -> pointeur 
 navigation directe -< click focus	
 rename_button -> btn en trop
+prise en compte framerate
+bdd pyscenedetect pour des test plus poussé -> tests sur le github qui sont réel
+affichage apercu frame -> ok
 
-
-framerate + affichage apercu frame
 
 
 problème de son

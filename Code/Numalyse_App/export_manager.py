@@ -73,7 +73,7 @@ class ExportManager(QWidget):
 
         self.file_path = self.project_manager.project_path
         self.title = self.project_manager.project_name
-        self.time_manager = TimeManager()
+        self.time_manager = TimeManager(fps=self.vlc.fps)
         self.format_export_text = format_export_text
 
         self.configure()
