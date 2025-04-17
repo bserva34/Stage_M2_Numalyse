@@ -9,10 +9,11 @@ from scenedetect.scene_manager import save_images
 class SegmentationThread(QThread):
     segmentation_done = Signal(list)  # Signal émis à la fin
 
-    def __init__(self, video_path):
+    def __init__(self, video_path,color=True):
         super().__init__()
         self.video_path = video_path
         self.running = True  # Flag d'arrêt
+        self.color=color
 
     #calcul de la seg
     def run(self):
@@ -26,7 +27,13 @@ class SegmentationThread(QThread):
         video = open_video(self.video_path)
         scene_manager = SceneManager()
         scene_manager.auto_downscale = True #pour réduire la qualité et gagner en temps de calcul
-        scene_manager.add_detector(HistogramDetector())
+        #scene_manager.add_detector(HistogramDetector())
+        if self.color:
+            #print("AdaptiveDetector")
+            scene_manager.add_detector(AdaptiveDetector())
+        else:
+            #print("HashDetector")
+            scene_manager.add_detector(HashDetector())
 
         try:
             scene_manager.detect_scenes(video, show_progress=False, callback=self.check_stop)

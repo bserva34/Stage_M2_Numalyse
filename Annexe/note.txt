@@ -247,12 +247,16 @@ prise en compte framerate
 bdd pyscenedetect pour des test plus poussé -> tests sur le github qui sont réel
 affichage apercu frame -> ok
 
-
-
 problème de son
 
---------vérif exe -------
 
+detecte si film ndg ou color : puis adapte la méthode segmentation hash ou adaptive
+85% d'une frame au cas ou si sous titres colorés
+
+key frame extraction : 
+	pour l'instant on se concentre sur les plans
+	premier passe qui permet de sortir une sémantique et d'adapté la méthode
+	implémenter la méthode 5 (état de l'art)
 
 
 ----to----do------

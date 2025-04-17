@@ -462,7 +462,10 @@ class SideMenuWidget(QDockWidget):
     #segmentation appelé automatiquement à la création plus maintenant
     def start_segmentation(self):
         video_path = self.vlc_widget.path_of_media
-        self.segmentation_thread = SegmentationThread(video_path)
+
+        color_movie=self.is_movie_color(video_path)
+
+        self.segmentation_thread = SegmentationThread(video_path,color_movie)
         
         # Connecte le signal pour recevoir les timecodes
         self.segmentation_thread.segmentation_done.connect(self.on_segmentation_complete)
@@ -475,12 +478,12 @@ class SideMenuWidget(QDockWidget):
         self.seg_button.deleteLater()
         self.color_button.setVisible(True)
         self.add_button.setVisible(True)
-        #fichier = open("data.txt","w")
+        fichier = open("data.txt","w")
         for time in timecodes:
             self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])
-            print(f"{time[0]}   {time[1]}")
-            #fichier.write(f"{time[2]}   {time[3]}\n")
-        #fichier.close()
+            #print(f"{time[0]}   {time[1]}")
+            fichier.write(f"{time[1]-time[0]}_{time[3]-time[2]}\n")
+        fichier.close()
 
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
@@ -495,6 +498,43 @@ class SideMenuWidget(QDockWidget):
         self.parent.removeDockWidget(self.display)
         self.display.deleteLater()
         self.display=None
+
+
+    def is_movie_color(self,video_path):
+        def is_grayscale_frame(frame, threshold=0.85):
+            if len(frame.shape) == 3 and frame.shape[2] == 3:
+                b, g, r = cv2.split(frame)
+                # Créer un masque de pixels où R=G=B
+                mask = (r == g) & (g == b)
+                ratio = np.sum(mask) / mask.size
+                return ratio >= threshold
+            return True
+
+        cap = cv2.VideoCapture(video_path)
+        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        #print(f"Total frame : {frame_count}")
+        sample_frames = 10
+        grayscale_frames = 0
+
+        valid_range = frame_count - 2
+        for i in range(1, sample_frames + 1):
+            frame_index = 1 + (valid_range // (sample_frames + 1)) * i
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+            ret, frame = cap.read()
+            if not ret:
+                continue
+            if is_grayscale_frame(frame):
+                grayscale_frames += 1
+
+        cap.release()
+
+        if grayscale_frames >= sample_frames * 0.8:
+            #print("Le film semble être en noir et blanc.")
+            return False
+        else:
+            #print("Le film est en couleur.")
+            return True
+
 
     def resizeEvent(self, event):
         pass

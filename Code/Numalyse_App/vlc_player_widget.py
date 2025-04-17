@@ -207,6 +207,7 @@ class VLCPlayerWidget(QWidget):
         if file_path:
             video=VideoFileClip(file_path)
             self.fps = video.fps
+            #print(self.fps)
             self.time_manager.set_fps(self.fps)
 
             self.path_of_media=file_path
