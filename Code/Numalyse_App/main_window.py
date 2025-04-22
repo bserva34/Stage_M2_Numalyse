@@ -13,7 +13,7 @@ from message_popup import MessagePopUp
 from aug_mode import AugMode
 from preference_manager import PreferenceManager
 from no_focus_push_button import NoFocusPushButton
-from color_img import ColorImage
+#from color_img import ColorImage
 
 import os
 import json

@@ -478,12 +478,12 @@ class SideMenuWidget(QDockWidget):
         self.seg_button.deleteLater()
         self.color_button.setVisible(True)
         self.add_button.setVisible(True)
-        fichier = open("data.txt","w")
+        #fichier = open("data.txt","w")
         for time in timecodes:
             self.add_new_button(time=time[0],end=time[1],frame1=time[2],frame2=time[3])
             #print(f"{time[0]}   {time[1]}")
-            fichier.write(f"{time[1]-time[0]}_{time[3]-time[2]}\n")
-        fichier.close()
+            #fichier.write(f"{time[1]-time[0]}_{time[3]-time[2]}\n")
+        #fichier.close()
 
         print("Segmentation terminée en arrière-plan.")
         self.segmentation_done.emit(True)
