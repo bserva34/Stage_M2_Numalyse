@@ -89,7 +89,7 @@ class ExtractManager(QWidget):
                         self.file_path += ".mp4"
                     load.setText("exportation en cours ⌛")
                     QApplication.processEvents() 
-                    self.vlc.extract_segment_with_ffmpeg(self.vlc.path_of_media, deb // 1000, temps // 1000, self.file_path)
+                    self.vlc.extract_segment_with_ffmpeg(self.vlc.path_of_media, deb / 1000, temps / 1000, self.file_path)
                     affichage = MessagePopUp(self)
                     dialog.accept()
             except ValueError:

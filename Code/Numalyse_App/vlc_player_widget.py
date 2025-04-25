@@ -205,9 +205,12 @@ class VLCPlayerWidget(QWidget):
 
     def load_video(self,file_path,suppr_seg=True):
         if file_path:
-            video=VideoFileClip(file_path)
-            self.fps = video.fps
-            #print(self.fps)
+            try:
+                video = VideoFileClip(file_path)
+                self.fps = video.fps
+            except Exception as e:
+                #print(f"Erreur lors du chargement de la vidéo : {e}")
+                self.fps = 25
             self.time_manager.set_fps(self.fps)
 
             self.path_of_media=file_path

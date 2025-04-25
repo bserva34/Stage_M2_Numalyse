@@ -1,6 +1,6 @@
 {
     "format_capture": false,
-    "post_traitement": true,
+    "post_traitement": false,
     "gamma": 0.51,
     "format_export_text": [
         false,

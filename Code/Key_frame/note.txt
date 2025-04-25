@@ -1,0 +1,9 @@
+Pour une première passe ça pourrait etre intérressant de détecter si le contenue de l'image change
+	si il change très peu alors prendre la frame du milieu
+	ssim/psnr/mi ou bien comparaison d'histogramme
+
+
+5.py
+atribuer un score plus fort pour des labels cibles
+prend en compte la taille de la bouning box
+
