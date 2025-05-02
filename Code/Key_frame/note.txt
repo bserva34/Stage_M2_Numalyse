@@ -7,3 +7,8 @@ Pour une première passe ça pourrait etre intérressant de détecter si le cont
 atribuer un score plus fort pour des labels cibles
 prend en compte la taille de la bouning box
 
+
+evaluation des résultats
+	1) difficulter à déterminer une vv
+	2) comment comparer de manière automatique : PSNR -> chute drastique avec une faible variation, évaluation par l'humain
+

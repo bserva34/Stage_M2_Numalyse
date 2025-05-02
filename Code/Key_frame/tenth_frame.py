@@ -5,7 +5,7 @@ import argparse
 def extract_10th_frame(video_path, out_dir='keyframes'):
     cap = cv2.VideoCapture(video_path)
     os.makedirs(out_dir, exist_ok=True)
-    name_of_video=os.path.basename(video_path)
+    name_of_video=os.path.splitext(os.path.basename(args.video))[0]
 
     frame_idx = 0
     target_idx = 9  # 10e frame (index 9 car indexation commence à 0)
@@ -16,7 +16,7 @@ def extract_10th_frame(video_path, out_dir='keyframes'):
         if not ret:
             break
         if frame_idx == target_idx:
-            fname = os.path.join(out_dir, f"{name_of_video}_frame_10.jpg")
+            fname = os.path.join(out_dir, f"{name_of_video}_keyframe_10.jpg")
             cv2.imwrite(fname, frame)
             saved = True
             break

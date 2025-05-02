@@ -8,12 +8,13 @@ def extract_middle_frame(video_path, out_dir='keyframes'):
     middle_index = total_frames // 2
 
     os.makedirs(out_dir, exist_ok=True)
-    name_of_video=os.path.basename(video_path)
+    name_of_video=os.path.splitext(os.path.basename(args.video))[0]
+
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, middle_index)
     ret, frame = cap.read()
     if ret:
-        fname = os.path.join(out_dir, f"{name_of_video}_middle_frame.jpg")
+        fname = os.path.join(out_dir, f"{name_of_video}_keyframe_{middle_index}.jpg")
         cv2.imwrite(fname, frame)
     else:
         print("Impossible de lire la frame du milieu.")

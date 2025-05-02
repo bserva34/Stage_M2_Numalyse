@@ -273,3 +273,6 @@ baguette louis
 
 baguette axel
 0.95 * 1
+
+baguette khélian
+0.95 * 1
