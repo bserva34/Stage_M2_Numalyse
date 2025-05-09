@@ -117,6 +117,9 @@ class ExportManager(QWidget):
                 load.setText("Exportation en cours ⌛")
                 QApplication.processEvents()
                 if option_1.isChecked():
+                    # self.export_thread = ExportTextThread(self,option=4)
+                    # self.export_thread.segmentation_done.connect(lambda: export_done(dialog))
+                    # self.export_thread.start()
                     if self.format_export_text[0]:
                         self.export_thread = ExportTextThread(self,option=1)
                         self.export_thread.segmentation_done.connect(lambda: export_done(dialog))
@@ -190,6 +193,27 @@ class ExportManager(QWidget):
         new_width = int(width * ratio)
         new_height = int(height * ratio)
         return img_stream,new_width,new_height
+
+    def export_txt(self, callback=None):
+        self.file_path = os.path.join(self.file_path, f"{self.title}.txt")  # Correction de l'extension
+
+        try:
+            with open(self.file_path, "w", encoding="utf-8") as fichier:
+                total_plans = len(self.seg.display.stock_button)
+                fichier.write(f"{total_plans}\n")
+
+                for btn_data in self.seg.display.stock_button:
+                    if not callback():
+                        print("Exportation annulée par l'utilisateur.")
+                        return
+                    button = btn_data["button"]
+                    line = f"{button.text()}"
+                    fichier.write(line + "\n")
+
+            print(f"Fichier TXT enregistré : {self.file_path}")
+        except Exception as e:
+            print(f"Erreur lors de l'exportation TXT : {e}")
+
 
     def export_pdf(self,callback=None):
         self.file_path = os.path.join(self.file_path, f"{self.title}.pdf")

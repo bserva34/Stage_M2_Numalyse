@@ -4,14 +4,32 @@ import fnmatch
 from PIL import Image, ImageDraw, ImageFont
 import math
 
-def create_composite(image_paths, save_path, folder_names, font_size=20, per_row=2):
+def create_composite(image_paths, save_path, folder_names, extra_labels=None,
+                     font_size=20, per_row=3, target_h=256):
     """
-    Crée une image composite en grille (per_row par ligne) avec les noms de dossiers au-dessus.
+    Crée une image composite :
+    - toutes les images ont la même hauteur (target_h), largeur proportionnelle,
+    - le texte est centré avec nom de dossier + suffixe,
+    - les images sont centrées horizontalement dans chaque cellule.
     """
-    # Charger les images
-    imgs = [Image.open(p) for p in image_paths]
-    widths, heights = zip(*(img.size for img in imgs))
-    img_w, img_h = max(widths), max(heights)  # on suppose une taille max pour toute la grille
+    from PIL import ImageOps
+
+    imgs = []
+    resized_sizes = []
+
+    # 1. Charger et redimensionner les images tout en conservant le ratio
+    for path in image_paths:
+        img = Image.open(path).convert("RGB")
+        w, h = img.size
+        ratio = target_h / h
+        new_w = int(w * ratio)
+        img_resized = img.resize((new_w, target_h), Image.LANCZOS)
+        imgs.append(img_resized)
+        resized_sizes.append((new_w, target_h))
+
+    max_w = max(w for w, _ in resized_sizes)
+    img_w = max_w
+    img_h = target_h
 
     text_padding = font_size + 10
     cell_h = img_h + text_padding
@@ -31,22 +49,33 @@ def create_composite(image_paths, save_path, folder_names, font_size=20, per_row
         font = ImageFont.load_default()
 
     for idx, (img, folder_name) in enumerate(zip(imgs, folder_names)):
+        label = folder_name
+        if extra_labels:
+            label += f" - {extra_labels[idx]}"
+
         row = idx // per_row
         col = idx % per_row
         x = col * img_w
         y = row * cell_h
 
-        # Dessiner le texte centré
-        bbox = draw.textbbox((0, 0), folder_name, font=font)
+        # Centrage horizontal de l’image dans la cellule
+        img_w_resized, _ = img.size
+        paste_x = x + (img_w - img_w_resized) // 2
+
+        # Centrer le texte
+        bbox = draw.textbbox((0, 0), label, font=font)
         text_w = bbox[2] - bbox[0]
         text_x = x + (img_w - text_w) // 2
-        draw.text((text_x, y + 5), folder_name, fill=(0, 0, 0), font=font)
+        draw.text((text_x, y + 5), label, fill=(0, 0, 0), font=font)
 
-        # Coller l’image
-        composite.paste(img, (x, y + text_padding))
+        # Coller l’image redimensionnée
+        composite.paste(img, (paste_x, y + text_padding))
 
     composite.save(save_path)
     print(f"→ Enregistré : {save_path}")
+
+
+
 
 def collect_prefixes(root_dir, marker='_keyframe'):
     """
@@ -115,7 +144,11 @@ def main(root_dir, output_dir, marker='_keyframe'):
         folders = [d for _, d, _ in folder_vals]
         paths = [p for _, _, p in folder_vals]
 
-        create_composite(paths, save_path, folders)
+
+        extra_labels = [os.path.splitext(os.path.basename(p))[0].rsplit('_', 1)[-1] for p in paths]
+        create_composite(paths, save_path, folders, extra_labels=extra_labels)
+
+
 
 
 

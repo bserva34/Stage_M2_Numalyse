@@ -1,0 +1,107 @@
+Occurrences des objets détectés dans la vidéo : adele_plan
+Nombre de frames : 880
+person détecté 859 fois -> présent dans 80.3409% des frames
+car détecté 2471 fois -> présent dans 57.3864% des frames
+stop sign détecté 207 fois -> présent dans 23.4091% des frames
+bus détecté 51 fois -> présent dans 5.7955% des frames
+backpack détecté 20 fois -> présent dans 2.2727% des frames
+fire hydrant détecté 13 fois -> présent dans 1.4773% des frames
+truck détecté 13 fois -> présent dans 1.4773% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : drone
+Nombre de frames : 727
+bird détecté 8 fois -> présent dans 1.1004% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : plisson
+Nombre de frames : 57
+person détecté 712 fois -> présent dans 100.0000% des frames
+sports ball détecté 4 fois -> présent dans 7.0175% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : rugby_plan
+Nombre de frames : 316
+person détecté 1204 fois -> présent dans 97.4684% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : shark
+Nombre de frames : 1456
+bird détecté 306 fois -> présent dans 21.0165% des frames
+person détecté 288 fois -> présent dans 19.6429% des frames
+dog détecté 22 fois -> présent dans 1.5110% des frames
+surfboard détecté 14 fois -> présent dans 0.9615% des frames
+boat détecté 1 fois -> présent dans 0.0687% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : shinning
+Nombre de frames : 714
+person détecté 1074 fois -> présent dans 100.0000% des frames
+toilet détecté 667 fois -> présent dans 93.4174% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : tsr
+Nombre de frames : 192
+person détecté 156 fois -> présent dans 81.2500% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : velo1
+Nombre de frames : 379
+person détecté 65 fois -> présent dans 17.1504% des frames
+bicycle détecté 31 fois -> présent dans 8.1794% des frames
+cow détecté 3 fois -> présent dans 0.7916% des frames
+motorcycle détecté 3 fois -> présent dans 0.7916% des frames
+dog détecté 1 fois -> présent dans 0.2639% des frames
+surfboard détecté 1 fois -> présent dans 0.2639% des frames
+bird détecté 1 fois -> présent dans 0.2639% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : velo2
+Nombre de frames : 349
+person détecté 20 fois -> présent dans 5.7307% des frames
+bicycle détecté 9 fois -> présent dans 2.5788% des frames
+motorcycle détecté 7 fois -> présent dans 2.0057% des frames
+elephant détecté 1 fois -> présent dans 0.2865% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : voiture
+Nombre de frames : 303
+person détecté 749 fois -> présent dans 91.0891% des frames
+car détecté 103 fois -> présent dans 26.0726% des frames
+sports ball détecté 58 fois -> présent dans 19.1419% des frames
+truck détecté 49 fois -> présent dans 16.1716% des frames
+bus détecté 21 fois -> présent dans 6.9307% des frames
+motorcycle détecté 3 fois -> présent dans 0.9901% des frames
+boat détecté 1 fois -> présent dans 0.3300% des frames
+traffic light détecté 1 fois -> présent dans 0.3300% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : vs_fixe_plan1
+Nombre de frames : 444
+car détecté 170 fois -> présent dans 38.2883% des frames
+potted plant détecté 162 fois -> présent dans 36.4865% des frames
+person détecté 54 fois -> présent dans 11.9369% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : vs_fixe_plan2
+Nombre de frames : 765
+car détecté 648 fois -> présent dans 84.3137% des frames
+potted plant détecté 358 fois -> présent dans 46.7974% des frames
+person détecté 33 fois -> présent dans 4.1830% des frames
+cow détecté 3 fois -> présent dans 0.3922% des frames
+parking meter détecté 2 fois -> présent dans 0.2614% des frames
+fire hydrant détecté 1 fois -> présent dans 0.1307% des frames
+
+
+

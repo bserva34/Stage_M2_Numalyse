@@ -263,7 +263,7 @@ key frame extraction :
 
 
 baguette valentin
-0.95 * 9
+0.95 * 10
 
 baguette norman 
 0.95 * 2

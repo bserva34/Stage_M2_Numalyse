@@ -17,6 +17,8 @@ class ExportTextThread(QThread):
                 self.export_manager.export_odt(callback=self.check_stop)
             elif self.option==3:
                 self.export_manager.export_pdf(callback=self.check_stop)
+            elif self.option==4:
+                self.export_manager.export_txt(callback=self.check_stop)
         except StopProcessingException as e:
             print("Exportation interrompue :", str(e))
 

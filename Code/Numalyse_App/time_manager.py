@@ -38,3 +38,7 @@ class TimeManager():
         tf=1000/self.fps
         frame = int((milliseconds % 1000) // tf)
         return f"{hours:02}:{minutes:02}:{seconds:02}[{frame:02}]"
+
+    def m_to_frame(self, milliseconds):
+        """Renvoie le numéro de frame correspondant à un temps en millisecondes."""
+        return int((milliseconds / 1000) * self.fps)

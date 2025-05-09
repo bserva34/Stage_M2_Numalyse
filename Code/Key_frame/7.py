@@ -107,19 +107,15 @@ if __name__ == '__main__':
 
 
 
-# Lecture et prétraitement des images
-
-# On ouvre la vidéo et on parcourt chaque image (frame).
-
 # Pour chaque image, on extrait quatre « canaux » de caractéristiques :
 
 # FM (motion) : différence absolue entre l’image courante et la précédente (si elle existe).
 
 # FB (brightness) : moyenne des trois canaux R, G, B, restituée en niveaux de gris.
 
-# FRG (red/green opponency) : 
+# FRG (red/green opponency)
 
-# FBY (blue/yellow opponency) : 
+# FBY (blue/yellow opponency) 
 
 
 # Fusion par transformée de Fourier quaternion
@@ -132,11 +128,12 @@ if __name__ == '__main__':
 
 # On effectue une FFT 2D sur chacun des deux plans.
 
-# On calcule une carte de phase fusionnée :
+# On calcule une carte de phase fusionnée 
 
 # formule
 
 # On normalise cette phase en image 8 bits (0–255).
+
 
 # Filtrage spatial
 

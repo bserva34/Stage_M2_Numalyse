@@ -1,0 +1,87 @@
+Occurrences des objets détectés dans la vidéo : adele_plan
+Nombre de frames : 880
+car détecté 1368 fois -> présent dans 53.1818% des frames
+person détecté 463 fois -> présent dans 52.6136% des frames
+stop sign détecté 18 fois -> présent dans 2.0455% des frames
+bus détecté 12 fois -> présent dans 1.3636% des frames
+fire hydrant détecté 4 fois -> présent dans 0.4545% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : drone
+Nombre de frames : 727
+
+
+
+Occurrences des objets détectés dans la vidéo : plisson
+Nombre de frames : 57
+person détecté 158 fois -> présent dans 96.4912% des frames
+sports ball détecté 1 fois -> présent dans 1.7544% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : rugby_plan
+Nombre de frames : 316
+person détecté 58 fois -> présent dans 15.1899% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : shark
+Nombre de frames : 1456
+bird détecté 150 fois -> présent dans 10.3022% des frames
+person détecté 38 fois -> présent dans 2.6099% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : shinning
+Nombre de frames : 714
+person détecté 877 fois -> présent dans 93.2773% des frames
+toilet détecté 585 fois -> présent dans 81.9328% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : tsr
+Nombre de frames : 192
+person détecté 136 fois -> présent dans 70.8333% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : velo1
+Nombre de frames : 379
+person détecté 37 fois -> présent dans 9.7625% des frames
+bicycle détecté 18 fois -> présent dans 4.7493% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : velo2
+Nombre de frames : 349
+person détecté 16 fois -> présent dans 4.5845% des frames
+bicycle détecté 5 fois -> présent dans 1.4327% des frames
+motorcycle détecté 1 fois -> présent dans 0.2865% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : voiture
+Nombre de frames : 303
+person détecté 185 fois -> présent dans 48.1848% des frames
+car détecté 49 fois -> présent dans 12.2112% des frames
+sports ball détecté 27 fois -> présent dans 8.9109% des frames
+truck détecté 4 fois -> présent dans 1.3201% des frames
+bus détecté 1 fois -> présent dans 0.3300% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : vs_fixe_plan1
+Nombre de frames : 444
+car détecté 44 fois -> présent dans 9.9099% des frames
+person détecté 8 fois -> présent dans 1.8018% des frames
+
+
+
+Occurrences des objets détectés dans la vidéo : vs_fixe_plan2
+Nombre de frames : 765
+car détecté 547 fois -> présent dans 71.5033% des frames
+potted plant détecté 61 fois -> présent dans 7.9739% des frames
+
+
+
