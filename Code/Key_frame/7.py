@@ -9,7 +9,7 @@ def parse_args():
         description='Key frame extraction based on quaternion Fourier transform with multiple features fusion')
     parser.add_argument('video', help='Path to input video')
     parser.add_argument('--out', '-o', required=True, help='Output directory')
-    parser.add_argument('--sigma', type=float, default=20, help='Gaussian filter sigma')
+    parser.add_argument('--sigma', type=float, default=0.5, help='Gaussian filter sigma')
     return parser.parse_args()
 
 

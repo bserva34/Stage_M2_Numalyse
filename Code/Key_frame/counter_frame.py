@@ -21,5 +21,5 @@ def process_videos_in_folder(folder_path):
 
 # Exemple d'utilisation :
 if __name__ == "__main__":
-    dossier_videos = "../../Film/BBD_video_varié"  
+    dossier_videos = "../../Film/BBD_video_varié/Plan_film"  
     process_videos_in_folder(dossier_videos)

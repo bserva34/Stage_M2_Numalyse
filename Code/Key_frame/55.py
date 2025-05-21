@@ -62,9 +62,9 @@ def main():
                    help="Dossier de sortie pour la keyframe")
     p.add_argument("--thr", type=float, default=0.7,
                    help="Seuil minimal de confiance pour les détections")
-    p.add_argument("--area_min", type=float, default=0.1,
+    p.add_argument("--area_min", type=float, default=0.01,
                    help="Seuil minimal de surface normalisée (ex: 0.01 = 1% de l'image)")
-    p.add_argument("--area_max", type=float, default=0.4,
+    p.add_argument("--area_max", type=float, default=1,
                    help="Seuil maximal de surface normalisée (ex: 0.4 = 40% de l'image)")
     p.add_argument("--weight_person", type=float, default=10.0,
                    help="Poids appliqué aux personnes (label COCO=1)")

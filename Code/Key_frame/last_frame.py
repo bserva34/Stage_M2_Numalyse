@@ -12,8 +12,6 @@ def extract_middle_frame(video_path, out_dir='keyframes'):
 
     width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    print(width)
-    print(height)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, middle_index)
     ret, frame = cap.read()

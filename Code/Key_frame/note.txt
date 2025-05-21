@@ -12,3 +12,6 @@ evaluation des résultats
 	1) difficulter à déterminer une vv
 	2) comment comparer de manière automatique : PSNR -> chute drastique avec une faible variation, évaluation par l'humain
 
+
+
+19/06 14h
