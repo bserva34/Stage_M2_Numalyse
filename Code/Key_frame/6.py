@@ -122,8 +122,8 @@ def main():
     model.fit(X_s)
     scores = model.decision_function(X_s)
     order = np.argsort(scores)
-    #selected = order[:args.top_n]
-    selected = order[-args.top_n:]
+    selected = order[:args.top_n]
+    #selected = order[-args.top_n:]
 
 
     # Nom de base du fichier vidéo

@@ -48,8 +48,8 @@ def find_matching_frame(video_path, image_path, method='hist', step=1):
     return best_frame
 
 # Exemple d'utilisation
-video_file = "../../Film/BBD_video_varié/Plan_film/shinning2.mp4"
-image_file = "vv/LLB/shinning2.png"
+video_file = "../../Film/BBD_video_varié/Plan_film/4eme2.mp4"
+image_file = "vv/FA/4eme2.png"
 #image_file = "vv/4eme2.jpg"
 #image_file = "vv/VV_Amandine_D'AZEVEDO/4eme2.png"
 

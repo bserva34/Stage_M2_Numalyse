@@ -1,0 +1,4 @@
+ffmpeg -i lecorniaud1.mp4 \
+  -vf "scale=trunc(iw*sar/2)*2:ih,setsar=1" \
+  -c:v libx264 -c:a copy \
+  lecorniaud1_resize.mp4
