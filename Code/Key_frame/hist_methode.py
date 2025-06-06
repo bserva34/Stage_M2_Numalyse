@@ -87,7 +87,7 @@ def main():
     parser.add_argument('--metric', default='euclidean', choices=['euclidean', 'cityblock', 'cosine'],
                         help='Distance metric to use')
     parser.add_argument('--topk', type=int, default=1, help='Number of nearest frames to select')
-    parser.add_argument('--sigma-pos', type=float, default=0.3,
+    parser.add_argument('--sigma-pos', type=float, default=0.5,
                         help='Spatial weighting sigma (normalized distance)')
     args = parser.parse_args()
 

@@ -160,7 +160,7 @@ def main():
         #     0.1 * gaussienne[i] +
         #     0.1 * (norm_sh)
         # )
-        comb=norm_d*gaussienne[i]*norm_sh
+        comb = 0.7 * norm_d + 0.15 * gaussienne[i] + 0.15 * norm_sh
         comb_scores.append(comb)
 
     # Étape 1 : top-N frames par score combiné brut

@@ -1,17 +1,24 @@
-Pour une première passe ça pourrait etre intérressant de détecter si le contenue de l'image change
-	si il change très peu alors prendre la frame du milieu
-	ssim/psnr/mi ou bien comparaison d'histogramme
-
-
-5.py
-atribuer un score plus fort pour des labels cibles
-prend en compte la taille de la bouning box
-
-
-evaluation des résultats
-	1) difficulter à déterminer une vv
-	2) comment comparer de manière automatique : PSNR -> chute drastique avec une faible variation, évaluation par l'humain
-
-
-
 19/06 14h
+
+note questionnaire
+
+Plan 1 :
+	-1:hist final
+	-2:6
+	-3:5 final
+	-4:middle
+	-5:7 sigma 0.5
+
+Plan 2 :
+	-1:7 sigma 0.5
+	-2:5 final
+	-3:middle
+	-4:6
+	-5:hist final
+
+Plan 3 :
+	-1:5 final
+	-2:hist final
+	-3:7 sigma 0.5
+	-4:middle
+	-5:6
