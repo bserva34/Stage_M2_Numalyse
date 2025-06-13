@@ -269,7 +269,7 @@ baguette norman
 0.95 * 5
 
 baguette louis 
-0.95 * 2
+0.95 * 3
 
 baguette axel
 0.95 * 1

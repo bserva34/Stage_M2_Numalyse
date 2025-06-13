@@ -154,13 +154,13 @@ def main():
         norm_s = sift_scores[i] / max_sift if max_sift > 0 else 0.0
         norm_d = det_scores[i] / max_det if max_det > 0 else 0.0
         norm_sh = sharpness_scores[i] / max_sharp if max_sharp > 0 else 0.0
-        # comb = (
-        #     0.2 * norm_s +
-        #     0.6 * norm_d +
-        #     0.1 * gaussienne[i] +
-        #     0.1 * (norm_sh)
-        # )
-        comb = 0.7 * norm_d + 0.15 * gaussienne[i] + 0.15 * norm_sh
+        comb = (
+            0.2 * norm_s +
+            0.6 * norm_d +
+            0.1 * gaussienne[i] +
+            0.1 * (norm_sh)
+        )
+        # comb = norm_d * gaussienne[i] * norm_sh
         comb_scores.append(comb)
 
     # Étape 1 : top-N frames par score combiné brut

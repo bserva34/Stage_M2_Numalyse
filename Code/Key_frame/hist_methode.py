@@ -65,7 +65,7 @@ def compute_label_histogram(frame, model, transform, thr, num_classes, device, s
     a_norm = area / (H * W)
 
     # Pondération totale = score * w_pos * a_norm
-    weights = scores_f * w_pos
+    weights = scores_f * w_pos 
 
     # Histogramme
     hist = np.zeros(num_classes, dtype=np.float32)

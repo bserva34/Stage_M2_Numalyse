@@ -1,5 +1,23 @@
 19/06 14h
 
+E = nombre d’évaluateurs
+S = nombre de plans montrés à chaque évaluateur
+R = nombre minimal de fois qu’on souhaite qu’un plan soit évalué
+N = nombre total de plans dans la base
+
+Nombre total d'évaluations =  E*S
+Nombre minimal d'évaluations nécessaires = N*R
+E*S>=N*R
+
+N<= (E*S)/R
+si on a 50 évaluateurs, 10 plans chacuns, 10 évaluations par plan
+(50*10)/10 = 50 plans sont nécessaires
+
+E>= (N*R)/S
+si on a 20 plans, 20 évaluations par plan, 10 plans par évaluateurs
+(20*20)/10 = 40 évaluateurs seront nécessaire
+
+
 note questionnaire
 
 Plan 1 :
@@ -22,3 +40,5 @@ Plan 3 :
 	-3:7 sigma 0.5
 	-4:middle
 	-5:6
+
+
