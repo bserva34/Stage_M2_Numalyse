@@ -18,7 +18,7 @@ dy = (Y - cy) / cy
 dist = np.sqrt(dx**2 + dy**2)
 
 # Paramètre de la gaussienne
-sigma = 1.0
+sigma = 0.5
 
 # Calcul de la pondération spatiale
 w_pos = np.exp(-0.5 * (dist / sigma)**2)
