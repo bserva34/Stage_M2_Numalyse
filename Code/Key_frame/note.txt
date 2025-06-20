@@ -20,25 +20,315 @@ si on a 20 plans, 20 évaluations par plan, 10 plans par évaluateurs
 
 note questionnaire
 
-Plan 1 :
+Ordre méthode :
 	-1:hist final
 	-2:6
 	-3:5 final
 	-4:middle
 	-5:7 sigma 0.5
-
-Plan 2 :
-	-1:7 sigma 0.5
-	-2:5 final
-	-3:middle
-	-4:6
-	-5:hist final
-
-Plan 3 :
-	-1:5 final
-	-2:hist final
-	-3:7 sigma 0.5
-	-4:middle
-	-5:6
+	-6:5 base
 
 
+La Vie D'adele
+Diner de cons
+John Wick
+Le Corniaud
+ECGTB
+
+Man Of The West
+Trip To The Moon
+
+Shining
+MOF
+FallStaff
+
+
+
+J'avais écrit une explication pour chaque article dans mon état de l'art mais c'est beaucoup trop long. Donc j'aimerais faire de manière où on explique les différentes approches utilisé dans les articles en citant bien chaque article concerné. Le but n'est pas de faire des paragraphe énorme rempli d'information mais juste renseigné le rapporteur sur les différentes options qui existe.
+
+
+
+% \subsubsection{\textcolor{red}{Article numéro 1}}
+% Une grande partie des papiers se base sur cette méthode, où la méthode consiste à faire une segmentation par plan de la vidéo. Ainsi pour chaque plan détecté on garde la première et la dernière frame, ce qui nous donne une liste de N frames clés.
+
+
+% \subsubsection{\textcolor{red}{Article numéro 2}}
+% Dans ce papier \textcolor{blue}{[2]} ils font la distinction entre deux types de vidéos : édités (film, pub, clip etc...) et non édités (vidéo sans post production donc filmé d'un seul trait).
+% \paragraph{Première étape : extraction d'images clés}
+% \subparagraph{Vidéos non éditées}
+% Différentes méthodes servent à définir des images clés:
+% \begin{itemize}
+%     \item Les différences d’histogramme de couleur et de disposition de couleur sont calculées et comparées à des seuils empiriques.
+%     \item Une mise au point après une période de mouvement peut indiquer une scène ou un objet d’intérêt.
+%     \item Les objets en mouvement sont détectés.
+%     \item Détection de visages.
+%     \item Le contenu audio est analysé pour reconnaître des événements tels que le rire ou la parole.
+% \end{itemize}
+% Les images candidates sont regroupées en clusters à l’aide de l’algorithme K-means ou d'une méthode de construction d’ensemble adaptative.\\
+% Un score d'importance est calculé pour chaque image clé candidate en fonction des mouvements de caméra, des visages humains, de la taille et de la position des objets en mouvement, ainsi que des événements audio.\\
+% La qualité d'image est également évaluée (netteté, luminosité et contraste).
+% Une image représentative est sélectionnée à partir de chaque cluster en fonction du score d'importance, de la proximité avec le centre du cluster et de la qualité d'image.
+% \subparagraph{Vidéo éditées}
+% Tout d'abord la vidéo est segmentée en plan, puis ensuite trois modes de sélections sont possible : 
+% \begin{itemize}
+%     \item Une image par plan : sélection de l'image de meilleur qualité.
+%     \item Nombre fixe d'images clés prédéterminé.
+%     \item Taux fixe d'images clés, sélectionné à intervalle régulier.
+% \end{itemize}
+% \paragraph{Deuxième étape : classement basé sur le thème}
+% Des mots clés sont obtenus à partir du titre et de la description de la vidéo, ensuite une recherche d'images est effectuée (par exemple via Google images) avec ces mots clés. Grâce à ces résultats un modèle visuel du thème est construit à partir des caractéristiques communes des images obtenues, ce qui va permettre d'affiner la sélection des images clés notamment en se basant sur les couleurs.
+
+
+% \subsubsection{\textcolor{red}{Article numéro 3}}
+% Ce document \textcolor{blue}{[3]} propose une approche pour extraire automatiquement des images clés de vidéos en s’appuyant sur la théorie de la représentation parcimonieuse. L’approche se distingue par son indépendance vis-à-vis de la détection de plans ou de la segmentation préalable.
+% \paragraph{Première étape : Projection et extraction de caractéristiques} 
+% \begin{itemize} 
+%     \item Chaque image de la vidéo est convertie en un vecteur (avec les pixels réorganisés de manière lexicographique). 
+%     \item Ce vecteur est projeté dans un espace de dimension réduite grâce à une matrice de projection aléatoire 
+%     \item Cette projection permet de réduire le coût de calcul par rapport à des descripteurs classiques (SIFT, GIST, histogramme de couleurs, etc.). 
+% \end{itemize}
+% \paragraph{Deuxième étape : Représentation parcimonieuse et construction du dictionnaire} 
+% \begin{itemize} 
+%     \item Chaque vecteur est reconstruit comme une combinaison linéaire parcimonieuse des colonnes d’un dictionnaire surcomplet 
+%     \item Le vecteur de coefficients est contraint à être non négatif et contient peu d’éléments non nuls. 
+%     \item L’optimisation se fait via la minimisation de l’erreur de reconstruction combinée à une régularisation.
+% \end{itemize}
+
+% \paragraph{Troisième étape : Clustering et sélection des images clés} 
+% \begin{itemize} 
+%     \item À partir des coefficients on construit une matrice symétrique qui capture les similarités entre images. 
+%     \item Une contrainte temporelle est appliquée pour favoriser l’influence des images proches dans le temps.
+%     \item Un clustering normalisé est ensuite appliqué, Le nombre de clusters correspond au nombre désiré d’images clés. 
+%     \item Pour chaque cluster, les images sont ordonnées temporellement et l’image médiane est retenue comme image clé. 
+% \end{itemize}
+
+% \paragraph{Résultats et performances} 
+% \begin{itemize} 
+%     \item L’approche a été testée sur une base de 100 vidéos variés. 
+%     \item Les résultats montrent une bonne correspondance avec la "vérité terrain" établie par des juges humains, et une performance supérieure à une méthode basée sur la détection de mouvement de caméra. 
+%     \item L’utilisation d’une projection aléatoire et de la représentation parcimonieuse permet une réduction significative du temps de calcul, rendant l’approche particulièrement efficace pour le traitement de grandes quantités de vidéos. 
+% \end{itemize}
+% \paragraph{Conclusions et perspectives} 
+% \begin{itemize} 
+%     \item L’approche proposée permet d’extraire efficacement des images clés sans recourir à des techniques complexes de segmentation ou de détection de plans. 
+%     \item Les résultats expérimentaux démontrent sa faisabilité et sa robustesse sur des vidéos non structurées. 
+% \end{itemize}
+
+% \subsubsection{\textcolor{red}{Article numéro 4}}
+% Ce document \textcolor{blue}{[4]} présente une approche pour extraire automatiquement des images clés à partir de vidéos, en s’appuyant sur la représentation par image epitome. Comme pour la méthode précédente elle ne nécessite aucune segmentation.
+
+% \paragraph{Première étape : Représentation par image epitome} 
+% \begin{itemize} 
+%     \item Pour chaque image de la vidéo, une représentation condensée, appelée "image epitome", est construite. L’epitome regroupe les informations visuelles essentielles (texture, contours, couleurs, etc.) en agrégeant de petits patchs caractéristiques. 
+%     \item Cette représentation est obtenue en associant de manière probabiliste chaque patch de l’image à une région de l’epitome via un modèle gaussien. Les paramètres (moyennes et variances) des distributions associées à chaque position de l’epitome sont estimés. 
+%     \item Un algorithme d’espérance-maximisation (EM) est utilisé pour optimiser la correspondance entre les patchs de l’image originale et ceux de l’epitome, garantissant ainsi que cette dernière conserve les aspects les plus saillants de l’image.
+% \end{itemize}
+
+% \paragraph{Deuxième étape : Calcul de la dissimilarité entre images} 
+% \begin{itemize} 
+%     \item Chaque image est désormais représentée par son vecteur epitome, qui résume l’information visuelle de manière compacte. 
+%     \item Pour mesurer la dissimilarité entre deux images, on modélise ces vecteurs par des mélanges de Gaussiennes. La comparaison s’effectue à l’aide d’une divergence de Kullback-Leibler.
+% \end{itemize}
+
+% \paragraph{Troisième étape : Sélection des images clés via l’algorithme min-max} 
+% \begin{itemize} 
+%     \item Une fois les dissimilarités calculées pour chaque paire d’images, la méthode procède à la sélection des images clés en appliquant un algorithme min-max. 
+%     \item La première sélection consiste à identifier les deux images présentant la plus grande dissimilarité, assurant ainsi une couverture maximale du contenu de la vidéo. 
+%     \item Par la suite, l’algorithme ajoute itérativement la nouvelle image qui maximise la distance minimale par rapport à l’ensemble des images déjà sélectionnées. Cette stratégie permet de réduire les redondances tout en garantissant une représentation exhaustive des variations visuelles de la séquence. 
+% \end{itemize}
+
+% \paragraph{Résultats et performances} 
+% \begin{itemize} 
+%     \item La méthode a été évaluée sur une base de vidéos consommateurs et comparée aux images clés établies par des juges humains. 
+%     \item Les résultats montrent une correspondance satisfaisante avec la vérité terrain et soulignent la robustesse de l’approche face aux variations de perspective et de luminosité caractéristiques des vidéos non structurées. 
+%     \item L’utilisation de l’image epitome combinée à la divergence de Kullback-Leibler permet de réduire significativement le coût de calcul, rendant l’algorithme efficace même pour des volumes importants de données vidéo. 
+% \end{itemize}
+% \paragraph{Conclusions et perspectives} 
+% \begin{itemize} 
+%     \item L’approche présentée permet d’extraire efficacement des images clés sans recourir à des techniques de segmentation ou de détection de plans, grâce à l’utilisation intelligente de l’image epitome. 
+%     \item Les expérimentations démontrent la pertinence de cette méthode, qui offre un compromis intéressant entre précision et efficacité computationnelle dans un contexte de vidéos consommateurs.
+% \end{itemize}
+
+% \subsubsection{\textcolor{red}{Article numéro 5}}
+% \paragraph{Explication de la méthode} 
+% \begin{itemize}
+%     \item Première étape : Détection d’objets et attribution d’un score de qualité.
+%     \begin{itemize} 
+%         \item Un détecteur d’objets (R-CNN) est appliqué à chaque image pour identifier des éléments d’intérêt (par exemple, piétons, véhicules). 
+%         \item Chaque image se voit attribuer un score de qualité en fonction de la présence et de la pertinence des objets détectés. 
+%         \item L’utilisation de ce score permet de prioriser les images contenant des informations significatives et d’éliminer une grande partie des images redondantes. 
+%     \end{itemize}
+%     \item La deuxième étape consiste à combiner, pour chaque image, le score calculé précédemment avec le score SIFT, défini comme la somme des points d’intérêt détectés dans l’image.
+%     \item Lors de la dernière étape, les n images ayant les scores les plus élevés sont sélectionnées comme candidates. Enfin, à l’aide du classifieur AlexNet, chaque image est acceptée si le label cible figure parmi les résultats, dans le cas contraire elle est rejetée.
+% \end{itemize}
+
+% \paragraph{Résultats et performances} 
+% \begin{itemize} 
+%     \item Des expérimentations sur des vidéos de surveillance (notamment dans le contexte ferroviaire) démontrent que l’approche permet d’extraire des images clés plus précises et moins redondantes. 
+%     \item La méthode présente une amélioration notable par rapport aux techniques traditionnelles basées sur des caractéristiques classiques ou des méthodes de clustering, tant en termes de précision que d’efficacité de calcul. 
+% \end{itemize}
+
+
+% \subsubsection{\textcolor{red}{Article numéro 6}}
+% \paragraph{Explication de la méthode}
+% Chaque frame est transformée en un vecteur de caractéristiques basé sur la couleur (HSV) et le mouvement (flux optique). À l’aide d’une fenêtre glissante, on extrait des statistiques (changement de texture et intensité du mouvement) pour former des vecteurs $X[i]$.\\
+
+% Un One-Class SVM avec noyau RBF est ensuite entraîné pour détecter les frames atypiques, avec une optimisation des hyperparamètres ($\nu$, $\gamma$) via Differential Evolution (DE). Enfin, les frames ayant les scores les plus négatifs sont sélectionnées comme keyframes.
+
+% \paragraph{Résultats et performances} 
+% \begin{itemize} 
+%     \item Des tests effectués sur des fonctions standards et des bases de données vidéo (dont la TREC2009 et une base de tests interne) démontrent que l'algorithme ISPMDE-SVM offre une meilleure précision et un meilleur taux de rappel dans l'extraction des images clés, par rapport à des méthodes utilisant directement le SVM ou d'autres variantes de l'évolution différentielle. 
+%     \item L'algorithme proposé atteint une convergence plus rapide tout en préservant la diversité de la population, ce qui se traduit par une optimisation efficace des paramètres SVM sans accroître significativement la complexité temporelle globale du processus. 
+% \end{itemize}
+
+% \paragraph{Conclusions et perspectives} 
+% \begin{itemize} 
+%     \item L'approche ISPMDE-SVM permet d'extraire des images clés de manière autonome et précise en combinant une extraction fine des caractéristiques vidéo avec une optimisation intelligente des paramètres du classifieur SVM. 
+%     \item Les résultats expérimentaux confirment l'efficacité de cette méthode, qui offre un bon compromis entre précision d'extraction et coût computationnel. 
+%     \item Des travaux futurs pourraient explorer l'intégration d'autres types de caractéristiques vidéo ou l'adaptation de l'algorithme à des environnements de traitement en temps réel. 
+% \end{itemize}
+
+
+% \subsubsection{\textcolor{red}{Article numéro 7}}
+% \paragraph{Explication de la méthode}
+% \begin{itemize}
+%     \item Pour chaque image, on extrait quatre canaux de caractéristiques : FM (motion) : différence absolue entre l’image courante et la précédente (si elle existe), luminance, FRG (red/green) et FBY (blue/yellow). 
+%     \item Fusion par transformée de Fourier quaternion : on regroupe ces quatre caractéristiques en deux plans complexes, Plan 1 : FM + i·FB et Plan 2 : FRG + i·FBY. On effectue une FFT 2D sur chacun des deux plans puis on calcule une carte de phase fusionnée. On normalise cette phase en image 8 bits (0–255).
+%     \item Filtrage spatial : On applique un flou gaussien sur la carte de phase normalisée, afin d’atténuer le bruit (les hautes fréquences).
+%     \item Reconstruction (inverse FFT): On traite la carte floutée comme un signal réel et on fait une IFFT 2D. Le module du résultat constitue la carte fusionnée finale pour cette frame, qui met en valeur à la fois le mouvement et les variations de couleur/brillance.
+%     \item Détection de la frame la plus saillante: On calcule la MSE (Mean Squared Error) entre chaque carte fusionnée et celle de la frame précédente, pour obtenir une courbe MSE tout au long de la vidéo. L’indice où cette MSE est maximale correspond à la transformation la plus marquée (changement global + local).
+% \end{itemize}
+
+% \paragraph{Comparaison avec d'autres approches}
+% Lors de comparaisons avec d’autres méthodes basées sur le domaine fréquentiel (FD, FFT) et sur l’analyse d’échelle et de direction (SaD), le modèle proposé montre des performances supérieures.
+
+% \paragraph{Analyse}
+% Les tests sur des vidéos complexes, comme celles comportant plusieurs cibles et des événements d’anomalie (vol, agression, vandalisme), illustrent que la méthode capture non seulement les changements globaux (entrée et sortie de la scène) mais également les détails locaux significatifs (mouvements de mains, changement de posture) avec une grande fidélité.
+
+% \paragraph{Conclusion}
+% En résumé, la méthode se distingue par sa capacité à :
+% \begin{itemize}
+%     \item Conserver l'intégralité de l'information de couleur (en évitant le prétraitement en niveaux de gris)
+%     \item Fusionner intelligemment des caractéristiques dynamiques et statiques via une représentation quaternion
+%     \item Exploiter le spectre de phase pour extraire avec précision les contours et mouvements
+%     \item Appliquer une sélection adaptative basée sur des mesures de changement d'image (MSE) pour extraire les images clés les plus pertinentes
+% \end{itemize}
+% Cette approche permet ainsi d'améliorer la précision de l'extraction des key frames en conservant à la fois les détails globaux et locaux dans des vidéos de surveillance.
+
+% \subsubsection{\textcolor{red}{Article numéro 8}}
+% L’objectif est d’analyser le style d’un film en décomposant ses éléments visuels et textuels.
+% \paragraph{Extraction des sous-titres}
+% Une API de reconnaissance de texte (Baidu) est utilisée pour extraire le contenu des sous-titres, qui est ensuite analysé (par exemple via un nuage de mots) pour dégager les thèmes du film.
+
+% \paragraph{Segmentation des plans}
+% \begin{itemize}
+%     \item La segmentation repose sur un calcul de la similarité entre images successives à l’aide d’un algorithme basé sur l’histogramme (avec un seuil de similarité fixé, par exemple à 0,7).
+%     \item Pour des scènes complexes, notamment en cas de dialogues où le visage des acteurs apparaît en alternance, une méthode de suivi des visages (face tracking avec MTCNN et FaceNet) est employée afin de regrouper les images issues du même plan.
+% \end{itemize}
+
+% \paragraph{Extraction des images clés}
+% \begin{itemize}
+%     \item La méthode détecte les images clés en calculant la différence absolue entre deux images consécutives après les avoir prétraitées (conversion en niveaux de gris, filtrage gaussien).
+%     \item Ces différences sont ensuite binarisées et sommées pour obtenir une valeur unique par image.
+%     \item Un lissage exponentiel suivi d’une analyse avec une fenêtre glissante (taille de 25 images) permet d’identifier les pics de changement, correspondant aux transitions majeures du film.
+%     \item Les images associées à ces pics sont extraites comme représentatives des moments importants.
+% \end{itemize}
+
+% \paragraph{Reconnaissance d’objets sur les images clés}
+% \begin{itemize}
+%     \item Chaque image clé est redimensionnée et normalisée (par exemple, en format RGB 224×224) pour correspondre aux exigences du modèle de reconnaissance.
+%     \item Le réseau VGG-16, pré-entraîné pour la classification d’images, est appliqué pour identifier les objets et scènes présents dans l’image.
+%     \item L’analyse de la fréquence et du type d’objets reconnus permet d’en déduire des informations sur la thématique et la structure narrative du film.
+% \end{itemize}
+
+% \paragraph{Conclusion}
+% À partir de ces étapes, des métriques quantitatives (nombre de plans, durée moyenne des plans, nombre de plans longs, taux de montage) sont calculées. Ces données offrent une vision du style du film, ce qui nous intéresse pas du tout pour notre problématique mais on peut s'inspirer d'une étape (celle de la reconnaissance d'objets). Après une pré-selection avec des méthodes classiques on pourrait l'affiner en faisant peser dans la balance le nombre d'objets detecté dans chaque frame.
+
+% \subsubsection{\textcolor{red}{Article numéro 9}}
+% Cette article à pour but d'améliorer l’efficacité de la classification vidéo, l’idée est d’extraire un ensemble réduit d’images représentatives (keyframes) qui résument au mieux le contenu pertinent de la vidéo tout en préservant l’information temporelle.\\
+% La méthode proposée se décompose en 4 grandes étapes:
+
+% \paragraph{Segmentation temporelle}
+% La vidéo est divisée en segments égaux pour conserver l’ordre chronologique et faciliter l’analyse locale.
+
+% \paragraph{Extraction de caractéristiques profondes}
+% Pour chaque frame, un réseau de neurones convolutionnel (CNN) extrait des vecteurs de caractéristiques sémantiques riches, bien plus informatifs que des descripteurs traditionnels.
+
+% \paragraph{Clustering par densité (TSDPC)}
+%  Dans chaque segment, un algorithme de clustering basé sur la densité est appliqué aux vecteurs extraits. Cet algorithme identifie automatiquement les points (frames) qui présentent une forte densité locale et qui sont suffisamment isolés des autres. Ces points correspondent aux frames les plus représentatives, c’est-à-dire les keyframes.
+ 
+% \paragraph{Classification vidéo avec LSTM }
+% Les keyframes, conservant l’information temporelle essentielle, sont ensuite utilisées comme entrée d’un réseau LSTM qui modélise les dépendances temporelles pour classifier la vidéo.
+
+
+% \subsubsection{\textcolor{red}{Article numéro 10}}
+% La méthode est divisée en plusieurs étapes :
+
+% \paragraph{Sélection de keyframes candidates} 
+% \begin{itemize} 
+%     \item La vidéo est d'abord segmentée en unités de plans à l'aide d'une détection de transitions basée sur les arêtes. Cela permet de diviser la séquence vidéo en plans cohérents. 
+%     \item Pour chaque plan, on sélectionne l'image de meilleure qualité en utilisant deux modèles d’évaluation : 
+%     \begin{enumerate} 
+%         \item Pour les plans centrés sur des visages, un modèle de classement d'expression portrait (basé sur des données) est utilisé afin de choisir l'image la plus attractive. 
+%         \item Pour les autres plans, un modèle basé sur un réseau de neurones convolutionnel (CNN) est appliqué pour estimer l’esthétique globale de l'image.
+%     \end{enumerate} 
+% \end{itemize}
+
+% \paragraph{Regroupement par clustering} 
+% Afin de réduire la redondance, les keyframes sont regroupées en clusters : 
+% \begin{itemize} 
+%     \item Pour les scènes à dominante humaine, les caractéristiques faciales extraites sont comparées et regroupées selon leur similarité. 
+%     \item Pour les scènes non centrées sur l'humain, un algorithme de k-means est appliqué en se basant sur l'histogramme de couleurs des keyframes. Cette étape permet d’identifier des groupes de plans représentatifs et d’éliminer les redondances dues à la similarité de contenu. 
+% \end{itemize}
+
+% \paragraph{Détection des régions saillantes} 
+% Chaque keyframe candidate subit une détection de sa zone saillante à l’aide d’un algorithme robuste. L’objectif est d’identifier la partie la plus informative de l'image. Deux seuils — un seuil élevé pour éviter le recouvrement et un seuil plus faible pour garantir l’intégrité de la zone saillante — sont utilisés afin de définir précisément les régions qui seront mises en avant.
+
+% \paragraph{Génération du thumbnail informatif} 
+% \begin{itemize} 
+%     \item Une keyframe sélectionnée sert d'image porteuse dans laquelle seront intégrées les autres régions saillantes. 
+%     \item Ensuite, il faut construire la vignette en intégrant les autres keyframes tout en optimisant ces trois aspects : 
+%     \begin{enumerate} 
+%         \item \textbf{Représentativité} : la somme des scores de représentativité, calculée en fonction de la durée totale des plans du cluster. 
+%         \item \textbf{Perte d’information due à la mise à l’échelle} : mesurée par un facteur de réduction qui doit rester au-dessus d’un seuil minimum pour garantir la lisibilité. 
+%         \item \textbf{Utilisation de l’espace disponible} : l’objectif est de remplir les zones non saillantes de l'image porteuse avec des régions issues des autres keyframes. 
+%     \end{enumerate} 
+%     \item Pour rechercher la meilleure solution, une approche heuristique gloutonne est adoptée, permettant de déterminer la position et le facteur d’échelle optimaux pour chaque région à intégrer. 
+% \end{itemize}
+
+% \paragraph{Tests/Résultats} 
+% Les expériences ont été réalisées sur un ensemble de 12 vidéos issues de Yahoo Screen, couvrant des thématiques variées telles que le voyage, la cuisine, l’actualité et le cinéma. La diversité des vidéos garantit une évaluation représentative pour différents types de scénarios visuels.\\
+% Douze participants ont évalué plusieurs aspects des vignettes générées, notamment la représentativité du contenu, l'informativité et la lisibilité.\\
+% La méthode a été comparée à des techniques existantes, et il en ressort de bons scores, notamment en termes de représentativité du contenu et d'informativité, bien que la lisibilité soit légèrement inférieure.
+
+
+% \subsubsection{\textcolor{red}{Article numéro 11}}
+% \paragraph{Structuration du Contenu Vidéo par Fusion Multi-Canal}
+% \begin{enumerate}
+%     \item Détection de frontières thématiques par le canal visuel : Le document présente une première étape qui consiste à segmenter la vidéo en unités thématiques. Du côté visuel, la méthode identifie des "frontières de scènes" en analysant les différences entre les images (frames) pour détecter les coupures naturelles. L’hypothèse est que plusieurs scènes successives peuvent constituer un même thème dans des vidéos de type news.
+%     \item Détection de frontières thématiques par le canal audio : En parallèle, le canal audio est traité : la voix est convertie en texte grâce à un outil de reconnaissance vocale, puis le texte est épuré (suppression des mots-outils et redondances). Ensuite, à l’aide d’un modèle LDA pré-entraîné, le texte est divisé en plusieurs sujets. Une mesure de similarité permet d’identifier les points où le contenu sémantique change significativement.
+%     \item Fusion des informations visuelles et audio : Les deux séries de frontières (issues des canaux visuel et audio) sont ensuite fusionnées. L’idée est de prioriser le canal visuel (plus intuitif) tout en ajustant avec les indices fournis par l’audio, afin d’obtenir des unités thématiques cohérentes et précises.
+% \end{enumerate}
+
+% \paragraph{Génération Automatique de Thumbnail}
+% \begin{enumerate}
+%     \item Une fois la vidéo segmentée en unités thématiques, la méthode extrait les images clés (keyframes) et les phrases clés (key phrases). Pour les images, un filtre élimine les images floues ou peu lumineuses, puis une segmentation en plans est réalisée pour éliminer les redondances. Enfin, un algorithme de clustering (k-means), basé sur la distance des histogrammes de couleurs, permet de sélectionner les images les plus représentatives. Du côté du texte, des techniques d’extraction de mots ou de phrases clés (basées sur des méthodes existantes) permettent de résumer l’information textuelle associée.
+%     \item Pour adapter la miniature aux besoins de l’utilisateur, on calcule la similarité entre les contenus extraits (tant visuels que textuels) et la requête utilisateur. Cette étape s’appuie sur la représentation des mots via GloVe et le calcul de la similarité cosinus.
+%     \item La dernière étape consiste à composer la miniature finale. Le procédé choisit une image principale (le keyframe le mieux adapté, sélectionné en fonction de la durée de l’unité thématique et de sa pertinence avec la requête) et y intègre des images secondaires ainsi que du texte. La mise en page s’appuie sur l’extraction de régions de non-saillante dans l’image principale, de façon à y insérer harmonieusement les éléments supplémentaires sans surcharger la composition.
+% \end{enumerate}
+
+% \paragraph{Tests et Évaluation de la Méthode}
+% La méthode a été évaluée sur des vidéos de type news, issues de plateformes telles que YouTube. Les tests se sont concentrés sur la capacité des thumbnails générées à transmettre l’information (richesse du contenu), leur attractivité visuelle (beauté) et leur capacité à capter l’attention.
+
+% Une étude utilisateur a été menée avec 30 volontaires. Chaque participant a visionné trois vidéos et a attribué des notes (de 1 à 5) pour comparer les thumbnails générées par la méthode NewsThumbnail avec celles produites par d’autres méthodes (par exemple, celle de Song et les miniatures proposées par YouTube).
+
+% L’évaluation s’est basée sur trois critères : transmission de l'information, attractivité visuelle et capacité à capter l'attention. Voici les résultats observés :
+% \begin{itemize}
+%     \item NewsThumbnail surpasse YouTube : Les miniatures de YouTube, générées de façon aléatoire, sont jugées moins pertinentes et moins informatives, car elles ne tiennent pas compte du contenu textuel ou de la structure narrative de la vidéo.
+%     \item Comparé à la méthode de Song : NewsThumbnail obtient de meilleurs scores car il prend en compte à la fois l’audio et l’image, permettant d’avoir des miniatures plus représentatives du contenu.
+%     \item Comparé aux miniatures humaines : Les miniatures créées par des humains restent légèrement supérieures en attractivité et en pertinence, mais l’écart se réduit, surtout pour la transmission d’information.
+% \end{itemize}
+
+% Synthèse des grandes familles de méthodes d’extraction de keyframes
+
+% Synthèse expliquée des grandes familles de méthodes d’extraction de keyframes
