@@ -8,7 +8,7 @@ import numpy as np
 import tempfile
 import textwrap
 
-from moviepy import VideoFileClip
+from moviepy import VideoFileClip, AudioFileClip
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
@@ -389,8 +389,13 @@ class ExportManager(QWidget):
                 return
 
             video_clip = VideoFileClip(temp_video_path)
-            audio_clip = VideoFileClip(self.vlc.path_of_media).audio
-            final_clip = video_clip.with_audio(audio_clip) #remplacez set_audio par with_audio
+            try:
+                audio_clip = AudioFileClip(self.vlc.path_of_media)
+                final_clip = video_clip.set_audio(audio_clip)
+            except Exception as e:
+                print(f"⚠️ Impossible de charger l'audio : {e}")
+                final_clip = video_clip
+
             final_clip.write_videofile(self.file_path, codec="libx264", audio_codec="aac",logger=None)
             video_clip.close()
             audio_clip.close()

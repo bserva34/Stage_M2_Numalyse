@@ -72,7 +72,7 @@ def main():
     for _ in tqdm(range(total), desc="Processing frames"):
         ret, frame = cap.read()
         if not ret:
-            break
+            brea
         frames.append(frame.copy())
         b, g, r = cv2.split(frame)
         gray = ((r.astype(np.float32) + g + b) / 3).astype(np.uint8)
@@ -95,7 +95,7 @@ def main():
 
     base = os.path.splitext(os.path.basename(args.video))[0]
     output_path=os.path.join(args.out,base)
-
+ 
     print(output_path)
 
 
